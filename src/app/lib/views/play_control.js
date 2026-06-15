@@ -44,7 +44,9 @@
       } else {
         this.model.set('torrents', this.model.get('langs')[this.model.get('defaultAudio')]);
       }
-      this.model.set('showTorrentsMore', providers.torrent.feature('torrents'));
+      const hasMovieSources = providers.torrent.feature('torrents');
+      const hasCollectionSources = Settings.includeTorrentCollectionInMovieSources && torrentCollectionSearch.hasEnabledEngines(Settings);
+      this.model.set('showTorrentsMore', hasMovieSources || hasCollectionSources);
       this.model.set('showTorrents', false);
 
       App.vent.on('sub:lang', this.switchSubtitle.bind(this));
@@ -203,7 +205,7 @@
     hideTooltipsSubs: function (e) {
       this.hideTooltips();
       if (e.button === 2) {
-        nw.Shell.openExternal('https://www.opensubtitles.org/search/sublanguageid-all/' + (this.model.get('imdb_id') ? this.model.get('imdb_id').replace('tt', 'imdbid-') : ''));
+        nw.Shell.openExternal('https://www.opensubtitles.com/en/search-all/sublanguageid-all/' + (this.model.get('imdb_id') ? 'id-' + this.model.get('imdb_id').replace('tt', '') : ''));
       }
     },
 

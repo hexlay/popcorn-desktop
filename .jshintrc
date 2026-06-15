@@ -78,6 +78,7 @@
         "child": true,
         "WebTorrent": true,
         "torrentCollection": true,
+        "torrentCollectionSearch": true,
         "Trakt": true,
         "pkJson": true,
         "curSetDefaultFilters": true,

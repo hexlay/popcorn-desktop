@@ -25,7 +25,8 @@ var Settings = {
     'RTcms0CPio56gg==\n' +
     '-----END PUBLIC KEY-----\n',
   opensubtitles: {
-    useragent: 'Butter'
+    useragent: 'Butter',
+    apikey: 'sAUUD6B9mStMguWGyVSzkXKnHVbuUL6e'
   },
   trakttv: {
     client_id:
@@ -140,6 +141,7 @@ Settings.multipleExtSubtitles = false;
 Settings.opensubtitlesAuthenticated = false;
 Settings.opensubtitlesUsername = '';
 Settings.opensubtitlesPassword = '';
+Settings.opensubtitlesToken = '';
 Settings.playerSubPosition = '0px';
 
 // Playback
@@ -161,6 +163,7 @@ Settings.traktLastActivities = false;
 Settings.traktSyncOnStart = true;
 Settings.traktPlayback = true;
 Settings.activateTorrentCollection = true;
+Settings.includeTorrentCollectionInMovieSources = true;
 Settings.toggleSengines = false;
 Settings.enableThepiratebaySearch = true;
 Settings.enable1337xSearch = true;
@@ -177,9 +180,10 @@ Settings.httpApiUsername = 'popcorn';
 Settings.httpApiPassword = 'popcorn';
 
 // API Server(s)
-Settings.customMoviesServer = '';
-Settings.customSeriesServer = '';
-Settings.customAnimeServer = '';
+Settings.defaultApiServers = 'https://fusme.link/,https://jfper.link/,https://uxert.link/,https://yrkde.link/';
+Settings.customMoviesServer = Settings.defaultApiServers;
+Settings.customSeriesServer = Settings.defaultApiServers;
+Settings.customAnimeServer = Settings.defaultApiServers;
 Settings.dhtEnable = '';
 
 // Connection

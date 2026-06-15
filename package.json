@@ -20,7 +20,7 @@
     "dist": "gulp dist",
     "start": "gulp run",
     "test": "gulp test",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package && node scripts/install-pre-commit-hook.js"
   },
   "chromium-args": "--enable-node-worker --no-sandbox",
   "engines": {
@@ -76,7 +76,7 @@
     "mime": "^3.0.0",
     "nedb-promises": "^5.0.3",
     "node-tvdb": "^4.1.0",
-    "opensubtitles-api": "^5.1.2",
+    "opensubtitles.com": "^1.1.0",
     "patch-package": "^8.0",
     "postinstall-postinstall": "^2.1.0",
     "readdirp": "2.x.x",

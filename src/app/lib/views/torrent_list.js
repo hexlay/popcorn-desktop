@@ -20,7 +20,11 @@
 
         onAttach: function () {
             this.model.set('torrents', []);
-            this.model.get('promise').then((data) => this.updateTorrents(data));
+            this.model.get('promise').then((data) => {
+                if (!this.isDestroyed()) {
+                    this.updateTorrents(data);
+                }
+            });
         },
 
         updateTorrents: function (torrents) {
@@ -28,10 +32,13 @@
             let loadIcons = [];
             for(let torrent of torrents) {
                 loadIcons.push(this.icons.getLink(provider, torrent.provider)
-                    .then((icon) => torrent.icon = icon || '/src/app/images/icons/' + torrent.provider + '.png')
+                    .then((icon) => torrent.icon = icon || torrent.icon || '/src/app/images/icons/' + torrent.provider + '.png')
                     .catch((error) => { !torrent.icon ? torrent.icon = '/src/app/images/icons/' + torrent.provider + '.png' : null; }));
             }
             Promise.all(loadIcons).then((data) => {
+                if (this.isDestroyed()) {
+                    return;
+                }
                 this.model.set('torrents', torrents);
                 this.render();
                 this.$('.tooltipped').tooltip({

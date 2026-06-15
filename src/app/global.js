@@ -34,10 +34,11 @@ var _ = require('underscore'),
   // Torrent engines
   WebTorrent = require('webtorrent'),
   torrentCollection = require('torrentcollection6'),
+  torrentCollectionSearch = require(path.join(process.cwd(), 'src/app/lib/torrent_collection_search')),
   // NodeJS
   child = require('child_process'),
   // package.json
-  pkJson = nw.App.manifest,
+  pkJson = nw.App.manifest || require(path.join(process.cwd(), 'package.json')),
   // supported external players list
   extPlayerlst = '',
   // setting default filters status

@@ -3120,9 +3120,9 @@ gopd@^1.0.1:
   dependencies:
     get-intrinsic "^1.1.3"
 
-got@11.x.x, got@^11.0.0:
+got@11.x.x, got@^11.0.0, got@^11.8.2:
   version "11.8.6"
-  resolved "https://registry.npmjs.org/got/-/got-11.8.6.tgz"
+  resolved "https://registry.yarnpkg.com/got/-/got-11.8.6.tgz#276e827ead8772eddbcfc97170590b841823233a"
   integrity sha512-6tfZ91bOr7bOXnK7PRDCGBLa1H4U080YHNaAQ2KsMGlLEzRbk44nsZF2E1IeRc3vtJHPVbKCYgdFbaGO2ljd8g==
   dependencies:
     "@sindresorhus/is" "^4.0.0"
@@ -5406,13 +5406,12 @@ open@^7.4.2:
     is-docker "^2.0.0"
     is-wsl "^2.1.1"
 
-opensubtitles-api@^5.1.2:
-  version "5.1.2"
-  resolved "https://registry.npmjs.org/opensubtitles-api/-/opensubtitles-api-5.1.2.tgz"
-  integrity sha512-uGc9+/hbi1VkYGwNS0yBEeN9+URQvfZUcX3JtFBYWkwU/cUUVGbgLiI4Sx3SmumKtNoXjYDhJ9SoFTT0jVNOUQ==
+opensubtitles.com@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/opensubtitles.com/-/opensubtitles.com-1.1.0.tgz#04027ecf9e6159e9d934b7a56f6e693c93cafdb4"
+  integrity sha512-Qc9NTYxXL/x4nnpDs8krKO3WhMvuxcNyUjC4ey99tWpjp1KRKML4uyhwksEmOXN+Xhwvcub+MWdgotRbDvSVNQ==
   dependencies:
-    urijs "^1.19.1"
-    xmlrpc "^1.3.2"
+    got "^11.8.2"
 
 options-defaults@^2.0.39:
   version "2.0.40"
@@ -6459,7 +6458,7 @@ sax@1.1.4:
   resolved "https://registry.npmjs.org/sax/-/sax-1.1.4.tgz"
   integrity sha1-dLbTPJrh4AFRDxeakRaFiPGu2qk=
 
-sax@1.2.x, sax@>=0.6.0, sax@^1.2.4, sax@~1.2.4:
+sax@>=0.6.0, sax@^1.2.4, sax@~1.2.4:
   version "1.2.4"
   resolved "https://registry.npmjs.org/sax/-/sax-1.2.4.tgz"
   integrity sha512-NqVDv9TpANUjFm0N8uM5GxL36UgKi9/atZw+x7YFnQ8ckwFGKrl4xX4yWtrey3UJm5nP1kUbnYgLopqWNSRhWw==
@@ -7176,7 +7175,7 @@ teex@^1.0.1:
 
 "temp@github:adam-lynch/node-temp#remove_tmpdir_dep":
   version "0.8.3"
-  resolved "git+ssh://git@github.com/adam-lynch/node-temp.git#279c1350cb7e4f02515d91da9e35d39a40774016"
+  resolved "git+https://github.com/adam-lynch/node-temp.git#279c1350cb7e4f02515d91da9e35d39a40774016"
   dependencies:
     rimraf "~2.2.6"
 
@@ -7684,7 +7683,7 @@ uri-js@^4.2.2:
   dependencies:
     punycode "^2.1.0"
 
-urijs@^1.19.1, urijs@^1.19.11:
+urijs@^1.19.11:
   version "1.19.11"
   resolved "https://registry.npmjs.org/urijs/-/urijs-1.19.11.tgz"
   integrity sha512-HXgFDgDommxn5/bIv0cnQZsPhHDA90NPHD6+c/v21U5+Sx5hoP8+dP9IZXBU1gIfvdRfhG8cel9QNPeionfcCQ==
@@ -7948,7 +7947,7 @@ vinyl@^3.0.0:
 
 "vtt.js@git+https://github.com/gkatsev/vtt.js.git#vjs-v0.12.1":
   version "0.12.1"
-  resolved "git+ssh://git@github.com/gkatsev/vtt.js.git#8ea664e257ec7b5c092f58ac989e3134ff536a7a"
+  resolved "git+https://github.com/gkatsev/vtt.js.git#8ea664e257ec7b5c092f58ac989e3134ff536a7a"
 
 w-json@^1.3.10:
   version "1.3.10"
@@ -8158,11 +8157,6 @@ xmlbuilder@4.0.0:
   dependencies:
     lodash "^3.5.0"
 
-xmlbuilder@8.2.x:
-  version "8.2.2"
-  resolved "https://registry.npmjs.org/xmlbuilder/-/xmlbuilder-8.2.2.tgz"
-  integrity sha1-aSSGc0ELS6QuGmE2VR0pIjNap3M=
-
 xmlbuilder@^9.0.7:
   version "9.0.7"
   resolved "https://registry.npmjs.org/xmlbuilder/-/xmlbuilder-9.0.7.tgz"
@@ -8177,14 +8171,6 @@ xmldom@0.1.x:
   version "0.1.31"
   resolved "https://registry.npmjs.org/xmldom/-/xmldom-0.1.31.tgz"
   integrity sha512-yS2uJflVQs6n+CyjHoaBmVSqIDevTAWrzMmjG1Gc7h1qQ7uVozNhEPJAwZXWyGQ/Gafo3fCwrcaokezLPupVyQ==
-
-xmlrpc@^1.3.2:
-  version "1.3.2"
-  resolved "https://registry.npmjs.org/xmlrpc/-/xmlrpc-1.3.2.tgz"
-  integrity sha1-JrLqNHhI0Ciqx+dRS1NRl23j6D0=
-  dependencies:
-    sax "1.2.x"
-    xmlbuilder "8.2.x"
 
 "xtend@>=4.0.0 <4.1.0-0", xtend@~4.0.0, xtend@~4.0.1:
   version "4.0.2"

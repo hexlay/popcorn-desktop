@@ -420,7 +420,7 @@
                         <label class="settings-label" for="multipleExtSubtitles"><%= i18n.__("Show all available subtitles for default language in flag menu") %></label>
                     </span>
                     <span>
-                        <em>* <%= i18n.__("You are currently connected to %s", "OpenSubtitles.org") %>.
+                        <em>* <%= i18n.__("You are currently connected to %s", "OpenSubtitles.com") %>.
                         <a id="unauthOpensubtitles" class="unauthtext" href="#"><%= i18n.__("Disconnect account") %></a></em>
                     </span>
                 <% } else { %>
@@ -433,10 +433,10 @@
                     </span>
                     <span>
                         <p><%= i18n.__("Password") %></p>
-                        <input type="password" size="50" id="opensubtitlesPassword" name="opensubtitlesPassword" placeholder="* <%= i18n.__('Stored in local database as encrypted MD5 hash') %>"><br>
+                        <input type="password" size="50" id="opensubtitlesPassword" name="opensubtitlesPassword" placeholder="* <%= i18n.__('Used once to create a local access token') %>"><br>
                     </span>
                     <span>
-                        <em>* <a class="syncOpensubtitles" id="authOpensubtitles" href="#"><%= i18n.__("Connect to %s", "OpenSubtitles.org") %></a>
+                        <em>* <a class="syncOpensubtitles" id="authOpensubtitles" href="#"><%= i18n.__("Connect to %s", "OpenSubtitles.com") %></a>
                         <%= i18n.__("to automatically fetch subtitles for movies and episodes you watch in %s", Settings.projectName) %>&nbsp;&nbsp;
                         (<a class="createOpensubtitles" href="#"><%= i18n.__("Create an account") %></a>)</em>
                     </span>
@@ -497,6 +497,10 @@
             <span>
                 <input class="settings-checkbox" name="activateTorrentCollection" id="activateTorrentCollection" type="checkbox" <%=(Settings.activateTorrentCollection? "checked='checked'":"")%>>
                 <label class="settings-label" for="activateTorrentCollection"><%= i18n.__("Torrent Collection") %></label>
+            </span>
+            <span>
+                <input class="settings-checkbox" name="includeTorrentCollectionInMovieSources" id="includeTorrentCollectionInMovieSources" type="checkbox" <%=(Settings.includeTorrentCollectionInMovieSources? "checked='checked'":"")%>>
+                <label class="settings-label" for="includeTorrentCollectionInMovieSources"><%= i18n.__("Include Torrent Collection in movie sources") %></label>
             </span>
             <span>
                 <input class="settings-checkbox" name="activateSeedbox" id="activateSeedbox" type="checkbox" <%=(Settings.activateSeedbox? "checked='checked'":"")%>>

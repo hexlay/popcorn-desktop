@@ -4,7 +4,7 @@
  * setup *
  ********/
 const defaultNwVersion = '0.86.0',
-  availablePlatforms = ['linux32', 'linux64', 'win32', 'win64', 'osx64'],
+  availablePlatforms = ['linux32', 'linux64', 'win32', 'win64', 'osx64', 'osx-arm64'],
   releasesDir = 'build',
   nwFlavor = 'sdk';
 
@@ -26,7 +26,24 @@ const gulp = require('gulp'),
   spawn = require('child_process').spawn,
   pkJson = require('./package.json');
 
-const { detectCurrentPlatform } = require('nw-builder/dist/index.cjs');
+const { detectCurrentPlatform, Platforms } = require('nw-builder/dist/index.cjs');
+
+if (!Platforms['osx-arm64']) {
+  Platforms['osx-arm64'] = {
+    needsZip: false,
+    files: {
+      '>=0.12.0 || ~0.12.0-alpha': ['nwjs.app']
+    },
+    versionNameTemplate: 'v${ version }/${ name }-v${ version }-osx-arm64.zip'
+  };
+}
+
+const detectPlatform = () => {
+  if (process.platform === 'darwin') {
+    return process.arch === 'arm64' ? 'osx-arm64' : 'osx64';
+  }
+  return detectCurrentPlatform(process);
+};
 
 const nwVersion = yargs.argv.nwVersion || defaultNwVersion;
 
@@ -35,7 +52,7 @@ const nwVersion = yargs.argv.nwVersion || defaultNwVersion;
  ***********/
 // returns an array of platforms that should be built
 const parsePlatforms = () => {
-  const requestedPlatforms = (yargs.argv.platforms || detectCurrentPlatform(process)).split(
+  const requestedPlatforms = (yargs.argv.platforms || detectPlatform()).split(
       ','
     ),
     validPlatforms = [];
@@ -272,7 +289,16 @@ gulp.task('jshint', () => {
     ])
     .pipe(glp.jshint('.jshintrc'))
     .pipe(glp.jshint.reporter('jshint-stylish'))
-    .pipe(glp.jshint.reporter('fail'));
+    .pipe(glp.jshint.reporter('fail', { ignoreWarning: true, ignoreInfo: true }));
+});
+gulp.task('unit', () => {
+  return new Promise((resolve, reject) => {
+    const test = spawn(process.execPath, ['test/torrent_collection_search.test.js'], {
+      stdio: 'inherit'
+    });
+    test.on('close', (exitCode) => exitCode ? reject(new Error('Unit tests failed')) : resolve());
+    test.on('error', reject);
+  });
 });
 // zip compress all
 gulp.task('compresszip', () => {
@@ -281,7 +307,7 @@ gulp.task('compresszip', () => {
       return new Promise((resolve, reject) => {
         console.log('Packaging zip for: %s', platform);
         var sources = path.join('build', pkJson.name, platform);
-        if (platform.match(/osx64/) !== null) {
+        if (platform.match(/osx/) !== null) {
           sources = path.join('build', pkJson.name, platform, '/**.app');
         }
         return gulp
@@ -358,7 +384,7 @@ gulp.task('clean:css', deleteAndLog(['src/app/themes'], 'css files'));
 gulp.task('mac-pkg', () => {
   return Promise.all(
     nw.options.platforms.map((platform) => {
-      if (detectCurrentPlatform(process).indexOf('osx') === -1) {
+      if (detectPlatform().indexOf('osx') === -1) {
         console.log('Packaging deb is only possible on osx');
         return null;
       }
@@ -373,7 +399,7 @@ gulp.task('mac-pkg', () => {
             return renameFile(
                 path.join(process.cwd(), releasesDir),
                 pkJson.name + '-' + pkJson.version + '.pkg',
-                pkJson.name + '-' + curVersion() + '-osx64' + nwSuffix() + '.pkg'
+                pkJson.name + '-' + curVersion() + '-' + platform + nwSuffix() + '.pkg'
             ).then(() => resolve());
         }).catch(() => {
             console.log('%s failed to package pkg', platform);
@@ -442,13 +468,14 @@ gulp.task('nwjs', () => {
 gulp.task('injectgit', () => {
   return git.gitDescribe()
     .then(
-      (gitInfo) =>
-        new Promise((resolve, reject) => {
-          fs.writeFile(
-            'git.json',
-            JSON.stringify({
-              commit: gitInfo.hash.substr(1),
-              semver: gitInfo.semverString.includes(pkJson.version) ? gitInfo.semverString : gitInfo.semverString + '-' + pkJson.version.split('-').slice(1).join('-'),
+          (gitInfo) =>
+          new Promise((resolve, reject) => {
+            const semverString = gitInfo.semverString || pkJson.version;
+            fs.writeFile(
+              'git.json',
+              JSON.stringify({
+                commit: gitInfo.hash.substr(1),
+                semver: semverString.includes(pkJson.version) ? semverString : semverString + '-' + pkJson.version.split('-').slice(1).join('-'),
             }),
             (error) => {
               return error ? reject(error) : resolve(gitInfo);
@@ -532,7 +559,7 @@ gulp.task('deb', () => {
         console.log('No `deb` task for:', platform);
         return null;
       }
-      if (detectCurrentPlatform(process).indexOf('linux') === -1) {
+      if (detectPlatform().indexOf('linux') === -1) {
         console.log('Packaging deb is only possible on linux');
         return null;
       }
@@ -616,7 +643,7 @@ gulp.task(
 // travis tests
 gulp.task(
   'test',
-  gulp.series('jshint', 'injectgit', 'css', function(done) {
+  gulp.series('jshint', 'unit', 'injectgit', 'css', function(done) {
     // default task code here
     done();
   })

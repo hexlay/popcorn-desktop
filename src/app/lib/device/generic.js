@@ -46,8 +46,8 @@
 
   class DeviceCollection extends Backbone.Collection {
 
-    selected = 'local';
     initialize() {
+      this.selected = 'local';
       App.vent.on('device:list', this.list);
       App.vent.on('device:pause', this.pause);
       App.vent.on('device:unpause', this.unpause);

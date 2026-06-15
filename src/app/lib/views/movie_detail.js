@@ -83,10 +83,24 @@
       }
       const provider = App.Config.getProviderForType('movie')[0];
       const altShowAll = provider.config.noShowAll ? _.shuffle((Settings.dhtInfo.server ? Settings.dhtInfo.server.split(',') : Settings.customServers.movie).filter(a => !a.includes(provider.apiURL))) : null;
+      const providerResults = provider.feature('torrents') && typeof provider.torrents === 'function' ? provider.torrents(this.model.get('imdb_id'), lang, altShowAll).catch(function(error) {
+        win.error('Movie source search:', error);
+        return [];
+      }) : Promise.resolve([]);
+      const collectionResults = Settings.includeTorrentCollectionInMovieSources ? torrentCollectionSearch.search({
+        query: this.model.get('title'),
+        category: 'Movies',
+        timeout: 8000,
+        settings: Settings,
+        clients: torrentCollection,
+        logger: win,
+      }) : Promise.resolve([]);
       const torrentList = new App.View.TorrentList({
         model: new Backbone.Model({
           provider,
-          promise: provider.torrents(this.model.get('imdb_id'), lang, altShowAll),
+          promise: Promise.all([collectionResults, providerResults]).then(function(results) {
+            return torrentCollectionSearch.dedupe(results[0].concat(results[1] || []));
+          }),
         }),
       });
       this.getRegion('TorrentList').show(torrentList);

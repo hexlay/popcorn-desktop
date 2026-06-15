@@ -1,0 +1,44 @@
+diff --git a/node_modules/nw-builder/lib/Version.cjs b/node_modules/nw-builder/lib/Version.cjs
+index 1cb5661..ff31e01 100644
+--- a/node_modules/nw-builder/lib/Version.cjs
++++ b/node_modules/nw-builder/lib/Version.cjs
+@@ -39,6 +39,8 @@ class Version {
+     };
+   } else {
+     var fixPlatformName = function (platform) {
++      // ARM64 platform names already use NW.js' expected format.
++      if (platform.indexOf('arm') !== -1) return platform;
+       return platform.replace("32", "-ia32").replace("64", "-x64");
+     };
+
+diff --git a/node_modules/nw-builder/lib/index.cjs b/node_modules/nw-builder/lib/index.cjs
+index bc43f14..ff51762 100644
+--- a/node_modules/nw-builder/lib/index.cjs
++++ b/node_modules/nw-builder/lib/index.cjs
+@@ -667,7 +667,7 @@ NwBuilder.prototype.copyFiles = function () {
+       self._files.forEach(function (file) {
+         var dest;
+
+-        if (name == "osx32" || name === "osx64") {
++        if (name == "osx32" || name === "osx64" || name === "osx-arm64") {
+           dest = path.resolve(
+             self.getResourcesDirectoryPath(platform),
+             "app.nw",
+@@ -692,7 +692,7 @@ NwBuilder.prototype.copyFiles = function () {
+           self,
+         ),
+       );
+-    } else if (name == "osx32" || name == "osx64") {
++    } else if (name == "osx32" || name == "osx64" || name === "osx-arm64") {
+       // zip just copy the app.nw
+       copyPromises.push(
+         Utils.copyFile(
+@@ -745,7 +745,7 @@ NwBuilder.prototype.handleMacApp = function () {
+     allDone = [];
+
+   this._forEachPlatform(function (name, platform) {
+-    if (["osx32", "osx64"].indexOf(name) < 0) return;
++    if (["osx32", "osx64", "osx-arm64"].indexOf(name) < 0) return;
+
+     // Let's first handle the mac icon
+     if (self.options.macIcns) {
