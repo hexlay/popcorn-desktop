@@ -48,6 +48,7 @@
       const hasCollectionSources = Settings.includeTorrentCollectionInMovieSources && torrentCollectionSearch.hasEnabledEngines(Settings);
       this.model.set('showTorrentsMore', hasMovieSources || hasCollectionSources);
       this.model.set('showTorrents', false);
+      this.loadPreferredCollectionSources();
 
       App.vent.on('sub:lang', this.switchSubtitle.bind(this));
       App.vent.on('audio:lang', this.switchAudio.bind(this));
@@ -82,6 +83,48 @@
         $('.button:not(#download-torrent, #cancel-button)').addClass('disabled');
         $('#watch-now, #watch-trailer, .playerchoice').prop('disabled', true);
       }
+    },
+
+    loadPreferredCollectionSources: function() {
+      if (!Settings.includeTorrentCollectionInMovieSources || !torrentCollectionSearch.hasEnabledEngines(Settings)) {
+        return;
+      }
+      const collectionPromise = torrentCollectionSearch.search({
+        query: this.model.get('title'),
+        category: 'Movies',
+        timeout: 8000,
+        settings: Settings,
+        clients: torrentCollection,
+        logger: win,
+      });
+      this.model.set('torrentCollectionPromise', collectionPromise, {silent: true});
+      collectionPromise.then(function(collectionTorrents) {
+        if (!collectionTorrents.length || this.isDestroyed()) {
+          return;
+        }
+        const langs = Object.assign({}, this.model.get('langs') || {});
+        const collectionLangs = torrentCollectionSearch.groupByAudioLanguage(collectionTorrents);
+        const bestLanguages = collectionTorrents[0].audioLanguages || ['en'];
+        const audio = bestLanguages[0];
+        let preferredQuality = null;
+        Object.keys(collectionLangs).forEach(function(language) {
+          const preferred = torrentCollectionSearch.preferByQuality(langs[language], collectionLangs[language]);
+          langs[language] = preferred.torrents;
+          if (language === audio) {
+            preferredQuality = preferred.quality;
+          }
+        });
+        this.model.set({
+          defaultAudio: audio,
+          langs: langs,
+          torrents: langs[audio],
+          preferredTorrentQuality: preferredQuality,
+        });
+        const qualitySelector = this.getRegion('qualitySelector').currentView;
+        if (qualitySelector) {
+          qualitySelector.updateTorrents(preferred.torrents);
+        }
+      }.bind(this));
     },
 
     setQuality: function(torrent, key) {
@@ -133,6 +176,7 @@
           selectCallback: this.setQuality,
           required: [],
           defaultQualityKey: 'movies_default_quality',
+          contentModel: this.model,
         }),
       });
       this.getRegion('qualitySelector').show(qualitySelector);

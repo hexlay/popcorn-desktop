@@ -26,6 +26,43 @@ function parseQuality(title) {
     return '-';
 }
 
+function detectAudioLanguages(title) {
+    const value = String(title || '');
+    const languages = [];
+    const add = function(language) {
+        if (languages.indexOf(language) === -1) {
+            languages.push(language);
+        }
+    };
+
+    if (/(?:^|[^a-z])(eng|english)(?:[^a-z]|$)/i.test(value)) {
+        add('en');
+    }
+    if (/(?:^|[^a-z])(rus|russian)(?:[^a-z]|$)/i.test(value) || /[А-Яа-яЁё]/.test(value) || /(?:дубляж|многоголос|двухголос|лицензия)/i.test(value)) {
+        add('ru');
+    }
+    if (/(?:^|[^a-z])(ukr|ukrainian)(?:[^a-z]|$)/i.test(value) || /(?:україн|украин)/i.test(value)) {
+        add('uk');
+    }
+    if (/(?:^|[^a-z])(spa|spanish|castellano)(?:[^a-z]|$)/i.test(value)) {
+        add('es');
+    }
+    if (/(?:^|[^a-z])(fre|french)(?:[^a-z]|$)/i.test(value)) {
+        add('fr');
+    }
+    if (/(?:^|[^a-z])(ger|german)(?:[^a-z]|$)/i.test(value)) {
+        add('de');
+    }
+    if (/(?:^|[^a-z])(ita|italian)(?:[^a-z]|$)/i.test(value)) {
+        add('it');
+    }
+    if (/(?:^|[^a-z])(jpn|japanese)(?:[^a-z]|$)/i.test(value)) {
+        add('ja');
+    }
+
+    return languages.length ? languages : ['en'];
+}
+
 function normalizeResult(item, engine) {
     if (!item || !item.magnet) {
         return null;
@@ -35,6 +72,8 @@ function normalizeResult(item, engine) {
     const seed = Number(item.seed || item.seeds) || 0;
     const peer = Number(item.leech || item.peer || item.peers) || 0;
     return {
+        isTorrentCollection: true,
+        audioLanguages: detectAudioLanguages(title),
         provider: engine.provider,
         icon: '/src/app/images/icons/' + engine.icon + '.png',
         title: title,
@@ -48,6 +87,49 @@ function normalizeResult(item, engine) {
         filesize: size,
         size: size,
         quality: parseQuality(title),
+    };
+}
+
+function seedCount(torrent) {
+    return Number(torrent && (torrent.seed || torrent.seeds)) || 0;
+}
+
+function sortSources(torrents) {
+    return (torrents || []).slice().sort(function(a, b) {
+        if (Boolean(a.isTorrentCollection) !== Boolean(b.isTorrentCollection)) {
+            return a.isTorrentCollection ? -1 : 1;
+        }
+        return seedCount(b) - seedCount(a);
+    });
+}
+
+function groupByAudioLanguage(torrents) {
+    const languages = {};
+    sortSources(torrents).forEach(function(torrent) {
+        const audioLanguages = torrent.audioLanguages && torrent.audioLanguages.length ? torrent.audioLanguages : detectAudioLanguages(torrent.title);
+        audioLanguages.forEach(function(language) {
+            languages[language] = languages[language] || [];
+            languages[language].push(torrent);
+        });
+    });
+    return languages;
+}
+
+function preferByQuality(legacyTorrents, collectionTorrents) {
+    const torrents = Object.assign({}, legacyTorrents || {});
+    const preferred = sortSources(collectionTorrents).filter(function(torrent) {
+        return torrent.quality && torrent.quality !== '-';
+    });
+
+    preferred.forEach(function(torrent) {
+        if (!torrents[torrent.quality] || !torrents[torrent.quality].isTorrentCollection) {
+            torrents[torrent.quality] = torrent;
+        }
+    });
+
+    return {
+        torrents: torrents,
+        quality: preferred.length ? preferred[0].quality : null,
     };
 }
 
@@ -182,7 +264,7 @@ function search(options) {
     })).then(function(results) {
         const torrents = dedupe([].concat.apply([], results));
         torrents.sort(function(a, b) {
-            return b.seed - a.seed;
+            return seedCount(b) - seedCount(a);
         });
         torrents.forEach(function(torrent, index) {
             torrent.index = index;
@@ -198,8 +280,12 @@ module.exports = {
         return enabledEngines(settings).length > 0;
     },
     parseQuality: parseQuality,
+    detectAudioLanguages: detectAudioLanguages,
     normalizeResult: normalizeResult,
     infoHash: infoHash,
     dedupe: dedupe,
+    sortSources: sortSources,
+    groupByAudioLanguage: groupByAudioLanguage,
+    preferByQuality: preferByQuality,
     search: search,
 };

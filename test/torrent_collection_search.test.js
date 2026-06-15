@@ -20,9 +20,14 @@ async function run() {
     assert.strictEqual(normalized.seed, 42);
     assert.strictEqual(normalized.peer, 7);
     assert.strictEqual(normalized.filesize, '2.4 GB');
+    assert.strictEqual(normalized.isTorrentCollection, true);
+    assert.deepStrictEqual(normalized.audioLanguages, ['en']);
 
     assert.strictEqual(torrentCollectionSearch.parseQuality('Movie.1080P.BluRay'), '1080p');
     assert.strictEqual(torrentCollectionSearch.parseQuality('Movie without quality'), '-');
+    assert.deepStrictEqual(torrentCollectionSearch.detectAudioLanguages('Movie.ENG.RUS.DUB.1080p'), ['en', 'ru']);
+    assert.deepStrictEqual(torrentCollectionSearch.detectAudioLanguages('Фильм.Лицензия.1080p'), ['ru']);
+    assert.deepStrictEqual(torrentCollectionSearch.detectAudioLanguages('Movie.1080p'), ['en']);
     assert.strictEqual(torrentCollectionSearch.normalizeResult({title: 'No magnet'}, tpbEngine), null);
 
     const hexMagnet = 'magnet:?xt=urn:btih:0000000000000000000000000000000000000000&dn=one';
@@ -78,6 +83,30 @@ async function run() {
     assert.strictEqual(errors.length, 2);
     assert.strictEqual(torrentCollectionSearch.hasEnabledEngines({enableNyaaSearch: true}), true);
     assert.strictEqual(torrentCollectionSearch.hasEnabledEngines({}), false);
+
+    const preferred = torrentCollectionSearch.preferByQuality({
+        '1080p': {provider: 'legacy', seed: 999},
+        '720p': {provider: 'legacy', seed: 10},
+    }, [
+        {provider: 'collection-low', quality: '1080p', seed: 20, isTorrentCollection: true},
+        {provider: 'collection-best', quality: '2160p', seed: 80, isTorrentCollection: true},
+        {provider: 'collection-high', quality: '1080p', seed: 50, isTorrentCollection: true},
+    ]);
+    assert.strictEqual(preferred.quality, '2160p');
+    assert.strictEqual(preferred.torrents['1080p'].provider, 'collection-high');
+    assert.strictEqual(preferred.torrents['720p'].provider, 'legacy');
+    assert.deepStrictEqual(torrentCollectionSearch.sortSources([
+        {provider: 'legacy', seed: 999},
+        {provider: 'collection', seed: 1, isTorrentCollection: true},
+    ]).map(function(torrent) {
+        return torrent.provider;
+    }), ['collection', 'legacy']);
+    const grouped = torrentCollectionSearch.groupByAudioLanguage([
+        {title: 'Movie.ENG.1080p', seed: 10, isTorrentCollection: true},
+        {title: 'Фильм.RUS.720p', seed: 20, isTorrentCollection: true},
+    ]);
+    assert.strictEqual(grouped.en.length, 1);
+    assert.strictEqual(grouped.ru.length, 1);
 
     console.log('torrent_collection_search tests passed');
 }

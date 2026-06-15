@@ -21,6 +21,9 @@
             if (this.hasNull) {
                 this.values = Object.assign({}, {none: undefined}, this.values);
                 this.model.set('values', this.values);
+                if (!this.selected) {
+                    this.selected = 'none';
+                }
             } else if (!this.selected && this.values) {
                 var values = Object.keys(this.values);
                 if (values.length) {
@@ -30,7 +33,7 @@
         },
 
         onAttach: function () {
-            if (this.selected && this.selected !== 'none') {
+            if (this.selected) {
                 this.setLang(this.selected);
             }
         },
@@ -65,6 +68,7 @@
             }
             this.ui.selected.attr('title', title)
                 .tooltip({delay: {show: 800, hide: 100}, html: true}).tooltip('fixTitle');
+            this.$('.lang-name').text(this.model.get('title') + ': ' + title);
             App.vent.trigger(this.type + ':lang', value);
         },
 

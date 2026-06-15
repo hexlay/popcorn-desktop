@@ -87,19 +87,19 @@
         win.error('Movie source search:', error);
         return [];
       }) : Promise.resolve([]);
-      const collectionResults = Settings.includeTorrentCollectionInMovieSources ? torrentCollectionSearch.search({
+      const collectionResults = this.model.get('torrentCollectionPromise') || (Settings.includeTorrentCollectionInMovieSources ? torrentCollectionSearch.search({
         query: this.model.get('title'),
         category: 'Movies',
         timeout: 8000,
         settings: Settings,
         clients: torrentCollection,
         logger: win,
-      }) : Promise.resolve([]);
+      }) : Promise.resolve([]));
       const torrentList = new App.View.TorrentList({
         model: new Backbone.Model({
           provider,
           promise: Promise.all([collectionResults, providerResults]).then(function(results) {
-            return torrentCollectionSearch.dedupe(results[0].concat(results[1] || []));
+            return torrentCollectionSearch.sortSources(torrentCollectionSearch.dedupe(results[0].concat(results[1] || [])));
           }),
         }),
       });
@@ -364,6 +364,14 @@
 
     retrieveTorrentHealth: function(cb) {
       const torrent = this.model.get('torrents')[this.model.get('quality')];
+      if (torrent && torrent.isTorrentCollection) {
+        const seeds = Number(torrent.seed || torrent.seeds) || 0;
+        const peers = Number(torrent.peer || torrent.peers) || 0;
+        return cb(null, {
+          ratio: Common.calcRatio(seeds, peers),
+          extra: [{seeds: seeds, peers: peers}],
+        });
+      }
       Common.retrieveTorrentHealth(torrent, cb);
     },
 

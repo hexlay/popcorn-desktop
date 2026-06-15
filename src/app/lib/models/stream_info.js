@@ -10,6 +10,7 @@
               filename: torrentModel.get('video_file').name,
               device: torrentModel.get('device'),
               quality: torrentModel.get('quality'),
+              audioLanguage: torrentModel.get('lang'),
               defaultSubtitle: torrentModel.get('defaultSubtitle'),
               subtitle: torrentModel.get('subtitle'),
               videoFile: torrentModel.get('video_file').path,

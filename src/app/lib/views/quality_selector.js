@@ -18,7 +18,15 @@
         },
 
         initQuality: function() {
-            var selectedKey = null;
+            var contentModel = this.model.get('contentModel');
+            var selectedKey = contentModel && contentModel.get('preferredTorrentQuality');
+            if (selectedKey && !this.model.get('sortedTorrents')[selectedKey]) {
+                selectedKey = null;
+            }
+            if (selectedKey) {
+                this.selectQuality(selectedKey);
+                return;
+            }
             for (let [key, torrent] of Object.entries(this.model.get('sortedTorrents'))) {
                 if (!torrent) {
                     continue;
