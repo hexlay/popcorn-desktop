@@ -28,13 +28,10 @@
       'click #filterbar-tempf': 'tempf',
       'click .movieTabShow': 'movieTabShow',
       'click .tvshowTabShow': 'tvshowTabShow',
-      'click .animeTabShow': 'animeTabShow',
       'click #filterbar-favorites': 'showFavorites',
       'click #filterbar-watched': 'showWatched',
       'click #filterbar-watchlist': 'showWatchlist',
-      'click #filterbar-torrent-collection': 'showTorrentCollection',
-      'click .triggerUpdate': 'updateDB',
-      'click #filterbar-seedbox': 'showSeedbox'
+      'click .triggerUpdate': 'updateDB'
     },
 
     initialize: function(e) {
@@ -76,10 +73,6 @@
             $('.types a')['0'].firstChild.textContent = tempTypeTxt;
           }
           break;
-        case 'Anime':
-        case 'anime':
-          $('.source.animeTabShow').addClass('active');
-          break;
         case 'Favorites':
         case 'favorites':
           $('#filterbar-favorites').addClass('active');
@@ -92,16 +85,6 @@
         case 'watchlist':
           rightSearch.hide();
           $('#filterbar-watchlist').addClass('active');
-          break;
-        case 'Torrent-collection':
-          rightSearch.hide();
-          navFilters.hide();
-          $('#filterbar-torrent-collection').addClass('active');
-          break;
-        case 'Seedbox':
-          rightSearch.hide();
-          navFilters.hide();
-          $('#filterbar-seedbox').addClass('active');
           break;
       }
 
@@ -167,9 +150,6 @@
           case 'Movies':
             App.currentview = 'movies';
             break;
-          case 'Anime':
-            App.currentview = 'anime';
-            break;
           case 'Favorites':
             App.currentview = 'Favorites';
             App.previousview = 'movies';
@@ -180,14 +160,6 @@
             break;
           case 'Watchlist':
             App.currentview = 'Watchlist';
-            App.previousview = 'movies';
-            break;
-          case 'Torrent-collection':
-            App.currentview = 'Torrent-collection';
-            App.previousview = 'movies';
-            break;
-          case 'Seedbox':
-            App.currentview = 'Seedbox';
             App.previousview = 'movies';
             break;
           default:
@@ -358,49 +330,6 @@
       App.settings.os === 'windows' ? nw.Shell.openExternal(Settings.tmpLocation) : nw.Shell.openItem(Settings.tmpLocation);
     },
 
-    showTorrentCollection: function(e) {
-      e.preventDefault();
-      if (App.currentview !== 'Torrent-collection') {
-        if (App.currentview !== 'Seedbox') {
-          App.previousview = App.currentview;
-        }
-        App.currentview = 'Torrent-collection';
-        App.vent.trigger('about:close');
-        App.vent.trigger('seedbox:close');
-        App.vent.trigger('torrentCollection:show');
-        this.setActive('Torrent-collection');
-      } else {
-        if (!App.ViewStack.includes('seedbox') && !$('#filterbar-seedbox').hasClass('active')) {
-          App.currentview = App.previousview;
-          App.vent.trigger('torrentCollection:close');
-        }
-        App.vent.trigger('seedbox:close');
-        this.setActive(App.currentview);
-      }
-    },
-
-    showSeedbox: function(e) {
-      e.preventDefault();
-      if (App.currentview !== 'Seedbox' && !App.ViewStack.includes('seedbox')) {
-        if (App.currentview !== 'Torrent-collection') {
-          App.previousview = App.currentview;
-          App.currentview = 'Seedbox';
-        } else if (!App.ViewStack.includes('torrent-collection') && !$('#filterbar-torrent-collection').hasClass('active')) {
-          App.vent.trigger('seedbox:close');
-          return this.setActive(App.currentview);
-        }
-        App.vent.trigger('about:close');
-        App.vent.trigger('seedbox:show');
-        this.setActive('Seedbox');
-      } else {
-        if (App.currentview !== 'Torrent-collection') {
-          App.currentview = App.previousview;
-        }
-        App.vent.trigger('seedbox:close');
-        this.setActive(App.currentview);
-      }
-    },
-
     tvshowTabShow: function(e) {
       e.preventDefault();
       App.currentview = 'shows';
@@ -409,16 +338,6 @@
       App.vent.trigger('seedbox:close');
       App.vent.trigger('shows:list', []);
       this.setActive('TV Series');
-    },
-
-    animeTabShow: function(e) {
-      e.preventDefault();
-      App.currentview = 'anime';
-      App.vent.trigger('about:close');
-      App.vent.trigger('torrentCollection:close');
-      App.vent.trigger('seedbox:close');
-      App.vent.trigger('anime:list', []);
-      this.setActive('Anime');
     },
 
     movieTabShow: function(e) {

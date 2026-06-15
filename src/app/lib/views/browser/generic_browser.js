@@ -97,21 +97,7 @@
         },
 
         onlineSearch: function () {
-            switch (App.currentview) {
-            case 'movies':
-                Settings.OnlineSearchCategory = 'Movies';
-                break;
-            case 'shows':
-                Settings.OnlineSearchCategory = 'TV Series';
-                break;
-            case 'anime':
-                Settings.OnlineSearchCategory = 'Anime';
-                break;
-            default:
-            }
-
-            $('#filterbar-torrent-collection').click();
-            $('.torrent-collection-container #online-input').val(this.collection.filter.keywords);
+            return false;
         },
 
         changeApi: function () {
@@ -122,9 +108,6 @@
                 break;
             case 'shows':
                 curView = '#customSeriesServer';
-                break;
-            case 'anime':
-                curView = '#customAnimeServer';
                 break;
             default:
             }
@@ -147,8 +130,7 @@
                 var activetab;
                 var tabs = {
                     'TV Series': 'shows',
-                    'Movies': 'movies',
-                    'Anime': 'anime'
+                    'Movies': 'movies'
                 };
 
                 if (AdvSettings.get('startScreen') === 'Last Open') {

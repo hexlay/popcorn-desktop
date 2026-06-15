@@ -11,25 +11,32 @@ ul.nav-hor > li
 .dropdown-menu
     background-color $DropDownBg
     opacity $DropDownOpacity
+    border 1px solid rgba(255,255,255,0.10)
+    border-radius 16px
+    box-shadow 0 24px 54px rgba(0,0,0,0.48)
+    padding 8px
+    -webkit-backdrop-filter blur(24px) saturate(145%)
+    backdrop-filter blur(24px) saturate(145%)
 
     & > li > a
         transition all 0.2s
         color $DropDownText
         opacity 1
-        padding 4px 20px
+        padding 8px 14px
+        border-radius 10px
 
         &.active
             color $DropDownTextHover
             background-color $DropDownBgHover
             background-image none
-            border-left 4px solid $FilterBarText
+            border-left 0
 
         &:focus,
         &:hover
             color $DropDownTextHover
             background-color $DropDownBgHover
             background-image none
-            border-left 4px solid $FilterBarActive
+            border-left 0
 
 .playerchoice
     padding-left 5px

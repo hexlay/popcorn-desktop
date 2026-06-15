@@ -55,8 +55,7 @@
             'click .update-dht': 'updateDht',
             'click .update-app': 'updateApp',
             'mousedown #customMoviesServer': 'showFullDatalist',
-            'mousedown #customSeriesServer': 'showFullDatalist',
-            'mousedown #customAnimeServer': 'showFullDatalist'
+            'mousedown #customSeriesServer': 'showFullDatalist'
         },
 
         onAttach: function () {
@@ -109,7 +108,7 @@
         rightclick_field: function (e) {
             e.preventDefault();
             var menu;
-            if (/customMoviesServer|customSeriesServer|customAnimeServer/.test(e.target.id)) {
+            if (/customMoviesServer|customSeriesServer/.test(e.target.id)) {
                 menu = new this.altcontext_Menu(i18n.__('Cut'), i18n.__('Copy'), i18n.__('Paste'), e.target.id);
             } else {
                 menu = new this.context_Menu(i18n.__('Cut'), i18n.__('Copy'), i18n.__('Paste'), e.target.id);
@@ -272,7 +271,6 @@
             switch (field.attr('name')) {
                 case 'customMoviesServer':
                 case 'customSeriesServer':
-                case 'customAnimeServer':
                     apiServerChanged = true;
                     value = field.val().replace(/\s+/g, '');
                     if (value && value.slice(-1) !== '/') {
@@ -304,7 +302,6 @@
                 case 'translateTitle':
                 case 'watchedCovers':
                 case 'defaultFilters':
-                case 'theme':
                 case 'delSeedboxCache':
                 case 'maxLimitMult':
                 case 'moviesUITransparency':
@@ -358,7 +355,6 @@
                 case 'multipleExtSubtitles':
                 case 'moviesTabEnable':
                 case 'seriesTabEnable':
-                case 'animeTabEnable':
                 case 'favoritesTabEnable':
                 case 'watchedTabEnable':
                     value = field.is(':checked');
@@ -446,7 +442,7 @@
             App.settings[field.attr('name')] = value;
 
             if (apiServerChanged) {
-                App.Providers.updateConnection(App.settings['customMoviesServer'], App.settings['customSeriesServer'], App.settings['customAnimeServer'], App.settings['proxyServer']);
+                App.Providers.updateConnection(App.settings['customMoviesServer'], App.settings['customSeriesServer'], null, App.settings['proxyServer']);
             }
 
             if (apiDataChanged) {
@@ -525,10 +521,6 @@
                 case 'alwaysOnTop':
                     win.setAlwaysOnTop(value);
                     break;
-                case 'theme':
-                    $('link#theme').attr('href', 'themes/' + value + '.css');
-                    App.vent.trigger('updatePostersSizeStylesheet');
-                    break;
                 case 'start_screen':
                     AdvSettings.set('startScreen', value);
                     break;
@@ -570,14 +562,6 @@
                     $('.nav-hor.left li:first').click();
                     App.vent.trigger('settings:show');
                     if (AdvSettings.get('startScreen') === 'TV Series') {
-                        $('select[name=start_screen]').change();
-                    }
-                    break;
-                case 'animeTabEnable':
-                    App.vent.trigger('favorites:list');
-                    $('.nav-hor.left li:first').click();
-                    App.vent.trigger('settings:show');
-                    if (AdvSettings.get('startScreen') === 'Anime') {
                         $('select[name=start_screen]').change();
                     }
                     break;
@@ -664,7 +648,6 @@
                     break;
                 case 'customMoviesServer':
                 case 'customSeriesServer':
-                case 'customAnimeServer':
                     this.alertMessageSuccess(true);
                     break;
                 case 'translateSynopsis':

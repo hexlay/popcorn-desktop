@@ -19,9 +19,7 @@
       Disclaimer: '#disclaimer-container',
       About: '#about-container',
       Keyboard: '#keyboard-container',
-      TorrentCollection: '#torrent-collection-container',
-      Notification: '#notification',
-      Seedbox: '#seedbox-container'
+      Notification: '#notification'
     },
 
     ui: {
@@ -34,6 +32,38 @@
       dragstart: 'preventDefault',
       auxclick: 'backToPreviousView',
       'click .links': 'links'
+    },
+
+    lockDesignSettings: function() {
+      var lockedSettings = {
+        theme: 'Official_-_Dark_theme',
+        startScreen: 'Movies',
+        moviesTabEnable: true,
+        seriesTabEnable: true,
+        animeTabEnable: false,
+        favoritesTabEnable: true,
+        watchedTabEnable: true,
+        coversShowRating: true,
+        alwaysShowBookmarks: false,
+        showSeedboxOnDlInit: false,
+        expandedSearch: false,
+        defaultFilters: 'default',
+        watchedCovers: 'fade',
+        postersWidth: Settings.postersMinWidth,
+        bigPicture: 100,
+        moviesUITransparency: '0.65',
+        seriesUITransparency: 'medium',
+        nativeWindowFrame: nw.App.manifest.window.frame,
+        activateTorrentCollection: false,
+        activateSeedbox: false,
+        separateDownloadsDir: false,
+        continueSeedingOnStart: false
+      };
+
+      _.each(lockedSettings, function(value, key) {
+        Settings[key] = value;
+        AdvSettings.set(key, value);
+      });
     },
 
     initialize: function() {
@@ -61,7 +91,6 @@
       // Application events
       App.vent.on('movies:list', _.bind(this.movieTabShow, this));
       App.vent.on('shows:list', _.bind(this.tvshowTabShow, this));
-      App.vent.on('anime:list', _.bind(this.animeTabShow, this));
       App.vent.on('favorites:list', _.bind(this.showFavorites, this));
       App.vent.on('favorites:render', _.bind(this.renderFavorites, this));
       App.vent.on('watchlist:list', _.bind(this.showWatchlist, this));
@@ -100,33 +129,6 @@
       App.vent.on(
         'movie:closeDetail',
         _.bind(this.closeMovieDetail, this.getRegion('MovieDetail'))
-      );
-
-      // Torrent collection
-      App.vent.on(
-        'torrentCollection:show',
-        _.bind(this.showTorrentCollection, this)
-      );
-      App.vent.on(
-        'torrentCollection:close',
-        _.bind(
-          this.getRegion('TorrentCollection').empty,
-          this.getRegion('TorrentCollection')
-        )
-      );
-
-      // Seedbox collection
-      App.vent.on(
-        'seedbox:show',
-        _.bind(this.showSeedbox, this)
-      );
-
-      App.vent.on(
-        'seedbox:close',
-        _.bind(
-          this.getRegion('Seedbox').empty,
-          this.getRegion('Seedbox')
-        )
       );
 
       // Tv Shows
@@ -195,8 +197,9 @@
         }
       }
 
-      // Set the app title (for Windows mostly)
-      win.title = App.Config.title;
+      // The custom chrome already carries the app identity.
+      document.title = ' ';
+      win.title = ' ';
 
       var status = new Backbone.Model({
         status: i18n.__('Init Database'),
@@ -212,6 +215,8 @@
       );
 
       App.db.initialize(status).then(function() {
+        that.lockDesignSettings();
+
         status.set({
           status: i18n.__('Create Temp Folder'),
           done: 0.25
@@ -265,14 +270,7 @@
           done: 0.3
         });
 
-        try {
-          fs.statSync('src/app/themes/' + Settings.theme + '.css');
-        } catch (e) {
-          Settings.theme = 'Official_-_Dark_theme';
-          AdvSettings.set('theme', 'Official_-_Dark_theme');
-        }
-
-        $('link#theme').attr('href', 'themes/' + Settings.theme + '.css');
+        $('link#theme').attr('href', 'themes/Official_-_Dark_theme.css');
 
         // focus win. also handles AlwaysOnTop
         App.vent.trigger('window:focus');
@@ -301,15 +299,6 @@
           case 'Favorites': that.showFavorites(); break;
           case 'Watched': that.showFavorites(); break;
           case 'TV Series': that.tvshowTabShow(); break;
-          case 'Anime': that.animeTabShow(); break;
-          case 'Torrent-collection':
-            that.movieTabShow(); //needed because Torrentcollection isnt a real collection
-            that.showTorrentCollection();
-            break;
-          case 'Seedbox':
-            that.movieTabShow(); //needed because Seedbox isnt a real collection
-            that.showSeedbox();
-            break;
           default:
             that.movieTabShow();
         }
@@ -373,13 +362,6 @@
       this.getRegion('MovieDetail').empty();
 
       this.showChildView('Content', new App.View.ShowBrowser());
-    },
-
-    animeTabShow: function(e) {
-      this.getRegion('Settings').empty();
-      this.getRegion('MovieDetail').empty();
-
-      this.showChildView('Content', new App.View.AnimeBrowser());
     },
 
     updateShows: function(e) {
@@ -447,14 +429,6 @@
 
     showAbout: function(e) {
       this.showChildView('About', new App.View.About());
-    },
-
-    showTorrentCollection: function(e) {
-      this.showChildView('TorrentCollection', new App.View.TorrentCollection());
-    },
-
-    showSeedbox: function(e) {
-      this.showChildView('Seedbox', new App.View.Seedbox());
     },
 
     showKeyboard: function(e) {
@@ -609,75 +583,9 @@
     },
 
     updatePostersSizeStylesheet: function(start) {
-      var that = this;
-      App.db
-        .getSetting({
-          key: 'postersWidth'
-        })
-        .then(function(doc) {
-          if (!doc || (parseInt(doc.value) === 134 && start)) {
-            return;
-          }
-          var postersWidth = doc.value;
-          var postersHeight = Math.round(
-            postersWidth * Settings.postersSizeRatio
-          );
-          var postersWidthPercentage =
-            ((postersWidth - Settings.postersMinWidth) /
-              (Settings.postersMaxWidth - Settings.postersMinWidth)) *
-            100;
-          var fontSize =
-            ((Settings.postersMaxFontSize - Settings.postersMinFontSize) *
-              postersWidthPercentage) /
-              100 +
-            Settings.postersMinFontSize;
-
-          var stylesheetContents = [
-            '.list .items .item {',
-            'width:',
-            postersWidth,
-            'px;',
-            '}',
-
-            '.list .items .item .cover,',
-            '.load-more {',
-            'background-size: ', postersWidth, 'px ', postersHeight, 'px;',
-            'width: ',
-            postersWidth,
-            'px;',
-            'height: ',
-            postersHeight,
-            'px;',
-            '}',
-
-            '.item {',
-            'font-size: ' + fontSize + 'em;',
-            '}'
-          ].join('');
-
-          $('#postersSizeStylesheet').remove();
-
-          $('<style>', {
-            id: 'postersSizeStylesheet'
-          })
-            .text(stylesheetContents)
-            .appendTo('head');
-
-          // Copy the value to Settings so we can get it from templates
-          Settings.postersWidth = postersWidth;
-
-          // Display PostersWidth
-          var humanReadableWidth =
-            Number(postersWidthPercentage + 100).toFixed(0) + '%';
-          if (typeof App.currentview !== 'undefined') {
-            that.ui.posterswidth_alert
-              .show()
-              .text(i18n.__('Posters Size') + ': ' + humanReadableWidth)
-              .delay(3000)
-              .fadeOut(400);
-          }
-          $('.cover-image').css('width', Settings.postersWidth);
-        });
+      Settings.postersWidth = Settings.postersMinWidth;
+      $('#postersSizeStylesheet').remove();
+      $('.cover-image').css('width', Settings.postersWidth);
     },
 
     links: function(e) {

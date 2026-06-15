@@ -76,14 +76,10 @@
                     matched.push(sorted[i]);
                 }
             }
-            if (filters.type === 'Anime') {
-                sorted = matched;
-            } else {
-                for (var j in matched) {
-                    for (var k = sorted.length; k--;) {
-                        if (sorted[k] === matched[j]) {
-                            sorted.splice(k, 1);
-                        }
+            for (var j in matched) {
+                for (var k = sorted.length; k--;) {
+                    if (sorted[k] === matched[j]) {
+                        sorted.splice(k, 1);
                     }
                 }
             }
@@ -190,7 +186,7 @@
             page: filters.page,
             kind: filters.kind
         };
-        if (filters.type === 'Series' || filters.type === 'Anime') {
+        if (filters.type === 'Series') {
             params.type = 'show';
         }
         if (filters.type === 'Movies') {
@@ -216,9 +212,6 @@
         }
         if (Settings.seriesTabEnable) {
             data.types.push('Series');
-        }
-        if (Settings.animeTabEnable) {
-            data.types.push('Anime');
         }
         let filters = {
             kinds: {},

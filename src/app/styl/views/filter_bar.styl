@@ -7,69 +7,135 @@
 .filter-bar
     z-index 10
     width 100%
-    opacity .97
-    height 35px
+    opacity 1
     background-color $FilterBarBg
     -webkit-user-select none
     position absolute
     top $TitleHeight
     height $FilterBarHeight
     box-shadow $TopBarShadow
+    border-bottom 1px solid rgba(255,255,255,0.08)
+    display flex
+    align-items center
+    box-sizing border-box
+    padding 0 22px
+    -webkit-backdrop-filter blur(28px) saturate(155%)
+    backdrop-filter blur(28px) saturate(155%)
+
+    .nav
+        height 100%
+        display flex
+        align-items center
+        float none
+
+    .nav-hor
+        > li
+            line-height normal
+
+    .nav.left
+        flex 0 0 auto
+        gap 6px
+
+    .brand-lockup
+        display flex
+        align-items center
+        gap 9px
+        height 38px
+        padding 0 14px 0 0
+        margin-right 8px
+        color $Text1
+        font-family $MainFontBold
+        font-size 15px
+        letter-spacing -0.01em
+        white-space nowrap
+
+        img
+            width 23px
+            height 23px
+            display block
 
     .source
-        box-sizing content-box
+        box-sizing border-box
         color $FilterBarText
         text-align center
         cursor pointer
-        height 20px
-        margin-top 10px
-        padding 0px 15px 1px 18px
+        height 36px
+        margin-top 0
+        margin-right 0
+        padding 9px 14px 0
+        border-radius 999px
+        font-family $MainFont
+        font-size 14px
+        letter-spacing 0.01em
+        transition background-color 180ms ease, color 180ms ease, box-shadow 180ms ease
 
         &:hover
             color $FilterBarTextHover
+            background rgba(255,255,255,0.08)
 
         &.active
-            border-bottom 4px solid $FilterBarActive
+            color $ButtonText
+            background $FilterBarActive
+            box-shadow 0 10px 24px rgba(244,185,66,0.24)
 
     .nav.filters
-        float left
-        margin-left 10px
+        flex 0 0 auto
+        margin-left 24px
+        gap 8px
 
     .nav.right
-        margin-right 5px
+        flex 0 0 auto
+        margin-left auto
+        margin-right 0
+        gap 10px
 
     .filter
-        padding 10px 0 0
-        margin-left 20px
+        padding 0
+        margin-left 0
+        height 36px
 
         & > a
             display inline-block
-            padding 0
+            padding 9px 13px 0
+            height 36px
             color $FilterBarText
-            background-color transparent !important
+            background-color rgba(255,255,255,0.06) !important
+            border 1px solid rgba(255,255,255,0.08)
+            border-radius 999px
+            transition all 180ms ease
 
             &:hover
                 color $FilterBarTextHover
+                background-color rgba(255,255,255,0.10) !important
         .value
             color $FilterBarActive
-            padding-left 10px
+            padding-left 8px
 
         .dropdown-menu
             font-size 0.9em
             scrollable()
             max-height 445px
-            margin-top 11px
-            border-top-left-radius 0
-            border-top-right-radius 0
+            margin-top 14px
+            border-radius 16px
+            border 1px solid rgba(255,255,255,0.10)
+            box-shadow 0 24px 54px rgba(0,0,0,0.48)
+            -webkit-backdrop-filter blur(24px) saturate(145%)
+            backdrop-filter blur(24px) saturate(145%)
 
     i
-        transition color 0.5s
-        margin 8px 3px 0 4px
-        padding 2px
+        transition color 180ms ease, background-color 180ms ease, transform 180ms ease
+        margin 0
+        padding 9px
         color $FilterBarIcon
-        font-size 1.5em
+        font-size 1.3em
+        width 36px
+        height 36px
+        border-radius 50%
+        text-align center
         &:hover
             color $FilterBarIconHover
+            background rgba(255,255,255,0.08)
+            transform translateY(-1px)
             cursor pointer
 
         &.active
@@ -97,7 +163,11 @@
         display none
 
     .search
+        margin-right 2px
+
         form
+            position relative
+
             &:before
                 content '\f002'
                 font-family "Font Awesome 6 Free"
@@ -106,8 +176,8 @@
                 transition color 0.5s
                 color $FilterBarIcon
                 position absolute
-                top 11px
-                left 8px
+                top 10px
+                left 12px
                 z-index 2
                 font-size 1.4em
 
@@ -117,16 +187,16 @@
                 transition color 0.5s
                 color $FilterBarIcon
                 position absolute
-                top 8px
-                right 5px
+                top 9px
+                right 8px
                 padding 3px 5px
                 font-size 1.2em
 
             &.edited input, input:focus, input.expanded
-                width 190px
+                width 210px
                 background-color $SearchBoxBg
                 color $FilterBarText
-                padding-left 28px
+                padding-left 36px
 
             &.edited, &:hover
                 cursor pointer
@@ -138,19 +208,25 @@
                 -webkit-app-region no-drag
                 outline none
                 cursor text
-                width 0px
-                height 18px
+                width 190px
+                height 36px
                 position relative
                 background $FilterBarBg no-repeat right center
                 background-position right 3px center
-                border solid 0px
-                margin 8px 3px 0
-                padding 1px 2px 3px
-                padding-left 25px
+                border solid 1px rgba(255,255,255,0.08)
+                margin 0
+                padding 0 12px
+                padding-left 36px
                 border-radius 10em
                 -webkit-appearance textfield
                 -webkit-box-sizing content-box
-                transition width 0.5s
+                transition width 220ms ease, background-color 180ms ease, border-color 180ms ease
+
+                @media (max-width: 1280px)
+                    width 150px
+
+                @media (max-width: 1120px)
+                    width 110px
 
                 &:focus
                     cursor auto
@@ -163,3 +239,21 @@
 
                 &:focus::-webkit-input-placeholder
                     color rgba($FilterBarText,.7)
+
+    @media (max-width: 1320px)
+        padding 0 16px
+
+        .brand-lockup span
+            display none
+
+        .source
+            padding-left 12px
+            padding-right 12px
+
+        .nav.filters
+            margin-left 14px
+
+    @media (max-width: 1120px)
+        .nav.filters .filter.ratings,
+        .nav.filters .filter.types
+            display none

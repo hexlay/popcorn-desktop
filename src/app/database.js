@@ -408,8 +408,8 @@ var Database = {
                     }
                 }
 
-                if (Settings.customMoviesServer || Settings.customSeriesServer || Settings.customAnimeServer || Settings.proxyServer) {
-                  App.Providers.updateConnection(Settings.customMoviesServer, Settings.customSeriesServer, Settings.customAnimeServer, Settings.proxyServer);
+                if (Settings.customMoviesServer || Settings.customSeriesServer || Settings.proxyServer) {
+                  App.Providers.updateConnection(Settings.customMoviesServer, Settings.customSeriesServer, null, Settings.proxyServer);
                 }
 
                 App.vent.trigger('initHttpApi');

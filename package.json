@@ -31,7 +31,7 @@
     "yarn": ">= 1.0.0"
   },
   "window": {
-    "title": "Popcorn Time",
+    "title": " ",
     "icon": "src/app/images/icon.png",
     "frame": false,
     "toolbar": false,

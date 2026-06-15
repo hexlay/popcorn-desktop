@@ -4,7 +4,7 @@
     justify-content flex-start
     flex-flow row wrap
     height 100vh
-    padding-top 65px
+    padding-top $HeaderHeight
     width 100vw
     user-select none
     backface-visibility hidden
@@ -29,18 +29,19 @@
         width 100vw
         height 100vh
         position absolute
-        opacity 0.65
-        background-color #000
+        opacity 0.78
+        background radial-gradient(circle at 68% 16%, rgba(244,185,66,0.18), transparent 28%), linear-gradient(90deg, rgba(9,10,13,0.96) 0%, rgba(9,10,13,0.76) 42%, rgba(9,10,13,0.90) 100%)
 
     .backdrop
         width 100vw
         height 100%
-        margin-top -35px
+        margin-top -64px
         position absolute
         opacity 0
         background-position-x 50%
         background-position-y 50%
-        -webkit-filter blur(20px) brightness(0.7)
+        -webkit-filter blur(34px) brightness(0.72) saturate(1.18)
+        filter blur(34px) brightness(0.72) saturate(1.18)
         background-repeat no-repeat
         background-size cover
 
@@ -62,9 +63,10 @@
             max-height 75vh
             position relative
             margin-right 1vw
-            border-radius 4px
+            border-radius 18px
             opacity 0
             backface-visibility hidden
+            box-shadow 0 30px 70px rgba(0,0,0,0.64), 0 0 0 1px rgba(255,255,255,0.10)
 
             &.fadein
                 transition opacity .3s ease-in
@@ -83,17 +85,24 @@
             height calc(100% - 70px)
             flex 2
             overflow hidden
-            padding-top 10px
-            margin-top -10px
+            padding 26px 28px
+            margin-top -20px
+            background rgba(16,18,24,0.46)
+            border 1px solid rgba(255,255,255,0.10)
+            border-radius 24px
+            box-shadow 0 28px 70px rgba(0,0,0,0.34)
+            -webkit-backdrop-filter blur(24px) saturate(150%)
+            backdrop-filter blur(24px) saturate(150%)
 
             .title
                 color #FFF
                 position relative
                 top -4px
                 text-stroke 1px rgba(0,0,0,0.1)
-                font-size 38px
+                font-size 42px
                 font-family $MainFont
                 font-smoothing antialiased
+                letter-spacing -0.03em
 
             .metadatas
                 top 15px
@@ -108,7 +117,7 @@
                         transition-delay .8s
 
                 .metaitem
-                    color #f8f8f8
+                    color rgba(248,248,248,0.88)
                     font-size 12px
                     position relative
                     font-family $MainFontBold
@@ -128,7 +137,7 @@
                         float left
                         height 4px
                         border-radius 2px
-                        background-color #dbdbdd
+                        background-color rgba(244,185,66,0.70)
 
                     &:first-child::before
                         display none
@@ -291,14 +300,14 @@
                 max-height 35%
                 overflow hidden
                 float none
-                color #FFF
+                color rgba(255,255,255,0.86)
                 top 25px
                 padding-right 2%
                 font-family $MainFont
                 font-smoothing antialiased
-                font-size 13px
-                line-height 22px
-                text-align justify
+                font-size 14px
+                line-height 24px
+                text-align left
                 text-stroke 1px rgba(0,0,0,0.1)
                 backface-visibility hidden
                 scrollable()
@@ -325,11 +334,13 @@
                 top 48px
                 max-height 55%
                 margin 0 20px 0 3px
+                border-radius 16px
+                overflow hidden
 
                 table
                     tr
                         &:hover
-                            background rgba(255,255,255,0.1)
+                            background rgba(255,255,255,0.10)
 
                         td
                             color #c3c5c7

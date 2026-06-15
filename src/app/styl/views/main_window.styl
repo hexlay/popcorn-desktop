@@ -2,6 +2,7 @@ html,
 body,
 .main-window-region
     background-color $BgColor1
+    background-image radial-gradient(circle at 18% 0%, rgba(244,185,66,0.10), transparent 32%), radial-gradient(circle at 80% 8%, rgba(64,110,180,0.14), transparent 38%)
     height 100%
     -moz-user-select none
     -khtml-user-select none
@@ -20,7 +21,8 @@ body,
     width 100%
     height 100%
     background-color $BgColor1
-    box-shadow 0 0 40px rgba(0, 0, 0, .75)
+    background-image radial-gradient(circle at 20% -10%, rgba(244,185,66,0.10), transparent 32%), radial-gradient(circle at 85% 0%, rgba(58,92,164,0.12), transparent 36%)
+    box-shadow 0 24px 70px rgba(0, 0, 0, .82)
     margin-left auto
     margin-right auto
 
@@ -109,21 +111,25 @@ body,
 .notification_alert
     position fixed
     pointer-events none
-    background-color rgba($NotifAlertBg,.8)
-    border-radius 4px
-    padding 10px
-    top 78px
+    background-color rgba($NotifAlertBg,.82)
+    border 1px solid rgba(255,255,255,0.10)
+    border-radius 14px
+    padding 12px 14px
+    top 112px
     right 20px
     color $NotifAlertText
     font-family $MainFont, $AlternateFont
     font-size 13px
     z-index 999
     display none
+    box-shadow 0 18px 36px rgba(0,0,0,0.42)
+    -webkit-backdrop-filter blur(22px) saturate(145%)
+    backdrop-filter blur(22px) saturate(145%)
 
 #main-window.default-frame
     .movie-detail
-        padding-top 35px
+        padding-top 64px
     .filter-bar
         top 0
     .list .items
-        padding-top 30px
+        padding-top 64px

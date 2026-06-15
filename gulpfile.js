@@ -496,7 +496,7 @@ gulp.task('injectgit', () => {
 
 // compile styl files
 gulp.task('css', () => {
-  const sources = 'src/app/styl/*.styl',
+  const sources = 'src/app/styl/Official_-_Dark_theme.styl',
     dest = 'src/app/themes/';
 
   return gulp

@@ -28,7 +28,8 @@
             'click .actions-favorites': 'toggleFavorite',
             'click .actions-watched': 'toggleWatched',
             'click .cover': 'showDetail',
-            'mouseover .cover': 'hoverItem'
+            'mouseenter': 'hoverItem',
+            'mouseleave': 'unhoverItem'
         },
 
         initialize: function () {
@@ -88,6 +89,10 @@
                 prevX = e.pageX;
                 prevY = e.pageY;
             }
+        },
+
+        unhoverItem: function () {
+            $(this.el).removeClass('selected');
         },
 
         isAprilFools: function () {
@@ -230,8 +235,22 @@
         },
 
         setTooltips: function () {
-            this.ui.watchedIcon.attr('data-original-title', this.ui.watchedIcon.hasClass('selected') ? i18n.__('Mark as unseen') : i18n.__('Mark as Seen')).tooltip();
-            this.ui.bookmarkIcon.attr('data-original-title', this.ui.bookmarkIcon.hasClass('selected') ? i18n.__('Remove from bookmarks') : i18n.__('Add to bookmarks')).tooltip();
+            this.ui.watchedIcon.attr('data-original-title', this.ui.watchedIcon.hasClass('selected') ? i18n.__('Mark as unseen') : i18n.__('Mark as Seen')).tooltip({
+                container: 'body',
+                placement: 'top',
+                delay: {
+                    'show': 450,
+                    'hide': 80
+                }
+            });
+            this.ui.bookmarkIcon.attr('data-original-title', this.ui.bookmarkIcon.hasClass('selected') ? i18n.__('Remove from bookmarks') : i18n.__('Add to bookmarks')).tooltip({
+                container: 'body',
+                placement: 'top',
+                delay: {
+                    'show': 450,
+                    'hide': 80
+                }
+            });
         },
 
         showDetail: function (e) {

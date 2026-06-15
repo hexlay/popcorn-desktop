@@ -100,7 +100,7 @@
                 }
                 if (data !== newData && e !== 'urls') {
                     self.updateDHTSettings();
-                    if (!Settings.dhtEnable || (Settings.customMoviesServer || Settings.customSeriesServer || Settings.customAnimeServer)) {
+                    if (!Settings.dhtEnable || (Settings.customMoviesServer || Settings.customSeriesServer)) {
                         self.alertMessage('change');
                     } else {
                         self.alertMessage('restart');
@@ -163,7 +163,6 @@
             let newServer = AdvSettings.get('dhtData') && !AdvSettings.get('dhtEnable') ? Settings.dhtInfo.server : '';
             AdvSettings.set('customMoviesServer', newServer);
             AdvSettings.set('customSeriesServer', newServer);
-            AdvSettings.set('customAnimeServer', newServer);
             this.alertMessage('restart');
         }.bind(this);
         var notificationModel = new App.Model.Notification({

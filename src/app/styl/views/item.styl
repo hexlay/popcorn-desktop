@@ -1,9 +1,17 @@
 .item
     display inline-block
-    margin 10px
+    margin 0
     float left
-    width 134px
+    width 178px
     font-size 0.8em
+    padding 0
+    border-radius 10px
+    overflow hidden
+    background linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.025))
+    border 1px solid rgba(255,255,255,0.09)
+    box-shadow 0 16px 36px rgba(0,0,0,0.30)
+    transform-origin center bottom
+    transition transform 260ms cubic-bezier(.2,.8,.2,1), border-color 220ms ease, box-shadow 260ms ease, background-color 220ms ease
     &.watched
         opacity 0.4
 
@@ -13,40 +21,47 @@
 
     .cover
         background-image url(../images/posterholder.png)
-        background-size 134px 196px
-        width 134px
-        height 196px
-        border-radius $PosterRadius
-        box-shadow $PosterShadow
+        background-size 178px 260px
+        width 178px
+        height 260px
+        border-radius 0
+        box-shadow none
         cursor pointer
+        overflow hidden
+        position relative
+        transform translateZ(0)
+        transition transform 180ms ease, box-shadow 180ms ease, filter 180ms ease
 
         &.empty
             background-image none
 
-        .cover-overlay
+        .cover-imgs
             width 100%
             height 100%
             background-size cover
             background-position center
+            transition transform 420ms cubic-bezier(.2,.8,.2,1), filter 260ms ease
+
+        .cover-overlay
+            position absolute
+            top 0
+            left 0
+            width 100%
+            height 100%
+            box-sizing border-box
+            background-size cover
+            background-position center
             opacity 0
             display none
+            pointer-events none
+            transition opacity 220ms ease, background 220ms ease
 
             &.selected
                 opacity 1
                 display block
-                padding 88px 0
-                border 2px solid rgba(0,0,0,0)
-                border-radius $PosterRadius
-
-                .actions-watched,
-                .rating
-                    visibility hidden
-                    transition none
-
-                &:hover >
-                    .actions-watched,
-                    .rating
-                        visibility visible
+                padding 0
+                border 0
+                border-radius 0
 
             &img
                 position absolute
@@ -56,24 +71,48 @@
                 opacity 1
 
             &.cover-info-overlay
-              padding 88px 0
-              background $PosterHoverOverlay
-              border-radius $PosterRadius
+              padding 0
+              background linear-gradient(180deg, rgba(0,0,0,0.20) 0%, rgba(0,0,0,0.02) 42%, rgba(0,0,0,0.32) 100%)
+              border-radius 0
 
               &.selected
-                  background none
+                  background linear-gradient(180deg, rgba(5,7,10,0.12) 0%, rgba(5,7,10,0.00) 42%, rgba(5,7,10,0.40) 100%)
 
                   &:hover
-                      background $PosterHoverOverlay
+                      background linear-gradient(180deg, rgba(5,7,10,0.20) 0%, rgba(5,7,10,0.02) 42%, rgba(5,7,10,0.48) 100%)
+
+            .card-play-indicator
+                position absolute
+                top 50%
+                left 50%
+                width 64px
+                height 64px
+                margin -32px 0 0 -32px
+                border-radius 50%
+                color $FilterBarActive
+                background rgba(8,10,14,0.58)
+                border 2px solid $FilterBarActive
+                box-shadow 0 0 0 0 rgba(244,185,66,0.26), 0 14px 34px rgba(0,0,0,0.52)
+                font-size 28px
+                line-height 62px
+                text-align center
+                text-indent 4px
+                opacity 0
+                transform scale(0.78)
+                transition opacity 220ms ease, transform 260ms cubic-bezier(.2,.8,.2,1), box-shadow 260ms ease
+                pointer-events none
 
             .actions-favorites
-                float right
-                margin-top -80px
-                margin-right 7px
+                position absolute
+                top 12px
+                right 12px
                 color #FFFFFF
-                font-size 1.4 em
-                -webkit-transition all 0.5s
-                opacity 0.3
+                font-size 1.75em
+                line-height 1
+                -webkit-transition color 180ms ease, opacity 180ms ease, transform 180ms ease
+                opacity 0
+                text-shadow 0 8px 18px rgba(0,0,0,0.55)
+                pointer-events auto
 
                 &.selected
                     color $FavoriteColor
@@ -82,33 +121,38 @@
                     cursor pointer
                     color $ButtonBgActive
                     opacity 1
+                    transform scale(1.08)
 
             .actions-watched
-                float left
-                margin-top -80px
-                margin-left 7px
+                position absolute
+                top 12px
+                left 12px
                 color #FFFFFF
-                font-size 1.4 em
-                -webkit-transition all 0.5s
-                opacity 0.3
+                font-size 1.75em
+                line-height 1
+                -webkit-transition color 180ms ease, opacity 180ms ease, transform 180ms ease
+                opacity 0
+                text-shadow 0 8px 18px rgba(0,0,0,0.55)
+                pointer-events auto
 
                 &:hover
                     cursor pointer
                     color $ButtonBgActive
                     opacity 1
+                    transform scale(1.08)
 
                 &.selected
                     opacity 1
 
             .rating
-                background linear-gradient(to bottom, rgba(206,206,206,0) 0%,rgba(22,22,22,0.69) 69%,rgba(22,22,22,0.95) 100%)
-                border-radius $PosterRadius
+                background linear-gradient(to bottom, rgba(9,10,13,0) 0%, rgba(9,10,13,0.78) 58%, rgba(9,10,13,0.96) 100%)
+                border-radius 0
                 bottom 0
                 display none
                 height auto
                 left 0
                 margin 0
-                padding 10px 5px 5px
+                padding 22px 10px 9px
                 position absolute
                 right 0
                 text-align left
@@ -119,12 +163,12 @@
                 font-size 85%
 
                 .rating-star
-                    color #ffc900
+                    color $FilterBarActive
                     padding-right 0px
                     vertical-align middle
 
                 .rating-star-half
-                    color #ffc900
+                    color $FilterBarActive
                     width 50%
 
                 .rating-star-half-empty
@@ -151,22 +195,61 @@
     &.selected
         > .cover .cover-overlay
             display block
-            animation fadeBd 0.5s ease
+            animation cardOverlayIn 260ms ease both
+
+        transform translateY(-10px) scale(1.035)
+        border-color rgba(244,185,66,0.86)
+        background linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.035))
+        box-shadow 0 28px 68px rgba(0,0,0,0.66), 0 0 0 1px rgba(244,185,66,0.25), 0 0 38px rgba(244,185,66,0.12)
 
         .cover
+            .cover-imgs
+                transform scale(1.045)
+                filter saturate(1.08) brightness(0.98)
+
             .cover-info-overlay
-                border 2px solid $PosterHoverBorder
                 opacity 1
                 will-change transform
+
+                .actions-favorites,
+                .actions-watched
+                    opacity 0.92
+
+                .card-play-indicator
+                    opacity 1
+                    transform scale(1)
+                    animation cardPlayPulse 1500ms ease-in-out infinite
+    &:hover
+        transform translateY(-5px)
+        border-color rgba(244,185,66,0.55)
+        box-shadow 0 24px 54px rgba(0,0,0,0.48)
+
+        .cover-imgs
+            transform scale(1.02)
+
+    &.selected:hover
+        transform translateY(-10px) scale(1.035)
+        border-color rgba(244,185,66,0.86)
+        box-shadow 0 28px 68px rgba(0,0,0,0.66), 0 0 0 1px rgba(244,185,66,0.25), 0 0 38px rgba(244,185,66,0.12)
+
+    .item-meta
+        min-height 88px
+        padding 12px 14px 13px
+        box-sizing border-box
+        background linear-gradient(180deg, rgba(14,17,23,0.94), rgba(9,11,15,0.98))
+
     .title
         height auto
-        margin 6px 0 4px
+        margin 0 0 7px
         color $Text1
         max-width 100%
         overflow hidden
         text-overflow ellipsis
         white-space nowrap
         padding-bottom 2px
+        font-family $MainFontBold
+        font-size 1.05em
+        letter-spacing -0.01em
 
     .title2
         font-size 0.85em
@@ -179,16 +262,39 @@
         padding-bottom 2px
 
     .year
-        font-size 0.85em
-        color $Text4
-        display inline
+        font-size 0.95em
+        color $Text3
+        display block
+        margin 0 0 8px
+
+    .item-meta-bottom
+        display flex
+        align-items center
+        justify-content space-between
+        gap 8px
+
+    .card-rating
+        color $Text1
+        font-family $MainFont
+        font-size 0.95em
+
+        i
+            color $FilterBarActive
+            margin-right 6px
 
     .seasons
-        font-size 0.85em
-        color $Text4
-        display inline
-        float right
-        margin-top 2px
+        font-size 0.82em
+        color $Text1
+        display inline-block
+        float none
+        margin 0
+        border 1px solid rgba(244,185,66,0.72)
+        border-radius 5px
+        padding 1px 6px
+        max-width 78px
+        overflow hidden
+        text-overflow ellipsis
+        white-space nowrap
 
 @keyframes fadeBd
     from
@@ -196,24 +302,38 @@
     to
         border-color $PosterHoverBorder
 
+@keyframes cardOverlayIn
+    from
+        opacity 0
+    to
+        opacity 1
+
+@keyframes cardPlayPulse
+    0%
+        box-shadow 0 0 0 0 rgba(244,185,66,0.30), 0 14px 34px rgba(0,0,0,0.52)
+    70%
+        box-shadow 0 0 0 12px rgba(244,185,66,0), 0 14px 34px rgba(0,0,0,0.52)
+    100%
+        box-shadow 0 0 0 0 rgba(244,185,66,0), 0 14px 34px rgba(0,0,0,0.52)
+
 .load-more,
 .search-more
     position relative
     background-size cover
     background-position center center
-    width 134px
-    height 196px
-    border-radius 4px
-    border 2px solid rgba(0, 0, 0, 0)
+    width 178px
+    height 348px
+    border-radius 10px
+    border 1px solid rgba(255, 255, 255, 0.08)
     cursor pointer
     display inline-block
-    margin 10px
+    margin 8px
     float left
-    background-color $BgColor1
+    background-color rgba(255,255,255,0.05)
     opacity 1
 
     &:hover
-        border 2px solid $PosterHoverBorder
+        border 1px solid $PosterHoverBorder
         -webkit-transition border 400ms ease
 
         > #overlay
@@ -273,6 +393,6 @@
         display none
 
 .ghost
-    width 134px
+    width 178px
     height 0
-    margin 10px
+    margin 0

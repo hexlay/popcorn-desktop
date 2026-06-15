@@ -13,211 +13,6 @@
         </div>
     </section>
 
-    <section id="user-interface">
-        <div class="title"><%= i18n.__("User Interface") %></div>
-        <div class="content">
-            <span>
-                <div class="dropdown pct-theme">
-                    <p><%= i18n.__("Theme") %></p>
-                    <%
-                        var themes = "";
-                        var theme_files = fs.readdirSync('./src/app/themes/');
-                        for (var i in theme_files) {
-                            if (theme_files[i].indexOf('_theme') > -1) {
-                                themes += "<option " + (Settings.theme == theme_files[i].slice(0, -4)? "selected='selected'" : "") + " value='" + theme_files[i].slice(0, -4) + "'>" +
-                                theme_files[i].slice(0, -10).split('_').join(' '); + "</option>";
-                            }
-                            if (theme_files[i] === 'third_party') {
-                                var third_party_files = fs.readdirSync('./src/app/themes/third_party');
-                                for (var k in third_party_files) {
-                                    if (third_party_files[k].indexOf('_theme') > -1) {
-                                        themes += "<option " + (Settings.theme == 'third_party\/' + third_party_files[k].slice(0, -4)? "selected='selected'" : "") + " value='" + 'third_party\/' + third_party_files[k].slice(0, -4) + "'>" +
-                                        third_party_files[k].slice(0, -10).split('_').join(' '); + "</option>";
-                                    }
-                                }
-                            }
-                        }
-                    %>
-                    <select name="theme"><%=themes%></select>
-                    <div class="dropdown-arrow"></div>
-                </div>
-            </span>
-            <span>
-                <div class="dropdown start-screen">
-                    <p><%= i18n.__("Start Screen") %></p>
-                        <%
-                            var arr_screens = [];
-                            Settings.moviesTabEnable ? arr_screens.push("Movies") : null;
-                            Settings.seriesTabEnable ? arr_screens.push("TV Series") : null;
-                            Settings.animeTabEnable ? arr_screens.push("Anime") : null;
-                            Settings.favoritesTabEnable ? arr_screens.push("Favorites") : null;
-                            Settings.watchedTabEnable ? arr_screens.push("Watched") : null;
-                            Settings.activateWatchlist && App.Trakt.authenticated ? arr_screens.push("Watchlist") : null;
-                            Settings.activateTorrentCollection ? arr_screens.push("Torrent-collection") : null;
-                            Settings.activateSeedbox ? arr_screens.push("Seedbox") : null;
-                            arr_screens.push("Last Open");
-                            var selct_start_screen = "";
-                            for(var key in arr_screens) {
-                                selct_start_screen += "<option "+(Settings.start_screen == arr_screens[key]? "selected='selected'":"")+" value='"+arr_screens[key]+"'>"+i18n.__(arr_screens[key].replace("Torrent-collection", "Torrent Collection"))+"</option>";
-                            }
-                        %>
-                    <select name="start_screen"><%=selct_start_screen%></select>
-                    <div class="dropdown-arrow"></div>
-                </div>
-            </span>
-            <span>
-                <p><%= i18n.__("Tabs") %></p>
-                &nbsp;&nbsp;
-                <input class="settings-checkbox" name="moviesTabEnable" id="moviesTabEnable" type="checkbox" <%=(Settings.moviesTabEnable? "checked='checked'":"")%>>
-                <label class="settings-label" for="moviesTabEnable"><%= i18n.__("Movies") %></label>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                <input class="settings-checkbox" name="seriesTabEnable" id="seriesTabEnable" type="checkbox" <%=(Settings.seriesTabEnable? "checked='checked'":"")%>>
-                <label class="settings-label" for="seriesTabEnable"><%= i18n.__("Series") %></label>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                <input class="settings-checkbox" name="animeTabEnable" id="animeTabEnable" type="checkbox" <%=(Settings.animeTabEnable? "checked='checked'":"")%>>
-                <label class="settings-label" for="animeTabEnable"><%= i18n.__("Anime") %></label>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                <input class="settings-checkbox" name="favoritesTabEnable" id="favoritesTabEnable" type="checkbox" <%=(Settings.favoritesTabEnable? "checked='checked'":"")%>>
-                <label class="settings-label" for="favoritesTabEnable"><%= i18n.__("Favorites") %></label>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                <input class="settings-checkbox" name="watchedTabEnable" id="watchedTabEnable" type="checkbox" <%=(Settings.watchedTabEnable? "checked='checked'":"")%>>
-                <label class="settings-label" for="watchedTabEnable"><%= i18n.__("Watched") %></label>
-            </span>
-            <span>
-                <input class="settings-checkbox" name="coversShowRating" id="coversShowRating" type="checkbox" <%=(Settings.coversShowRating? "checked='checked'":"")%>>
-                <label class="settings-label" for="coversShowRating"><%= i18n.__("Show rating over covers") %></label>
-            </span>
-            <span>
-                <input class="settings-checkbox" name="alwaysShowBookmarks" id="alwaysShowBookmarks" type="checkbox" <%=(Settings.alwaysShowBookmarks? "checked='checked'":"")%>>
-                <label class="settings-label" for="alwaysShowBookmarks"><%= i18n.__("Always show bookmark over covers") %></label>
-            </span>
-            <% if (Settings.activateSeedbox) { %>
-            <span>
-                <input class="settings-checkbox" name="showSeedboxOnDlInit" id="showSeedboxOnDlInit" type="checkbox" <%=(Settings.showSeedboxOnDlInit? "checked='checked'":"")%>>
-                <label class="settings-label" for="showSeedboxOnDlInit"><%= i18n.__("Show the Seedbox when a new download is added") %></label>
-            </span>
-            <% } %>
-            <span>
-                <input class="settings-checkbox" name="expandedSearch" id="expandedSearch" type="checkbox" <%=(Settings.expandedSearch? "checked='checked'":"")%>>
-                <label class="settings-label" for="expandedSearch"><%= i18n.__("Search field always expanded") %></label>
-            </span>
-            <span>
-                <div class="dropdown defaultFilters">
-                    <p><%= i18n.__("Default Filters") %></p>
-                        <%
-                            var filter_type = {
-                                "default": "Default",
-                                "custom": "Custom",
-                                "remember": "Remember"
-                            };
-                            var select_default_filter = "";
-                            for(var key in filter_type) {
-                                select_default_filter += "<option "+(Settings.defaultFilters == key? "selected='selected'":"")+" value='"+key+"'>"+i18n.__(filter_type[key])+"</option>";
-                            }
-                        %>
-                    <select name="defaultFilters"><%=select_default_filter%></select>
-                    <div class="dropdown-arrow"></div>&nbsp;
-                    <% if (Settings.defaultFilters === 'custom') { %>&nbsp;<i class="set-current-filter fa fa-pen tooltipped" data-toggle="tooltip" data-placement="auto" title="<%= i18n.__("Set Filters") %>"></i><% } %>
-                    <% if (Settings.defaultFilters === 'custom' || Settings.defaultFilters === 'remember') { %><i class="reset-current-filter fa fa-rotate-right tooltipped" data-toggle="tooltip" data-placement="auto" title="<%= i18n.__("Reset Filters") %>"></i><i style="padding-right:80px">&nbsp;</i><% } %>
-                </div>
-            </span>
-            <span>
-                <div class="dropdown watchedCovers">
-                    <p><%= i18n.__("Watched Items") %></p>
-                        <%
-                            var watch_type = {
-                                "none": "Show",
-                                "fade": "Fade",
-                                "hide": "Hide"
-                            };
-                            var select_watched_cover = "";
-                            for(var key in watch_type) {
-                                select_watched_cover += "<option "+(Settings.watchedCovers == key? "selected='selected'":"")+" value='"+key+"'>"+i18n.__(watch_type[key])+"</option>";
-                            }
-                        %>
-                    <select name="watchedCovers"><%=select_watched_cover%></select>
-                    <div class="dropdown-arrow"></div>
-                </div>
-            </span>
-            <span>
-                <div class="dropdown tv_detail_jump_to">
-                    <p><%= i18n.__("Series detail opens to") %></p>
-                        <%
-                            var tv_detail_jump_to = {
-                                "next": "Next episode",
-                                "firstUnwatched": "First unwatched episode"
-                            };
-                            var selected_tv_detail_jump = "";
-                            for(var key in tv_detail_jump_to) {
-                                selected_tv_detail_jump += "<option "+(Settings.tv_detail_jump_to == key? "selected='selected'":"")+" value='"+key+"'>"+i18n.__(tv_detail_jump_to[key])+"</option>";
-                            }
-                        %>
-                    <select name="tv_detail_jump_to"><%=selected_tv_detail_jump%></select>
-                    <div class="dropdown-arrow"></div>
-                </div>
-            </span>
-            <span>
-                <div class="dropdown poster_size">
-                   <p><%= i18n.__("Poster Size") %></p>
-                        <%
-                            var pos_type = {"134": "100%", "154": "113%", "174": "125%", "194": "138%", "214": "150%", "234": "163%", "254": "175%", "274": "188%", "294": "200%"};
-                            var pos_sizes = "";
-                            for(var key in pos_type) {
-                                pos_sizes += "<option "+(Settings.postersWidth == key? "selected='selected'":"")+" value='"+key+"'>"+pos_type[key]+"</option>";
-                            }
-                        %>
-                    <select name="poster_size"><%=pos_sizes%></select>
-                    <div class="dropdown-arrow"></div>
-                </div>
-            </span>
-            <span>
-                <p><%= i18n.__("UI Scaling") %></p>
-                <input id="bigPicture" type="text" size="5" name="bigPicture" value="<%=Settings.bigPicture%>%" autocomplete="off"/>&nbsp;&nbsp;&nbsp;<em>25% - 400%</em>
-            </span>
-            <span>
-                <div class="dropdown UITransparency">
-                    <p><%= i18n.__("UI Transparency") %></p>
-                    <label><%= i18n.__("Movies") %></label>
-                        <%
-                            var transpm_type = {"1": "Disabled", "0.90": "Very Low", "0.75": "Low", "0.65": "Medium", "0.55": "High", "0.40": "Very High"};
-                            var transpm_sizes = "";
-                            for(var key in transpm_type) {
-                                transpm_sizes += "<option "+(Settings.moviesUITransparency == key? "selected='selected'":"")+" value='"+key+"'>"+i18n.__(transpm_type[key])+"</option>";
-                            }
-                        %>
-                    <select name="moviesUITransparency"><%=transpm_sizes%></select>
-                    <div class="dropdown-arrow"></div>
-                    <label><%= i18n.__("Series") %></label>
-                        <%
-                            var transps_type = {"": "Disabled", "vlow": "Very Low", "low": "Low", "medium": "Medium", "high": "High", "vhigh": "Very High"};
-                            var transps_sizes = "";
-                            for(var key in transps_type) {
-                                transps_sizes += "<option "+(Settings.seriesUITransparency == key? "selected='selected'":"")+" value='"+key+"'>"+i18n.__(transps_type[key])+"</option>";
-                            }
-                        %>
-                    <select name="seriesUITransparency"><%=transps_sizes%></select>
-                    <div class="dropdown-arrow"></div>
-                </div>
-            </span>
-            <span>
-                <input class="settings-checkbox" name="nativeWindowFrame" id="nativeWindowFrame" type="checkbox" <%=(Settings.nativeWindowFrame? "checked='checked'":"")%>>
-                <label class="settings-label" for="nativeWindowFrame"><%= i18n.__("Native window frame") %></label>
-            </span>
-            <span>
-                <input class="settings-checkbox" name="alwaysOnTop" id="alwaysOnTop" type="checkbox" <%=(Settings.alwaysOnTop? "checked='checked'":"")%>>
-                <label class="settings-label" for="alwaysOnTop"><%= i18n.__("Always On Top") %></label>
-            </span>
-            <span>
-                <input class="settings-checkbox" name="minimizeToTray" id="minimizeToTray" type="checkbox" <%=(Settings.minimizeToTray? "checked='checked'":"")%>>
-                <label class="settings-label" for="minimizeToTray"><%= i18n.__("Minimize to Tray") %></label>
-            </span>
-            <span>
-                <input class="settings-checkbox" name="events" id="events" type="checkbox" <%=(Settings.events? "checked='checked'":"")%>>
-                <label class="settings-label" for="events"><%= i18n.__("Celebrate various events") %></label>
-            </span>
-        </div>
-    </section>
-
     <section id="localisation">
         <div class="title"><%= i18n.__("Language") %></div>
         <div class="content">
@@ -495,16 +290,8 @@
                 </div>
             </span>
             <span>
-                <input class="settings-checkbox" name="activateTorrentCollection" id="activateTorrentCollection" type="checkbox" <%=(Settings.activateTorrentCollection? "checked='checked'":"")%>>
-                <label class="settings-label" for="activateTorrentCollection"><%= i18n.__("Torrent Collection") %></label>
-            </span>
-            <span>
                 <input class="settings-checkbox" name="includeTorrentCollectionInMovieSources" id="includeTorrentCollectionInMovieSources" type="checkbox" <%=(Settings.includeTorrentCollectionInMovieSources? "checked='checked'":"")%>>
                 <label class="settings-label" for="includeTorrentCollectionInMovieSources"><%= i18n.__("Include Torrent Collection in movie sources") %></label>
-            </span>
-            <span>
-                <input class="settings-checkbox" name="activateSeedbox" id="activateSeedbox" type="checkbox" <%=(Settings.activateSeedbox? "checked='checked'":"")%>>
-                <label class="settings-label" for="activateSeedbox"><%= i18n.__("Seedbox") %></label>
             </span>
             <span>
                 <input class="settings-checkbox" name="activateTempf" id="activateTempf" type="checkbox" <%=(Settings.activateTempf? "checked='checked'":"")%>>
@@ -585,21 +372,6 @@
                     </datalist>
                 </div>
             </span>
-            <span>
-                <div class="opensubtitles-options">
-                    <p><%= i18n.__("Anime API Server(s)") %></p>
-                    <input type="text" size="61" id="customAnimeServer" name="customAnimeServer" list="animeServers" value="<%= encodeURI(Settings.customAnimeServer ? Settings.customAnimeServer : (Settings.dhtEnable && Settings.dhtInfo ? Settings.dhtInfo.server : Settings.providers.anime.uri[0].split('=')[1])) %>">
-                    <datalist id="animeServers">
-                        <% var animeServList = [Settings.providers.anime.uri[0].split('=')[1]];
-                           Settings.customServers && Settings.customServers.anime ? animeServList = animeServList.concat(Settings.customServers.anime) : null;
-                           Settings.dhtInfo ? animeServList = animeServList.concat([Settings.dhtInfo.server]) : null;
-                           for (var i = 0; i < animeServList.length; ++i) {
-                        %>
-                        <option value="<%= encodeURI(animeServList[i]).replace(/%20/g, ' ') %>">
-                        <% } %>
-                    </datalist>
-                </div>
-            </span>
             <span id="apiserver_info">
                 <em>* <%= i18n.__("You can add multiple API Servers separated with a , from which it will select randomly (*for load balancing) until it finds the first available") %></em>
             </span>
@@ -614,12 +386,6 @@
     <section id="connection">
         <div class="title"><%= i18n.__("Connection") %></div>
         <div class="content">
-            <% if (Settings.activateSeedbox) { %>
-            <span>
-                <p><%= i18n.__("Active Torrents Limit") %></p>
-                <input id="maxActiveTorrents" type="number" name="maxActiveTorrents" value="<%=Settings.maxActiveTorrents%>" autocomplete="off"/>
-            </span>
-            <% } %>
             <span>
                 <p><%= i18n.__("Connection Limit") %></p>
                 <input id="connectionLimit" type="number" name="connectionLimit" value="<%=Settings.connectionLimit%>" autocomplete="off"/>
@@ -659,12 +425,6 @@
                 <p><%= i18n.__("Port to stream on") %></p>
                 <input id="streamPort" type="number" name="streamPort" value="<%=Settings.streamPort%>"/>&nbsp;&nbsp;&nbsp;<em><%= i18n.__("0 = Random") %></em>
             </span>
-            <% if (Settings.activateSeedbox && (!Settings.deleteTmpOnClose || Settings.separateDownloadsDir)) { %>
-            <span>
-                <input class="settings-checkbox" name="continueSeedingOnStart" id="continueSeedingOnStart" type="checkbox" <%=(Settings.continueSeedingOnStart? "checked='checked'":"")%>>
-                <label class="settings-label" for="continueSeedingOnStart"><%= i18n.__("Resume seeding after restarting the app?") %></label>
-            </span>
-            <% } %>
             <span>
                 <input class="settings-checkbox" name="protocolEncryption" id="protocolEncryption" type="checkbox" <%=(Settings.protocolEncryption? "checked='checked'":"")%>>
                 <label class="settings-label" for="protocolEncryption" id="protocolEnc"><%= i18n.__("Enable Protocol Encryption") %></label>
@@ -695,35 +455,6 @@
                 <input class="settings-checkbox" name="deleteTmpOnClose" id="deleteTmpOnClose" type="checkbox" <%=(Settings.deleteTmpOnClose? "checked='checked'":"")%>>
                 <label class="settings-label" for="deleteTmpOnClose"><%= i18n.__("Clear Cache Folder after closing the app?") %></label>
             </span>
-            <% if (Settings.activateSeedbox) { %>
-            <span>
-                <div class="dropdown del-seedbox-cache">
-                    <p><%= i18n.__("Delete related cache when removing from Seedbox") %>&nbsp;&nbsp;</p>
-                        <%
-                            var arr_del_cache = ['always', 'never', 'ask'];
-                            var selct_del_cache = "";
-                            for(var key in arr_del_cache) {
-                                selct_del_cache += "<option "+(Settings.delSeedboxCache == arr_del_cache[key]? "selected='selected'":"")+" value='"+arr_del_cache[key]+"'>"+i18n.__(arr_del_cache[key].capitalizeEach().replace("Ask", "Ask me every time"))+"</option>";
-                            }
-                        %>
-                    <select name="delSeedboxCache"><%=selct_del_cache%></select>
-                    <div class="dropdown-arrow"></div>
-                </div>
-            </span>
-            <span>
-                <input class="settings-checkbox" name="separateDownloadsDir" id="separateDownloadsDir" type="checkbox" <%=(Settings.separateDownloadsDir? "checked='checked'":"")%>>
-                <label class="settings-label" for="separateDownloadsDir" id="downloadsDir"><%= i18n.__("Separate directory for Downloads") %></label>
-                <em><i class="fas fa-exclamation-circle">&nbsp;&nbsp;</i><%= i18n.__("Enabling will prevent the sharing of cache between the Watch Now and Download functions") %></em>
-            </span>
-            <% } %>
-            <% if (Settings.activateSeedbox && Settings.separateDownloadsDir) { %>
-            <span>
-                <p><%= i18n.__("Downloads Directory") %></p>
-                <input type="text" placeholder="<%= i18n.__("Downloads Directory") %>" id="fakedownloadsLocation" value="<%= Settings.downloadsLocation %>" readonly="readonly" size="61" />
-                <i class="open-downloads-folder fa fa-box-archive tooltipped" data-toggle="tooltip" data-placement="auto" title="<%= i18n.__("Open Downloads Directory") %>"></i>
-                <input type="file" name="downloadsLocation" id="downloadsLocation" nwdirectory style="display: none;" nwworkingdir="<%= Settings.downloadsLocation %>" />
-            </span>
-            <% } %>
         </div>
     </section>
 

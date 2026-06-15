@@ -1,4 +1,8 @@
 <ul class="nav nav-hor left">
+    <li class="brand-lockup">
+        <img src="/src/app/images/icon.png" alt="">
+        <span>Popcorn Time</span>
+    </li>
     <% _.each (App.Config.getTabTypes(), function (tab) { %>
     <% var providerURL = App.Config.getProviderForType(tab.type)[0].apiURL ? App.Config.getProviderForType(tab.type)[0].apiURL.slice(0) : [];
         providerURL.forEach(function(e, index) {
@@ -49,7 +53,7 @@
     <li>
         <div class="right search">
             <form>
-                <input id="searchbox"<% if (Settings.expandedSearch) { %> class="expanded"<% } %> type="text" placeholder="<%= i18n.__("Search") %>" autocomplete="off">
+                <input id="searchbox" type="text" placeholder="<%= i18n.__("Search") %>" autocomplete="off">
                 <div class="clear fa fa-times"></div>
             </form>
         </div>
@@ -61,24 +65,6 @@
     <li style="display:none">
     <% } %>
         <i id="filterbar-watchlist" class="fa fa-inbox watchlist tooltipped" data-toggle="tooltip" data-placement="bottom" title="<%= i18n.__("Watchlist") %>"></i>
-    </li>
-
-    <!-- Torrent Collection -->
-    <% if (Settings.activateTorrentCollection) { %>
-    <li id="torrent_col" style="display:block">
-    <% } else { %>
-    <li id="torrent_col" style="display:none">
-    <% } %>
-        <i id="filterbar-torrent-collection" class="fa fa-bars-staggered torrent-collection tooltipped" data-toggle="tooltip" data-placement="bottom" title="<%= i18n.__("Torrent Collection") %>"></i>
-    </li>
-
-    <!-- Seedbox -->
-    <% if (Settings.activateSeedbox) { %>
-    <li style="display:block">
-    <% } else { %>
-    <li style="display:none">
-    <% } %>
-        <i id="filterbar-seedbox" class="fa fa-download about tooltipped" data-toggle="tooltip" data-placement="bottom" title="<%= i18n.__("Seedbox") %>"></i>
     </li>
 
     <!-- Cache Folder -->
