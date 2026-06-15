@@ -1,4 +1,10 @@
 /** Global variables **/
+// Keep browser-oriented dependencies from resolving Node's file-backed storage.
+Object.defineProperty(global, 'localStorage', {
+  configurable: true,
+  value: window.localStorage
+});
+
 var _ = require('underscore'),
   async = require('async'),
   inherits = require('util').inherits,

@@ -76,7 +76,7 @@
             self.alertMessage('wait');
         }
         const dht = new DHT({verify: ed.verify});
-        const hash = Buffer(Settings.dht, 'hex');
+        const hash = Buffer.from(Settings.dht, 'hex');
         dht.once('ready', function () {
             dht.get(hash, function (err, node) {
                 if (err || !node || !node.v) {

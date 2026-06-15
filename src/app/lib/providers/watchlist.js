@@ -106,10 +106,10 @@
   };
 
   var load = function() {
-    delete localStorage.watchlist_fetched_time;
-    delete localStorage.watchlist_cached;
-    delete localStorage.watchlist_update_shows;
-    delete localStorage.watchlist_update_movies;
+    delete window.localStorage.watchlist_fetched_time;
+    delete window.localStorage.watchlist_cached;
+    delete window.localStorage.watchlist_update_shows;
+    delete window.localStorage.watchlist_update_movies;
 
     var watchlist = [];
 
@@ -117,7 +117,7 @@
       .getAll()
       .then(function(tv) {
         // store update data
-        localStorage.watchlist_update_shows = JSON.stringify(tv);
+        window.localStorage.watchlist_update_shows = JSON.stringify(tv);
 
         // add tv show to watchlist
         watchlist = watchlist.concat(tv.shows);
@@ -129,7 +129,7 @@
       })
       .then(function(movies) {
         // store update data
-        localStorage.watchlist_update_movies = JSON.stringify(movies);
+        window.localStorage.watchlist_update_movies = JSON.stringify(movies);
 
         // add movies to watchlist
         watchlist = watchlist.concat(movies);
@@ -139,10 +139,10 @@
       .then(rearrange)
       .then(function(items) {
         // store fetched timestamp
-        localStorage.watchlist_fetched_time = Date.now();
+        window.localStorage.watchlist_fetched_time = Date.now();
 
         // cache watchlist
-        localStorage.watchlist_cached = JSON.stringify(items);
+        window.localStorage.watchlist_cached = JSON.stringify(items);
 
         return {
           results: items,
@@ -152,10 +152,10 @@
   };
 
   var update = function(id) {
-    var update_data = JSON.parse(localStorage.watchlist_update_shows);
-    delete localStorage.watchlist_fetched_time;
-    delete localStorage.watchlist_cached;
-    delete localStorage.watchlist_update_shows;
+    var update_data = JSON.parse(window.localStorage.watchlist_update_shows);
+    delete window.localStorage.watchlist_fetched_time;
+    delete window.localStorage.watchlist_cached;
+    delete window.localStorage.watchlist_update_shows;
 
     var watchlist = [];
 
@@ -163,10 +163,10 @@
       .updateOne(update_data, id)
       .then(function(tv) {
         // store update data
-        localStorage.watchlist_update_shows = JSON.stringify(tv);
+        window.localStorage.watchlist_update_shows = JSON.stringify(tv);
 
         // add tv show & movies to watchlist
-        watchlist = JSON.parse(localStorage.watchlist_update_movies).concat(
+        watchlist = JSON.parse(window.localStorage.watchlist_update_movies).concat(
           tv.shows
         );
 
@@ -175,10 +175,10 @@
       .then(rearrange)
       .then(function(items) {
         // store fetched timestamp
-        localStorage.watchlist_fetched_time = Date.now();
+        window.localStorage.watchlist_fetched_time = Date.now();
 
         // cache watchlist
-        localStorage.watchlist_cached = JSON.stringify(items);
+        window.localStorage.watchlist_cached = JSON.stringify(items);
 
         return {
           results: items,
@@ -216,7 +216,7 @@
         typeof filters !== 'function' &&
         (filters.force || filters.update)
       ) {
-        if (filters.update && localStorage.watchlist_update_shows) {
+        if (filters.update && window.localStorage.watchlist_update_shows) {
           return update(filters.update)
             .then(resolve)
             .catch(reject);
@@ -232,8 +232,8 @@
       } else {
         // cache is 4 hours
         if (
-          !localStorage.watchlist_cached ||
-          parseInt(localStorage.watchlist_fetched_time) + 14400000 < Date.now()
+          !window.localStorage.watchlist_cached ||
+          parseInt(window.localStorage.watchlist_fetched_time) + 14400000 < Date.now()
         ) {
           if (App.Trakt.authenticated) {
             return App.Providers.get('Watchlist')
@@ -245,7 +245,7 @@
           }
         } else {
           resolve({
-            results: JSON.parse(localStorage.watchlist_cached),
+            results: JSON.parse(window.localStorage.watchlist_cached),
             hasMore: false
           });
         }

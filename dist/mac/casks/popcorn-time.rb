@@ -1,7 +1,7 @@
 cask "popcorn-time" do
   version "0.5.1"
 
-  nwjs = "0.86.0"
+  nwjs = "0.112.0"
   
 
   if Hardware::CPU.intel?

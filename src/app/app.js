@@ -41,7 +41,7 @@ win.error = function () {
 };
 
 if (nw.App.fullArgv.indexOf('--reset') !== -1) {
-  localStorage.clear();
+  window.localStorage.clear();
 
   fs.unlinkSync(path.join(data_path, 'data/watched.db'), function (err) {
     if (err) {
@@ -134,13 +134,13 @@ App.onBeforeStart = function (options) {
   var screen = window.screen;
 
   var width = parseInt(
-    localStorage.width ? localStorage.width : Settings.defaultWidth
+    window.localStorage.width ? window.localStorage.width : Settings.defaultWidth
   );
   var height = parseInt(
-    localStorage.height ? localStorage.height : Settings.defaultHeight
+    window.localStorage.height ? window.localStorage.height : Settings.defaultHeight
   );
-  var x = parseInt(localStorage.posX ? localStorage.posX : -1);
-  var y = parseInt(localStorage.posY ? localStorage.posY : -1);
+  var x = parseInt(window.localStorage.posX ? window.localStorage.posX : -1);
+  var y = parseInt(window.localStorage.posY ? window.localStorage.posY : -1);
 
   // reset app width when the width is bigger than the available width
   if (screen.availWidth < width) {
@@ -193,7 +193,7 @@ var initApp = function () {
     win.error('Couldn\'t start app: ', e, e.stack);
   }
 
-  if (localStorage.maximized === 'true') {
+  if (window.localStorage.maximized === 'true') {
     win.maximize();
   }
 };
@@ -267,14 +267,14 @@ var posterZoom = function () {
 };
 
 win.on('resize', function (width, height) {
-  localStorage.width = Math.round(width);
-  localStorage.height = Math.round(height);
+  window.localStorage.width = Math.round(width);
+  window.localStorage.height = Math.round(height);
   $('.sh-poster').hasClass('active') ? posterZoom() : null;
 });
 
 win.on('move', function (x, y) {
-  localStorage.posX = Math.round(x);
-  localStorage.posY = Math.round(y);
+  window.localStorage.posX = Math.round(x);
+  window.localStorage.posY = Math.round(y);
 });
 
 win.on('enter-fullscreen', function () {
@@ -294,7 +294,7 @@ win.on('maximize', function () {
   if (!Settings.nativeWindowFrame && parseFloat(process.versions['node-webkit'].replace('0.', '')) <= 50) {
     win.setResizable(false);
   }
-  localStorage.maximized = true;
+  window.localStorage.maximized = true;
   $('.sh-poster').hasClass('active') ? posterZoom() : null;
 });
 
@@ -302,7 +302,7 @@ win.on('restore', function () {
   if (!Settings.nativeWindowFrame && parseFloat(process.versions['node-webkit'].replace('0.', '')) <= 50) {
     win.setResizable(true);
   }
-  localStorage.maximized = false;
+  window.localStorage.maximized = false;
   $('.sh-poster').hasClass('active') ? posterZoom() : null;
 });
 
@@ -468,7 +468,7 @@ var minimizeToTray = function () {
 
   var openFromTray = function () {
     win.show();
-    if (localStorage.maximized === 'true') {
+    if (window.localStorage.maximized === 'true') {
       win.maximize();
     }
     tray.remove();

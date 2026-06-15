@@ -3,8 +3,8 @@
 /********
  * setup *
  ********/
-const defaultNwVersion = '0.86.0',
-  availablePlatforms = ['linux32', 'linux64', 'win32', 'win64', 'osx64', 'osx-arm64'],
+const defaultNwVersion = '0.112.0',
+  availablePlatforms = ['linux64', 'win32', 'win64', 'osx64', 'osx-arm64'],
   releasesDir = 'build',
   nwFlavor = 'sdk';
 
@@ -201,8 +201,8 @@ const nw = new nwBuilder({
   macIcns: './src/app/images/butter.icns',
   version: nwVersion,
   flavor: nwFlavor,
-  manifestUrl: 'https://popcorn-time.serv00.net/version.json',
-  downloadUrl: 'https://popcorn-time.serv00.net/nw/',
+  manifestUrl: 'https://nwjs.io/versions.json',
+  downloadUrl: 'https://dl.node-webkit.org/',
   platforms: parsePlatforms()
 }).on('log', console.log);
 
@@ -461,6 +461,7 @@ gulp.task('nwjs', () => {
     })
     .catch(function(error) {
       console.error(error);
+      throw error;
     });
 });
 
