@@ -9,205 +9,11 @@
         margin-top $HeaderHeight
         margin-bottom 5px
 
-    .browser-hero
-        position relative
-        height 318px
-        margin 30px 32px 0
-        margin-top $HeaderHeight + 30px
-        border-radius 18px
-        overflow hidden
-        background #0b0f14
-        border 1px solid rgba(255,255,255,0.12)
-        box-shadow 0 24px 70px rgba(0,0,0,0.44)
-        display block
-        box-sizing border-box
-
-        .browser-hero-backdrop
-            position absolute
-            top 0
-            right 0
-            bottom 0
-            left 0
-            background-image radial-gradient(circle at 74% 18%, rgba(244,185,66,0.32), transparent 26%), linear-gradient(135deg, #182033, #0a0d12)
-            background-size cover
-            background-position center
-            transform scale(1.01)
-            opacity 1
-            transition opacity 260ms ease
-
-        .browser-hero-shade
-            position absolute
-            top 0
-            right 0
-            bottom 0
-            left 0
-            background linear-gradient(90deg, rgba(6,8,12,0.92) 0%, rgba(6,8,12,0.74) 28%, rgba(6,8,12,0.20) 58%, rgba(6,8,12,0.42) 100%), linear-gradient(0deg, rgba(6,8,12,0.60), rgba(6,8,12,0.05) 48%)
-
-        .browser-hero-content
-            position relative
-            z-index 1
-            height 100%
-            width 42%
-            min-width 420px
-            padding 52px 54px
-            box-sizing border-box
-            color $Text1
-            text-align left
-            transform translateY(0)
-            opacity 1
-
-        .browser-hero-title
-            font-family $MainFontBold
-            font-size 44px
-            line-height 1.04
-            letter-spacing -0.04em
-            margin-bottom 14px
-
-        .browser-hero-meta
-            display flex
-            align-items center
-            gap 14px
-            color rgba(255,255,255,0.82)
-            font-size 15px
-            margin-bottom 14px
-
-            .browser-hero-rating
-                color $FilterBarActive
-                font-family $MainFontBold
-
-            .browser-hero-quality
-                color $FilterBarActive
-                border 1px solid rgba(244,185,66,0.78)
-                border-radius 5px
-                padding 2px 7px
-                font-family $MainFontBold
-                font-size 12px
-
-        .browser-hero-copy
-            color $Text2
-            font-size 16px
-            line-height 1.45
-            max-width 520px
-            height 46px
-            overflow hidden
-            margin-bottom 28px
-
-        .browser-hero-actions
-            display flex
-            gap 14px
-
-            button
-                -webkit-app-region no-drag
-                border 0
-                border-radius 8px
-                height 52px
-                padding 0 28px
-                font-family $MainFontBold
-                font-size 16px
-                cursor pointer
-                transition transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease
-
-                i
-                    margin-right 11px
-
-                &:hover
-                    transform translateY(-1px)
-
-            .browser-hero-play
-                background linear-gradient(180deg, lighten($FilterBarActive, 10), $FilterBarActive)
-                color #12100a
-                box-shadow 0 14px 30px rgba(244,185,66,0.28)
-
-            .browser-hero-detail
-                background rgba(255,255,255,0.12)
-                border 1px solid rgba(255,255,255,0.14)
-                color $Text1
-                -webkit-backdrop-filter blur(14px)
-                backdrop-filter blur(14px)
-
-        .browser-hero-dots
-            position absolute
-            z-index 1
-            left 50%
-            bottom 20px
-            transform translateX(-50%)
-            display flex
-            gap 12px
-
-        .browser-hero-dot
-            width 11px
-            height 11px
-            border-radius 50%
-            border 0
-            padding 0
-            background rgba(255,255,255,0.38)
-            cursor pointer
-            transition background-color 160ms ease, transform 160ms ease
-
-            &.active
-                background $FilterBarActive
-                transform scale(1.18)
-
-        .browser-hero-next
-            position absolute
-            z-index 2
-            right 24px
-            top 50%
-            transform translateY(-50%)
-            width 50px
-            height 50px
-            border-radius 50%
-            border 1px solid rgba(255,255,255,0.18)
-            background rgba(255,255,255,0.12)
-            color $Text1
-            -webkit-backdrop-filter blur(18px) saturate(150%)
-            backdrop-filter blur(18px) saturate(150%)
-            cursor pointer
-            transition background-color 160ms ease, transform 160ms ease
-
-            &:hover
-                background rgba(255,255,255,0.18)
-                transform translateY(-50%) scale(1.04)
-
-        &.is-animating
-            .browser-hero-backdrop
-                animation heroBackdropIn 720ms cubic-bezier(.2,.8,.2,1) both
-
-            .browser-hero-content
-                animation heroContentIn 520ms cubic-bezier(.2,.8,.2,1) both
-
-            .browser-hero-title
-                animation heroTextIn 540ms cubic-bezier(.2,.8,.2,1) both
-
-            .browser-hero-meta
-                animation heroTextIn 540ms cubic-bezier(.2,.8,.2,1) 60ms both
-
-            .browser-hero-copy
-                animation heroTextIn 540ms cubic-bezier(.2,.8,.2,1) 110ms both
-
-            .browser-hero-actions
-                animation heroTextIn 540ms cubic-bezier(.2,.8,.2,1) 160ms both
-
-        @media (max-width: 1180px)
-            height 276px
-
-            .browser-hero-content
-                min-width 340px
-                width 54%
-                padding 42px 40px
-
-            .browser-hero-title
-                font-size 36px
-
-            .browser-hero-copy
-                font-size 14px
-                height 40px
-
     .content-section-header
         display flex
         align-items center
         justify-content space-between
-        margin 22px 34px 0
+        margin $HeaderHeight + 22px 34px 0
         color $Text1
         text-align left
 
@@ -316,41 +122,13 @@
     .list
         &::-webkit-scrollbar-track
             margin-top $FilterBarHeight
+        .content-section-header
+            margin-top $FilterBarHeight + 22px
+        .items
+            padding-top 18px
     .items_show
         &::-webkit-scrollbar-track
             margin-top $FilterBarHeight
     .items_movie
         &::-webkit-scrollbar-track
             margin-top $FilterBarHeight
-
-@keyframes heroBackdropIn
-    from
-        opacity 0
-        transform scale(1.055)
-        -webkit-filter blur(10px) saturate(0.92)
-        filter blur(10px) saturate(0.92)
-    to
-        opacity 1
-        transform scale(1.01)
-        -webkit-filter blur(0) saturate(1)
-        filter blur(0) saturate(1)
-
-@keyframes heroContentIn
-    from
-        opacity 0.86
-        transform translateY(10px)
-    to
-        opacity 1
-        transform translateY(0)
-
-@keyframes heroTextIn
-    from
-        opacity 0
-        transform translateY(12px)
-        -webkit-filter blur(4px)
-        filter blur(4px)
-    to
-        opacity 1
-        transform translateY(0)
-        -webkit-filter blur(0)
-        filter blur(0)

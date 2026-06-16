@@ -72,22 +72,11 @@
         events: {
             'scroll': 'onScroll',
             'mousewheel': 'onScroll',
-            'keydown': 'onScroll',
-            'click .browser-hero-dot': 'selectHero',
-            'click .browser-hero-next': 'nextHero',
-            'click .browser-hero-play': 'openHeroDetail',
-            'click .browser-hero-detail': 'openHeroDetail'
+            'keydown': 'onScroll'
         },
 
         ui: {
-            spinner: '.spinner',
-            hero: '.browser-hero',
-            heroBackdrop: '.browser-hero-backdrop',
-            heroTitle: '.browser-hero-title',
-            heroRating: '.browser-hero-rating',
-            heroYear: '.browser-hero-year',
-            heroCopy: '.browser-hero-copy',
-            heroDots: '.browser-hero-dots'
+            spinner: '.spinner'
         },
 
 
@@ -176,11 +165,8 @@
 
         initialize: function () {
             _this = this;
-            this.heroIndex = 0;
-            this.heroAnimationTimer = null;
             this.listenTo(this.collection, 'loading', this.onLoading);
             this.listenTo(this.collection, 'loaded', this.onLoaded);
-            this.listenTo(this.collection, 'sync reset update add remove', this.renderHero);
 
             filterBarElem = _.pluck(App.Config.getTabTypes(), 'name');
             filterBarElem = filterBarElem.map(v => v.toLowerCase());
@@ -341,102 +327,6 @@
                 this.onLoading();
             }
             this.$el.scrollTop(0);
-            this.renderHero();
-        },
-
-        getHeroItems: function () {
-            return this.collection.first(4);
-        },
-
-        getHeroImage: function (model) {
-            if (!model) {
-                return '';
-            }
-            return model.get('backdrop') ||
-                model.get('fanart') ||
-                model.get('image') ||
-                model.get('poster') ||
-                (model.get('images') && (model.get('images').fanart || model.get('images').poster)) ||
-                '';
-        },
-
-        getHeroRating: function (model) {
-            var rating = model && model.get('rating');
-            if (typeof rating === 'object') {
-                rating = rating.percentage / 10;
-            }
-            rating = parseFloat(rating);
-            return isNaN(rating) ? '' : rating.toFixed(1);
-        },
-
-        renderHero: function () {
-            if (!this.ui || !this.ui.hero || !this.ui.hero.length) {
-                return;
-            }
-            var items = this.getHeroItems();
-            if (!items.length) {
-                this.ui.hero.hide();
-                return;
-            }
-
-            if (this.heroIndex >= items.length) {
-                this.heroIndex = 0;
-            }
-
-            var model = items[this.heroIndex];
-            var title = model.get('title1') || model.get('title') || i18n.__('Find your next watch');
-            var year = model.get('year') || '';
-            var synopsis = model.get('synopsis') || model.get('overview') || i18n.__('Browse movies and shows with a cleaner, cinematic layout.');
-            var rating = this.getHeroRating(model);
-            var image = this.getHeroImage(model);
-
-            this.ui.hero.show().attr('data-hero-index', this.heroIndex);
-            this.ui.hero.removeClass('is-animating');
-            this.ui.heroTitle.text(title);
-            this.ui.heroYear.text(year);
-            this.ui.heroCopy.text(synopsis);
-            this.ui.heroRating.text(rating ? '★ ' + rating : '');
-            this.ui.heroBackdrop.css('background-image', image ? 'url("' + image.replace(/"/g, '\\"') + '")' : '');
-            this.ui.hero[0].offsetWidth;
-            this.ui.hero.addClass('is-animating');
-            clearTimeout(this.heroAnimationTimer);
-            this.heroAnimationTimer = setTimeout(function () {
-                if (this.ui && this.ui.hero) {
-                    this.ui.hero.removeClass('is-animating');
-                }
-            }.bind(this), 720);
-
-            this.ui.heroDots.empty();
-            items.forEach(function(item, index) {
-                $('<button>', {
-                    class: 'browser-hero-dot' + (index === this.heroIndex ? ' active' : ''),
-                    'data-index': index
-                }).appendTo(this.ui.heroDots);
-            }, this);
-        },
-
-        selectHero: function (e) {
-            e.preventDefault();
-            this.heroIndex = parseInt($(e.currentTarget).data('index'), 10) || 0;
-            this.renderHero();
-        },
-
-        nextHero: function (e) {
-            e.preventDefault();
-            var items = this.getHeroItems();
-            if (!items.length) {
-                return;
-            }
-            this.heroIndex = (this.heroIndex + 1) % items.length;
-            this.renderHero();
-        },
-
-        openHeroDetail: function (e) {
-            e.preventDefault();
-            var item = this.$('.items .item').eq(this.heroIndex);
-            if (item.length) {
-                item.find('.cover').click();
-            }
         },
 
         onLoading: function () {
