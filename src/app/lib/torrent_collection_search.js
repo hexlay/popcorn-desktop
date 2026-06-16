@@ -94,10 +94,17 @@ function seedCount(torrent) {
     return Number(torrent && (torrent.seed || torrent.seeds)) || 0;
 }
 
+function peerCount(torrent) {
+    return Number(torrent && (torrent.peer || torrent.peers)) || 0;
+}
+
 function sortSources(torrents) {
     return (torrents || []).slice().sort(function(a, b) {
         if (Boolean(a.isTorrentCollection) !== Boolean(b.isTorrentCollection)) {
             return a.isTorrentCollection ? -1 : 1;
+        }
+        if (peerCount(a) !== peerCount(b)) {
+            return peerCount(b) - peerCount(a);
         }
         return seedCount(b) - seedCount(a);
     });
@@ -131,6 +138,18 @@ function preferByQuality(legacyTorrents, collectionTorrents) {
         torrents: torrents,
         quality: preferred.length ? preferred[0].quality : null,
     };
+}
+
+function torrentsByQuality(torrents) {
+    const grouped = {};
+    sortSources(torrents).forEach(function(torrent) {
+        const quality = torrent && torrent.quality;
+        if (!quality || quality === '-' || grouped[quality]) {
+            return;
+        }
+        grouped[quality] = torrent;
+    });
+    return grouped;
 }
 
 function base32ToHex(value) {
@@ -194,6 +213,15 @@ function dedupe(torrents) {
         found[key] = true;
         return true;
     });
+}
+
+function mergeSources(collectionTorrents, fallbackTorrents) {
+    const collection = dedupe(collectionTorrents || []);
+    const fallback = dedupe(fallbackTorrents || []).map(function(torrent) {
+        torrent.isFallbackSource = !torrent.isTorrentCollection;
+        return torrent;
+    });
+    return sortSources(dedupe(collection.concat(fallback)));
 }
 
 function logError(logger, message, error) {
@@ -287,5 +315,7 @@ module.exports = {
     sortSources: sortSources,
     groupByAudioLanguage: groupByAudioLanguage,
     preferByQuality: preferByQuality,
+    torrentsByQuality: torrentsByQuality,
+    mergeSources: mergeSources,
     search: search,
 };

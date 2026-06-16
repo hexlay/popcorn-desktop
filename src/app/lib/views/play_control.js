@@ -21,12 +21,10 @@
       'click .watched-toggle': 'toggleWatched',
       'mousedown #subs-dropdown': 'hideTooltipsSubs',
       'click .connect-opensubtitles': 'connectOpensubtitles',
-      'click #audio-dropdown': 'hideTooltips',
       'click #quality-selector': 'hideTooltips'
     },
     regions: {
       subDropdown: '#subs-dropdown',
-      audioDropdown: '#audio-dropdown',
       qualitySelector: '#quality-selector',
     },
 
@@ -39,11 +37,6 @@
         this.model.get('imdb_id'),
         this.model.get('title')
       );
-      if (!this.model.get('langs')) {
-        this.model.set('langs', { en: this.model.get('torrents') });
-      } else {
-        this.model.set('torrents', this.model.get('langs')[this.model.get('defaultAudio')]);
-      }
       this.selectFallbackSource();
       const hasMovieSources = providers.torrent.feature('torrents');
       const hasCollectionSources = Settings.includeTorrentCollectionInMovieSources && torrentCollectionSearch.hasEnabledEngines(Settings);
@@ -52,7 +45,6 @@
       this.loadPreferredCollectionSources();
 
       App.vent.on('sub:lang', this.switchSubtitle.bind(this));
-      App.vent.on('audio:lang', this.switchAudio.bind(this));
       App.vent.on(
         'update:subtitles',
         function(subs) {
@@ -76,7 +68,6 @@
         this.applyCollectionSources(this.model.get('torrentCollectionResults'));
       }
       this.setUiStates();
-      this.model.on('change:langs', this.loadAudioDropdown.bind(this));
       this.model.on('change:subtitle', this.loadSubDropdown.bind(this));
       this.model.set('showTorrents', false);
       this.ui.showTorrents.show();
@@ -96,33 +87,21 @@
       });
     },
 
-    selectPreferredAudio: function(langs, fallback) {
-      langs = langs || {};
-      if (this.hasPlayableTorrents(langs.en)) {
-        return 'en';
-      }
-      if (fallback && this.hasPlayableTorrents(langs[fallback])) {
-        return fallback;
-      }
-      return Object.keys(langs).find(function(language) {
-        return this.hasPlayableTorrents(langs[language]);
-      }, this) || null;
-    },
-
     selectFallbackSource: function() {
-      const langs = this.model.get('langs') || {};
-      const audio = this.selectPreferredAudio(langs, this.model.get('defaultAudio'));
+      var sources = this.flattenLegacySources();
       this.model.set({
-        defaultAudio: audio,
-        torrents: audio ? langs[audio] : null,
+        allTorrentSources: torrentCollectionSearch.mergeSources([], sources),
+        torrents: {},
         preferredTorrentQuality: null,
-        torrentSourceMode: audio ? 'fallback' : 'none',
+        torrentSourceMode: 'none',
       });
     },
 
     setSourceControls: function() {
       const hasTorrents = this.hasPlayableTorrents(this.model.get('torrents'));
-      $('#watch-now, #player-chooser, #quality-selector, #audio-dropdown, #show-all-torrents').toggle(hasTorrents);
+      const hasSources = (this.model.get('allTorrentSources') || []).length > 0;
+      $('#watch-now, #player-chooser, #quality-selector').toggle(hasTorrents);
+      $('#show-all-torrents').toggle(hasSources && this.model.get('showTorrentsMore'));
       $('#player-chooser .button, #player-chooser .startStreaming, #player-chooser .playerchoice').toggle(hasTorrents);
       if (!hasTorrents) {
         this.model.set('showTorrents', false);
@@ -130,35 +109,51 @@
       }
     },
 
-    collectionLangsToTorrents: function(collectionTorrents) {
-      const collectionLangs = torrentCollectionSearch.groupByAudioLanguage(collectionTorrents);
-      const langs = {};
-      Object.keys(collectionLangs).forEach(function(language) {
-        langs[language] = torrentCollectionSearch.preferByQuality({}, collectionLangs[language]).torrents;
+    flattenLegacySources: function() {
+      var langs = this.model.get('langs') || {};
+      var sources = [];
+      Object.keys(langs).forEach(function(language) {
+        Object.keys(langs[language] || {}).forEach(function(quality) {
+          var torrent = langs[language][quality];
+          if (!torrent) {
+            return;
+          }
+          torrent.quality = torrent.quality || quality;
+          torrent.audioLanguages = torrent.audioLanguages || [language];
+          sources.push(torrent);
+        });
       });
-      return langs;
+      if (!sources.length && this.model.get('torrents')) {
+        Object.keys(this.model.get('torrents')).forEach(function(quality) {
+          var torrent = this.model.get('torrents')[quality];
+          if (torrent) {
+            torrent.quality = torrent.quality || quality;
+            sources.push(torrent);
+          }
+        }, this);
+      }
+      return sources;
     },
 
-    applyCollectionSources: function(collectionTorrents) {
-      if (!collectionTorrents || !collectionTorrents.length || this.isDestroyed()) {
+    applySources: function(collectionTorrents, fallbackTorrents) {
+      if (this.isDestroyed()) {
         return false;
       }
-      const langs = this.collectionLangsToTorrents(collectionTorrents);
-      const audio = this.selectPreferredAudio(langs, collectionTorrents[0].audioLanguages && collectionTorrents[0].audioLanguages[0]);
-      const preferred = torrentCollectionSearch.preferByQuality({}, collectionTorrents.filter(function(torrent) {
-        const audioLanguages = torrent.audioLanguages || torrentCollectionSearch.detectAudioLanguages(torrent.title);
-        return audioLanguages.indexOf(audio) !== -1;
-      }));
-      this.model.set({
-        defaultAudio: audio,
-        langs: langs,
-        torrents: audio ? langs[audio] : null,
-        preferredTorrentQuality: preferred.quality,
-        torrentSourceMode: audio ? 'collection' : 'none',
-      });
-      if (this.getRegion('audioDropdown').currentView) {
-        this.loadAudioDropdown();
+      var mergedSources = torrentCollectionSearch.mergeSources(collectionTorrents, fallbackTorrents || this.flattenLegacySources());
+      if (!mergedSources.length) {
+        return false;
       }
+      var collectionQualitySources = (collectionTorrents || []).filter(function(torrent) {
+        return torrent.quality && torrent.quality !== '-';
+      });
+      var torrents = torrentCollectionSearch.torrentsByQuality(collectionQualitySources);
+      var preferredQuality = Object.keys(torrents)[0] || null;
+      this.model.set({
+        allTorrentSources: mergedSources,
+        torrents: torrents,
+        preferredTorrentQuality: preferredQuality,
+        torrentSourceMode: preferredQuality ? 'collection' : 'none',
+      });
       const qualitySelector = this.getRegion('qualitySelector').currentView;
       if (qualitySelector) {
         qualitySelector.updateTorrents(this.model.get('torrents'));
@@ -167,6 +162,10 @@
       }
       this.setSourceControls();
       return true;
+    },
+
+    applyCollectionSources: function(collectionTorrents) {
+      return this.applySources(collectionTorrents, this.flattenLegacySources());
     },
 
     loadPreferredCollectionSources: function() {
@@ -186,7 +185,6 @@
         this.model.set('torrentCollectionResults', collectionTorrents, {silent: true});
         if (!collectionTorrents.length || this.isDestroyed()) {
           this.selectFallbackSource();
-          this.loadAudioDropdown();
           this.loadQualitySelector();
           this.setSourceControls();
           return;
@@ -201,9 +199,9 @@
     },
 
     hideUnused: function() {
-      if (!this.model.get('torrents')) {
+      if (!this.hasPlayableTorrents(this.model.get('torrents'))) {
         // no torrents
-        $('#watch-now, #player-chooser, #audio-dropdown, #quality-selector, #show-all-torrents').hide();
+        $('#watch-now, #player-chooser, #quality-selector').hide();
       }
 
       if (!this.model.get('trailer')) {
@@ -218,14 +216,6 @@
       });
       var types = type + 'Dropdown';
       this.getRegion(types).show(this.views[type]);
-    },
-
-    loadAudioDropdown: function() {
-      return this.loadDropdown('audio', {
-        title: i18n.__('Audio Language'),
-        selected: this.model.get('defaultAudio'),
-        values: this.model.get('langs')
-      });
     },
 
     loadSubDropdown: function() {
@@ -251,7 +241,6 @@
     },
 
     loadComponents: function() {
-      this.loadAudioDropdown();
       this.loadSubDropdown();
       this.loadQualitySelector();
 
@@ -311,7 +300,7 @@
     },
 
     hideTooltips: function () {
-      $('#subs-dropdown .flag.toggle, #audio-dropdown .flag.toggle, #quality-selector .qselect').tooltip('hide');
+      $('#subs-dropdown .flag.toggle, #quality-selector .qselect').tooltip('hide');
     },
 
     hideTooltipsSubs: function (e) {
@@ -336,24 +325,6 @@
       this.subtitle_selected = lang;
     },
 
-    switchAudio: function(lang) {
-      var audios = this.model.get('langs');
-      if (audios === undefined || audios[lang] === undefined) {
-        lang = 'none';
-      }
-      this.old_audio_selected = this.audio_selected;
-      this.audio_selected = lang;
-
-      if (lang !== 'none' && audios[lang] && this.getRegion('qualitySelector').currentView) {
-        this.model.set('torrents', audios[lang]);
-        this.getRegion('qualitySelector').currentView.updateTorrents(audios[lang]);
-      }
-
-      if (this.model.get('showTorrents') && this.old_audio_selected !== this.audio_selected) {
-        App.vent.trigger('update:torrents', this.audio_selected);
-      }
-    },
-
     downloadTorrent: function() {
       this.startStreaming('downloadOnly');
       if (Settings.showSeedboxOnDlInit) {
@@ -374,8 +345,7 @@
       var defaultTorrent = this.model.get('torrents')[quality];
 
       var filters = {
-        quality: quality,
-        lang: this.audio_selected
+        quality: quality
       };
 
       var torrent = providers.torrent.resolveStream
@@ -394,7 +364,7 @@
         defaultSubtitle: this.subtitle_selected,
         title: this.model.get('title'),
         quality: quality,
-        lang: this.audio_selected,
+        lang: null,
         type: 'movie',
         device: App.Device.Collection.selected,
         cover: this.model.get('cover')
@@ -461,12 +431,11 @@
       } else {
         this.ui.showTorrents.removeClass('active fas fa-spinner fa-spin').html(i18n.__('more...'));
       }
-      App.vent.trigger('update:torrents', show ? this.audio_selected : null);
+      App.vent.trigger('update:torrents', show ? true : null);
     },
 
     onBeforeDestroy: function() {
       App.vent.off('sub:lang');
-      App.vent.off('audio:lang');
       App.vent.off('update:subtitles');
       this.model.off('change:quality');
       Object.values(this.views).forEach(v => v.destroy());

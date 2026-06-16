@@ -258,19 +258,38 @@
 
             var realtype = this.model.get('type');
             var itemtype = realtype.replace('bookmarked', '');
+            var cover = this.ui.cover && this.ui.cover[0];
+            if (cover) {
+                var rect = cover.getBoundingClientRect();
+                var image = this.ui.cover.css('background-image');
+                App.detailPosterTransition = {
+                    type: itemtype,
+                    image: image && image !== 'none' ? image : null,
+                    rect: {
+                        top: rect.top,
+                        left: rect.left,
+                        width: rect.width,
+                        height: rect.height
+                    }
+                };
+            }
             var providerType = itemtype === 'show' ? 'tvshow' : itemtype;
             var providers = {torrent:App.Config.getProviderForType(providerType)[0]};
             this.model.set('providers', providers);
             var id = this.model.get(this.model.idAttribute);
 
             var promises = Object.values(providers).map(function (p) {
-              if (realtype === 'show') {
-                p = providers.torrent;
-              }
-                if (!p.detail) {
+                if (realtype === 'show') {
+                    p = providers.torrent;
+                }
+                if (!p || !p.detail) {
                     return false;
                 }
-                return p.detail(id, this.model.attributes);
+                try {
+                    return p.detail(id, this.model.attributes);
+                } catch (err) {
+                    return Promise.reject(err);
+                }
             }.bind(this));
 
             // bookmarked movies are cached
@@ -295,6 +314,12 @@
             return allSettled(promises).then(function (results) {
                 $('.spinner').hide();
 
+                results.forEach(function(result) {
+                    if (!result.ok) {
+                        win.error('error loading detail data:', result.reason);
+                    }
+                });
+
                 results = results.reduce(function (a, c) {
                     if (c.ok) {
                         return a.concat(c.value);
@@ -315,7 +340,7 @@
                 .catch(function (err) {
                     win.error('error showing detail:', err);
                     $('.spinner').hide();
-                    $('.notification_alert').text(i18n.__('Error loading data, try again later...')).fadeIn('fast').delay(2500).fadeOut('fast');
+                    App.vent.trigger(itemtype + ':showDetail', this.model);
                 });
         },
 

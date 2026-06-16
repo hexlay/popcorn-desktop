@@ -61,6 +61,7 @@
                 display none
             &.ellipsis span
                 display block
+                width 100%
                 white-space nowrap
                 overflow hidden
                 text-overflow ellipsis
@@ -153,3 +154,34 @@
 
                 td.transpOff
                     background $EpisodeSelectorHover
+
+.show-detail-container #torrent-list
+    table
+        td
+            &.provider
+                width 34px
+                padding-left 6px
+
+            &.source-kind
+                width 104px
+
+                .source-badge
+                    max-width 94px
+                    padding 3px 6px
+
+            &.info
+                width 56px
+                padding 3px 6px
+
+                &.info-language
+                    width 72px
+                    text-align center
+
+                &.info-peers
+                    width 78px
+
+                &.info-quality
+                    width 58px
+
+                &.info-size
+                    width 72px

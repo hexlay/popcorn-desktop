@@ -3,6 +3,65 @@
   var healthButton, curSynopsis;
 
   var _this;
+  function runAfterTransition(element, done) {
+    var complete = false;
+    var fallback;
+
+    function finish() {
+      if (complete) {
+        return;
+      }
+      complete = true;
+      window.clearTimeout(fallback);
+      element.off('transitionend webkitTransitionEnd', finish);
+      done();
+    }
+
+    fallback = window.setTimeout(finish, 620);
+    element.one('transitionend webkitTransitionEnd', finish);
+  }
+
+  function runCircularReveal(view, target) {
+    if (!target || !target[0]) {
+      view.$el.removeClass('detail-opening');
+      return;
+    }
+    var targetRect = target[0].getBoundingClientRect();
+    var centerX = targetRect.left + targetRect.width / 2;
+    var centerY = targetRect.top + targetRect.height / 2;
+    var maxX = Math.max(centerX, window.innerWidth - centerX);
+    var maxY = Math.max(centerY, window.innerHeight - centerY);
+    var startRadius = Math.max(targetRect.width, targetRect.height) / 2;
+    var endRadius = Math.sqrt(maxX * maxX + maxY * maxY) + 80;
+    var duration = 620;
+    var startTime = Date.now();
+    var overlay = $('<div class="detail-reveal-mask"></div>');
+
+    function ease(progress) {
+      return 1 - Math.pow(1 - progress, 3);
+    }
+
+    function paint(radius) {
+      overlay.css('background', 'radial-gradient(circle at ' + centerX + 'px ' + centerY + 'px, transparent 0, transparent ' + radius + 'px, #080a0f ' + (radius + 1) + 'px)');
+    }
+
+    $('body').append(overlay);
+    view.$el.removeClass('detail-opening');
+    paint(startRadius);
+
+    function step() {
+      var progress = Math.min((Date.now() - startTime) / duration, 1);
+      paint(startRadius + (endRadius - startRadius) * ease(progress));
+      if (progress < 1) {
+        window.requestAnimationFrame(step);
+      } else {
+        overlay.remove();
+      }
+    }
+
+    window.requestAnimationFrame(step);
+  }
+
   App.View.MovieDetail = Marionette.View.extend({
     template: '#movie-detail-tpl',
     className: 'movie-detail',
@@ -27,7 +86,6 @@
       'mousedown .show-cast': 'showCast',
       'click .showall-cast': 'showallCast',
       'click .health-icon': 'resetTorrentHealth',
-      'mousedown .mcover-image': 'clickPoster',
       'mousedown .title': 'copytoclip'
     },
 
@@ -76,17 +134,39 @@
       this.localizeTexts();
     },
 
-    onUpdateTorrentsList: function(lang) {
+    legacyMovieSourcesPromise: function(provider) {
+      const langs = this.model.get('langs') || {};
+      const languageKeys = Object.keys(langs);
+      const altShowAll = provider.config.noShowAll ? _.shuffle((Settings.dhtInfo.server ? Settings.dhtInfo.server.split(',') : Settings.customServers.movie).filter(a => !a.includes(provider.apiURL))) : null;
+      if (!provider.feature('torrents') || typeof provider.torrents !== 'function') {
+        return Promise.resolve([]);
+      }
+      if (!languageKeys.length) {
+        return Promise.resolve([]);
+      }
+      return Promise.all(languageKeys.map(function(language) {
+        return provider.torrents(this.model.get('imdb_id'), language, altShowAll).then(function(torrents) {
+          return (torrents || []).map(function(torrent) {
+            torrent.audioLanguages = torrent.audioLanguages || [language];
+            torrent.isFallbackSource = true;
+            return torrent;
+          });
+        }).catch(function(error) {
+          win.error('Movie source search:', error);
+          return [];
+        });
+      }, this)).then(function(results) {
+        return [].concat.apply([], results);
+      });
+    },
+
+    onUpdateTorrentsList: function(show) {
       this.getRegion('TorrentList').empty();
-      if (!lang) {
+      if (!show) {
         return;
       }
       const provider = App.Config.getProviderForType('movie')[0];
-      const altShowAll = provider.config.noShowAll ? _.shuffle((Settings.dhtInfo.server ? Settings.dhtInfo.server.split(',') : Settings.customServers.movie).filter(a => !a.includes(provider.apiURL))) : null;
-      const providerResults = provider.feature('torrents') && typeof provider.torrents === 'function' ? provider.torrents(this.model.get('imdb_id'), lang, altShowAll).catch(function(error) {
-        win.error('Movie source search:', error);
-        return [];
-      }) : Promise.resolve([]);
+      const providerResults = this.legacyMovieSourcesPromise(provider);
       const collectionResults = this.model.get('torrentCollectionPromise') || (Settings.includeTorrentCollectionInMovieSources ? torrentCollectionSearch.search({
         query: this.model.get('title'),
         category: 'Movies',
@@ -99,14 +179,7 @@
         model: new Backbone.Model({
           provider,
           promise: Promise.all([collectionResults, providerResults]).then(function(results) {
-            const collection = torrentCollectionSearch.dedupe(results[0] || []);
-            if (collection.length) {
-              return torrentCollectionSearch.sortSources(collection);
-            }
-            return (results[1] || []).map(function(torrent) {
-              torrent.isFallbackSource = true;
-              return torrent;
-            });
+            return torrentCollectionSearch.mergeSources(results[0] || [], results[1] || []);
           }),
         }),
       });
@@ -121,6 +194,11 @@
 
     toggleSourceLink: function(quality) {
       const torrent = this.model.get('torrents')[quality];
+      if (!torrent) {
+        $('.source-link').html('');
+        $('.source-link').hide();
+        return;
+      }
       if (torrent.source) {
         const provider = App.Config.getProviderForType('movie')[0];
         this.icons.getLink(provider, torrent.provider)
@@ -182,6 +260,90 @@
       playctrl.show(this.views.play);
     },
 
+    runPosterTransition: function(target, image) {
+      var view = this;
+      var transition = App.detailPosterTransition;
+      if (this.didRunPosterTransition || !transition || transition.type !== 'movie' || !transition.rect || !target || !target[0]) {
+        return;
+      }
+      this.didRunPosterTransition = true;
+      var start = transition.rect;
+      var imageUrl = transition.image || (image ? 'url("' + image.replace(/"/g, '\\"') + '")' : null);
+      if (!imageUrl) {
+        return;
+      }
+      var ghost = $('<div class="detail-poster-transition"></div>');
+      ghost.css({
+        top: start.top,
+        left: start.left,
+        width: start.width,
+        height: start.height,
+        backgroundImage: imageUrl,
+        transform: 'translate3d(0, 0, 0) scale(1, 1)'
+      });
+      $('body').append(ghost);
+      target.addClass('shared-transition-target transition-hidden');
+      this.$el.addClass('detail-opening');
+      window.requestAnimationFrame(function() {
+        window.requestAnimationFrame(function() {
+          var end = target[0].getBoundingClientRect();
+          ghost.css({
+            transform: 'translate3d(' + (end.left - start.left) + 'px, ' + (end.top - start.top) + 'px, 0) scale(' + (end.width / start.width) + ', ' + (end.height / start.height) + ')',
+            borderRadius: '22px'
+          });
+        });
+      });
+      runAfterTransition(ghost, function() {
+        target.removeClass('transition-hidden');
+        ghost.remove();
+        runCircularReveal(view, target);
+      });
+      this.posterTransition = {
+        rect: start,
+        image: imageUrl
+      };
+      delete App.detailPosterTransition;
+    },
+
+    runPosterCloseTransition: function(done) {
+      var view = this;
+      var transition = this.posterTransition;
+      var target = this.ui.poster;
+      if (!transition || !transition.rect || !transition.image || !target || !target[0]) {
+        done();
+        return;
+      }
+      var start = target[0].getBoundingClientRect();
+      var end = transition.rect;
+      var ghost = $('<div class="detail-poster-transition"></div>');
+      ghost.css({
+        top: start.top,
+        left: start.left,
+        width: start.width,
+        height: start.height,
+        backgroundImage: transition.image,
+        borderRadius: '22px',
+        transform: 'translate3d(0, 0, 0) scale(1, 1)'
+      });
+      $('body').append(ghost);
+      target.addClass('shared-transition-target transition-hidden');
+      this.$el.addClass('detail-closing-poster');
+      window.requestAnimationFrame(function() {
+        window.requestAnimationFrame(function() {
+          ghost.css({
+            transform: 'translate3d(' + (end.left - start.left) + 'px, ' + (end.top - start.top) + 'px, 0) scale(' + (end.width / start.width) + ', ' + (end.height / start.height) + ')',
+            borderRadius: '12px',
+            boxShadow: '0 18px 44px rgba(0,0,0,0.42)'
+          });
+        });
+      });
+      runAfterTransition(ghost, function() {
+        ghost.remove();
+        view.$el.addClass('detail-closing');
+        done();
+      });
+    },
+
     loadImages: function() {
       var noimg = 'images/posterholder.png';
       var nobg = 'images/bg-header.jpg';
@@ -206,8 +368,13 @@
         }
       }
 
+      this.ui.poster.attr('src', p || noimg).addClass('fadein');
+      this.runPosterTransition(this.ui.poster, p || noimg);
+
       Common.loadImage(p).then((img) => {
-        this.ui.poster.attr('src', img || noimg).addClass('fadein');
+        if (!img) {
+          this.ui.poster.attr('src', noimg);
+        }
       });
       Common.loadImage(b).then((img) => {
         this.ui.backdrop
@@ -365,8 +532,18 @@
       AdvSettings.set('ratingStars', numberContainer.hasClass('hidden'));
     },
 
-    closeDetails: function() {
-      App.vent.trigger('movie:closeDetail');
+    closeDetails: function(e) {
+      if (e && e.preventDefault) {
+        e.preventDefault();
+      }
+      var view = this && this.runPosterCloseTransition ? this : _this;
+      if (view.closingDetail) {
+        return;
+      }
+      view.closingDetail = true;
+      view.runPosterCloseTransition(function() {
+        App.vent.trigger('movie:closeDetail');
+      });
     },
 
     retrieveTorrentHealth: function(cb) {

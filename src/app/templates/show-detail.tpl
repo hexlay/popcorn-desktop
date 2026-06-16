@@ -50,7 +50,6 @@
             </div>
             <div class="flex-right dropdowns-container">
                 <div id="subs-dropdown"></div>
-                <div id="audio-dropdown"></div>
             </div>
         </div>
     </section>

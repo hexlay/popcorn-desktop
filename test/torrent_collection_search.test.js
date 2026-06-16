@@ -88,13 +88,25 @@ async function run() {
         '1080p': {provider: 'legacy', seed: 999},
         '720p': {provider: 'legacy', seed: 10},
     }, [
-        {provider: 'collection-low', quality: '1080p', seed: 20, isTorrentCollection: true},
-        {provider: 'collection-best', quality: '2160p', seed: 80, isTorrentCollection: true},
-        {provider: 'collection-high', quality: '1080p', seed: 50, isTorrentCollection: true},
+        {provider: 'collection-low', quality: '1080p', seed: 20, peer: 1, isTorrentCollection: true},
+        {provider: 'collection-best', quality: '2160p', seed: 80, peer: 10, isTorrentCollection: true},
+        {provider: 'collection-high', quality: '1080p', seed: 50, peer: 5, isTorrentCollection: true},
     ]);
     assert.strictEqual(preferred.quality, '2160p');
     assert.strictEqual(preferred.torrents['1080p'].provider, 'collection-high');
     assert.strictEqual(preferred.torrents['720p'].provider, 'legacy');
+    assert.strictEqual(torrentCollectionSearch.torrentsByQuality([
+        {provider: 'low-peer', quality: '1080p', seed: 99, peer: 1, isTorrentCollection: true},
+        {provider: 'high-peer', quality: '1080p', seed: 10, peer: 12, isTorrentCollection: true},
+        {provider: 'legacy', quality: '1080p', seed: 999, peer: 999},
+    ])['1080p'].provider, 'high-peer');
+    assert.deepStrictEqual(torrentCollectionSearch.mergeSources([
+        {provider: 'collection', quality: '720p', url: 'magnet:?xt=urn:btih:3333333333333333333333333333333333333333', isTorrentCollection: true},
+    ], [
+        {provider: 'legacy', quality: '720p', url: 'magnet:?xt=urn:btih:4444444444444444444444444444444444444444'},
+    ]).map(function(torrent) {
+        return torrent.provider;
+    }), ['collection', 'legacy']);
     assert.deepStrictEqual(torrentCollectionSearch.sortSources([
         {provider: 'legacy', seed: 999},
         {provider: 'collection', seed: 1, isTorrentCollection: true},

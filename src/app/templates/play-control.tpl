@@ -5,6 +5,13 @@
                 <div class="favourites-toggle"><%=i18n.__("Add to bookmarks") %></div>
                 <div class="watched-toggle"><%=i18n.__("Not Seen") %></div>
             </div>
+            <div class="subtitle-control dropdowns-container">
+                <% if (Settings.opensubtitlesAuthenticated) { %>
+                <div id="subs-dropdown"></div>
+                <% } else { %>
+                <div id="subs-dropdown" class="connect-opensubtitles"></div>
+                <% } %>
+            </div>
         </div>
         <div class="row">
             <div id="player-chooser"   class="play-selector"></div>
@@ -17,13 +24,5 @@
             <div id="show-all-torrents" class="show-all-torrents"><%=i18n.__("more...") %></div>
             <% } %>
         </div>
-    </div>
-    <div class="flex-right dropdowns-container">
-        <% if (Settings.opensubtitlesAuthenticated) { %>
-        <div id="subs-dropdown"></div>
-        <% } else { %>
-        <div id="subs-dropdown" class="connect-opensubtitles"></div>
-        <% } %>
-        <div id="audio-dropdown"></div>
     </div>
 </div>

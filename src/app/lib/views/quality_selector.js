@@ -87,9 +87,12 @@
         },
 
         selectQuality: function (key) {
+            var torrents = this.model.get('sortedTorrents');
+            if (!key || !torrents[key]) {
+                return;
+            }
             $(this.ui.list).find('div').removeClass('active');
             $(this.ui.list).find('div:contains("'+key+'")').addClass('active');
-            var torrents = this.model.get('sortedTorrents');
             var callback = this.model.get('selectCallback');
             callback(torrents[key], key);
         },

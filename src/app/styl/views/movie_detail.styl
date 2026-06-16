@@ -726,6 +726,65 @@
         opacity 1
         transform translateY(0) scale(1)
 
+.detail-poster-transition
+    position fixed
+    z-index 9999
+    border-radius 12px
+    background-size cover
+    background-position center
+    pointer-events none
+    transform-origin 0 0
+    will-change transform, border-radius, box-shadow
+    box-shadow 0 34px 86px rgba(0,0,0,0.64), 0 0 0 1px rgba(255,255,255,0.12)
+    transition transform 460ms cubic-bezier(.2,.8,.2,1), border-radius 460ms cubic-bezier(.2,.8,.2,1), box-shadow 460ms ease
+
+.detail-reveal-mask
+    position fixed
+    inset 0
+    z-index 9998
+    pointer-events none
+    background #080a0f
+    will-change background
+
+.transition-hidden
+    opacity 0 !important
+    visibility hidden !important
+
+.detail-closing
+    pointer-events none
+    opacity 0
+    transition opacity 140ms ease
+
+.detail-opening
+    .content-box, .backdrop, .backdrop-overlay, .close-icon
+        opacity 0 !important
+        transform translateY(10px)
+
+.detail-closing-poster
+    pointer-events none
+
+    .content-box, .backdrop, .backdrop-overlay, .close-icon
+        opacity 0 !important
+        transform translateY(8px)
+        transition opacity 160ms ease, transform 160ms ease
+
+.movie-detail
+    .content-box, .backdrop-overlay, .close-icon
+        transition opacity 180ms ease, transform 180ms cubic-bezier(.2,.8,.2,1)
+
+.shows-container-contain.detail-opening
+    .show-header, .show-details, .close-icon
+        opacity 0 !important
+        transform translateY(10px)
+
+.shows-container-contain.detail-closing-poster
+    pointer-events none
+
+    .show-header, .show-details, .close-icon
+        opacity 0 !important
+        transform translateY(8px)
+        transition opacity 160ms ease, transform 160ms ease
+
 .movie-detail
     display grid
     grid-template-columns minmax(260px, 33vw) 1fr
@@ -789,12 +848,13 @@
 
         .mcover-image
             float none
-            width min(100%, 390px)
-            height 100%
+            width auto
+            height calc(100vh - 184px)
+            aspect-ratio 178 / 260
             max-width none
             max-height none
             margin 0
-            object-fit cover
+            object-fit contain
             border-radius 22px
             opacity 0
             transform translateY(18px) scale(.94)
@@ -806,9 +866,9 @@
                 transform translateY(0)
                 animation detailPosterEnter 560ms cubic-bezier(.2,.8,.2,1)
 
-            &:hover
-                transform translateY(-4px) scale(1.01)
-                box-shadow 0 40px 96px rgba(0,0,0,0.74), 0 0 0 1px rgba(244,185,66,0.26), 0 0 42px rgba(244,185,66,0.12)
+            &.shared-transition-target
+                animation none !important
+                transform translateY(0) scale(1) !important
 
     .content-box
         position relative
@@ -935,6 +995,7 @@
             padding 18px 20px
             display flex
             align-items center
+            flex-wrap wrap
             justify-content space-between
             gap 20px
             line-height normal
@@ -948,20 +1009,28 @@
             .flex-left
                 min-width 0
                 flex 1
+                flex-basis 620px
                 margin-right 0
 
             .row
                 margin 0
                 display flex
                 align-items center
+                flex-wrap wrap
                 gap 12px
 
             .setup-container
                 margin 0 0 12px
+                justify-content flex-start
 
             .toggles-container
+                flex 0 0 auto
                 gap 14px
                 padding-bottom 0
+
+            .subtitle-control
+                flex 0 0 auto
+                margin 0
 
             .favourites-toggle,
             .watched-toggle
@@ -984,10 +1053,13 @@
 
             .quality-selector
                 float none
+                min-width 0
+                max-width 100%
 
                 .sdow-quality
                     display flex
                     align-items center
+                    flex-wrap wrap
                     gap 4px
                     height auto
                     padding 0
@@ -1005,6 +1077,7 @@
 
             .show-all-torrents
                 float none
+                flex 0 0 auto
                 margin 0
                 height 32px
                 line-height 32px
@@ -1012,11 +1085,13 @@
                 color rgba(255,255,255,0.82)
 
             .flex-right
-                min-width 245px
+                flex 0 0 190px
+                min-width 0
                 display flex
                 flex-direction column
                 gap 10px
                 align-items flex-end
+                margin-left auto
 
             .button.dropup
                 position relative
@@ -1024,8 +1099,12 @@
                 align-items center
                 height 46px
                 min-width 172px
+                margin 0
+                padding 0
                 border-radius 999px
                 overflow visible
+                box-shadow none
+                transition background-color 160ms ease
 
                 #watch-now
                     display flex
@@ -1036,6 +1115,12 @@
                     padding 0 24px
                     margin 0
                     line-height 46px
+                    position relative
+                    border-radius 999px 0 0 999px
+
+                    &:after
+                        display none
+                        content none
 
                 .playerchoice
                     display grid
@@ -1155,9 +1240,50 @@
             #subs-dropdown,
             #audio-dropdown
                 position relative
+                width 160px
+                max-width 100%
+
+                .lang-dropdown
+                    width 100%
+                    box-sizing border-box
+                    height 36px
+                    padding 0 12px 0 14px
+                    border 1px solid rgba(255,255,255,0.12)
+                    border-radius 999px
+                    background rgba(255,255,255,0.055)
+                    box-shadow inset 0 1px 0 rgba(255,255,255,0.05)
+                    color rgba(255,255,255,0.84)
+                    font-size 13px
+                    line-height 36px
+                    transition background-color 160ms ease, border-color 160ms ease
+
+                    &:hover
+                        background rgba(255,255,255,0.075)
+                        border-color rgba(255,255,255,0.18)
+
+                    .lang-name
+                        min-width 0
+                        overflow hidden
+                        text-overflow ellipsis
+                        white-space nowrap
+
+                    .selected-lang
+                        flex 0 0 auto
+                        width 22px
+                        height 16px
+                        margin 0 8px
+
+                    .flag.none
+                        display none
+
+                    .caret
+                        flex 0 0 auto
+                        margin 0
+                        color rgba(255,255,255,0.70)
 
                 .dropup
                     position relative
+                    width 100%
                     overflow visible
 
                 .dropdown-menu
@@ -1208,7 +1334,7 @@
 
                 .lang-dropdown
                     height 38px
-                    width 250px
+                    width 160px
                     padding 0 14px 0 16px
                     box-sizing border-box
                     border-radius 999px

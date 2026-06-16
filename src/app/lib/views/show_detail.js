@@ -4,6 +4,65 @@
     let healthButton;
 
     var _this, bookmarked;
+    function runAfterTransition(element, done) {
+        var complete = false;
+        var fallback;
+
+        function finish() {
+            if (complete) {
+                return;
+            }
+            complete = true;
+            window.clearTimeout(fallback);
+            element.off('transitionend webkitTransitionEnd', finish);
+            done();
+        }
+
+        fallback = window.setTimeout(finish, 620);
+        element.one('transitionend webkitTransitionEnd', finish);
+    }
+
+    function runCircularReveal(view, target) {
+        if (!target || !target[0]) {
+            view.$el.removeClass('detail-opening');
+            return;
+        }
+        var targetRect = target[0].getBoundingClientRect();
+        var centerX = targetRect.left + targetRect.width / 2;
+        var centerY = targetRect.top + targetRect.height / 2;
+        var maxX = Math.max(centerX, window.innerWidth - centerX);
+        var maxY = Math.max(centerY, window.innerHeight - centerY);
+        var startRadius = Math.max(targetRect.width, targetRect.height) / 2;
+        var endRadius = Math.sqrt(maxX * maxX + maxY * maxY) + 80;
+        var duration = 620;
+        var startTime = Date.now();
+        var overlay = $('<div class="detail-reveal-mask"></div>');
+
+        function ease(progress) {
+            return 1 - Math.pow(1 - progress, 3);
+        }
+
+        function paint(radius) {
+            overlay.css('background', 'radial-gradient(circle at ' + centerX + 'px ' + centerY + 'px, transparent 0, transparent ' + radius + 'px, #080a0f ' + (radius + 1) + 'px)');
+        }
+
+        $('body').append(overlay);
+        view.$el.removeClass('detail-opening');
+        paint(startRadius);
+
+        function step() {
+            var progress = Math.min((Date.now() - startTime) / duration, 1);
+            paint(startRadius + (endRadius - startRadius) * ease(progress));
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            } else {
+                overlay.remove();
+            }
+        }
+
+        window.requestAnimationFrame(step);
+    }
+
     function padEpisodePart(value) {
         return String(value || '').padStart(2, '0');
     }
@@ -65,7 +124,6 @@
             torrentList: '#torrent-list',
             torrentShowList: '#torrent-show-list',
             subDropdown: '#subs-dropdown',
-            audioDropdown: '#audio-dropdown',
             qualitySelector: '#quality-selector',
         },
 
@@ -127,7 +185,6 @@
             });
 
             App.vent.on('update:torrents', _this.onUpdateTorrentsList.bind(_this));
-            App.vent.on('audio:lang', this.switchAudio.bind(this));
             this.initTorrents(this.model.get('episodes'));
         },
 
@@ -161,14 +218,76 @@
             return episode.torrentCollectionPromise;
         },
 
-        preferEpisodeCollectionSources: function(episode, collectionTorrents) {
-            var preferred = torrentCollectionSearch.preferByQuality(episode.torrents, collectionTorrents);
-            episode.fallbackTorrents = episode.fallbackTorrents || episode.torrents;
-            episode.torrents = collectionTorrents.length ? preferred.torrents : episode.fallbackTorrents;
-            if (preferred.quality) {
-                this.model.set('preferredTorrentQuality', preferred.quality);
+        legacyShowLanguages: function() {
+            var languages = (this.model.get('exist_translations') || []).slice();
+            if (this.model.get('contextLocale')) {
+                languages.push(this.model.get('contextLocale'));
             }
-            return preferred;
+            return _.uniq(languages);
+        },
+
+        legacyEpisodeSourcesPromise: function(episode) {
+            if (!episode) {
+                return Promise.resolve([]);
+            }
+            const showProvider = App.Config.getProviderForType('tvshow')[0];
+            if (!showProvider.feature('torrents') || typeof showProvider.episodeTorrents !== 'function') {
+                return Promise.resolve([]);
+            }
+            return Promise.all(this.legacyShowLanguages().map(function(language) {
+                return showProvider.episodeTorrents(this.model.get('imdb_id'), language, episode.season, episode.episode).then(function(torrents) {
+                    return (torrents || []).map(function(torrent) {
+                        torrent.audioLanguages = torrent.audioLanguages || [language];
+                        torrent.isFallbackSource = true;
+                        return torrent;
+                    });
+                }).catch(function(error) {
+                    win.error('Show episode source search:', error);
+                    return [];
+                });
+            }, this)).then(function(results) {
+                return [].concat.apply([], results);
+            });
+        },
+
+        legacyShowSourcesPromise: function(showProvider) {
+            if (!showProvider.feature('torrents') || typeof showProvider.torrents !== 'function') {
+                return Promise.resolve([]);
+            }
+            return Promise.all(this.legacyShowLanguages().map(function(language) {
+                return showProvider.torrents(this.model.get('imdb_id'), language).then(function(torrents) {
+                    return (torrents || []).map(function(torrent) {
+                        torrent.audioLanguages = torrent.audioLanguages || [language];
+                        torrent.isFallbackSource = true;
+                        return torrent;
+                    });
+                }).catch(function(error) {
+                    win.error('Show source search:', error);
+                    return [];
+                });
+            }, this)).then(function(results) {
+                return [].concat.apply([], results);
+            });
+        },
+
+        applyEpisodeSources: function(episode, collectionTorrents, fallbackTorrents) {
+            var mergedSources = torrentCollectionSearch.mergeSources(collectionTorrents, fallbackTorrents);
+            if (!mergedSources.length) {
+                return {torrents: episode.torrents || {}, quality: null};
+            }
+            var collectionQualitySources = (collectionTorrents || []).filter(function(torrent) {
+                return torrent.quality && torrent.quality !== '-';
+            });
+            var torrents = torrentCollectionSearch.torrentsByQuality(collectionQualitySources);
+            var preferredQuality = Object.keys(torrents)[0] || null;
+            episode.allTorrentSources = mergedSources;
+            episode.torrents = torrents;
+            episode.torrentSourceMode = preferredQuality ? 'collection' : 'none';
+            this.model.set('preferredTorrentQuality', preferredQuality);
+            return {
+                torrents: torrents,
+                quality: preferredQuality,
+            };
         },
 
         initTorrents: function (episodes) {
@@ -232,7 +351,7 @@
                 const torrentShowList = new App.View.TorrentList({
                     model: new Backbone.Model({
                         provider: showProvider,
-                        promise: showProvider.torrents(this.model.get('imdb_id'), info.locale),
+                        promise: this.legacyShowSourcesPromise(showProvider),
                         select: true,
                     }),
                 });
@@ -240,7 +359,7 @@
             }
             const episode = this.model.get('selectedEpisode');
             this.getRegion('torrentList').empty();
-            const providerPromise = showProvider.episodeTorrents(this.model.get('imdb_id'), info.locale, episode.season, episode.episode);
+            const providerPromise = this.legacyEpisodeSourcesPromise(episode);
             const torrentList = new App.View.TorrentList({
                 model: new Backbone.Model({
                     provider: showProvider,
@@ -248,18 +367,95 @@
                         this.getEpisodeCollectionSources(episode),
                         providerPromise,
                     ]).then(function(results) {
-                        const collection = torrentCollectionSearch.dedupe(results[0] || []);
-                        if (collection.length) {
-                            return torrentCollectionSearch.sortSources(collection);
-                        }
-                        return (results[1] || []).map(function(torrent) {
-                            torrent.isFallbackSource = true;
-                            return torrent;
-                        });
+                        return torrentCollectionSearch.mergeSources(results[0] || [], results[1] || []);
                     }),
                 }),
             });
             this.getRegion('torrentList').show(torrentList);
+        },
+
+        runPosterTransition: function(target, image) {
+            var view = this;
+            var transition = App.detailPosterTransition;
+            if (this.didRunPosterTransition || !transition || transition.type !== 'show' || !transition.rect || !target || !target[0]) {
+                return;
+            }
+            this.didRunPosterTransition = true;
+            var start = transition.rect;
+            var imageUrl = transition.image || (image ? 'url("' + image.replace(/"/g, '\\"') + '")' : null);
+            if (!imageUrl) {
+                return;
+            }
+            var ghost = $('<div class="detail-poster-transition"></div>');
+            ghost.css({
+                top: start.top,
+                left: start.left,
+                width: start.width,
+                height: start.height,
+                backgroundImage: imageUrl,
+                transform: 'translate3d(0, 0, 0) scale(1, 1)'
+            });
+            $('body').append(ghost);
+            target.addClass('shared-transition-target transition-hidden');
+            this.$el.addClass('detail-opening');
+            window.requestAnimationFrame(function() {
+                window.requestAnimationFrame(function() {
+                    var end = target[0].getBoundingClientRect();
+                    ghost.css({
+                        transform: 'translate3d(' + (end.left - start.left) + 'px, ' + (end.top - start.top) + 'px, 0) scale(' + (end.width / start.width) + ', ' + (end.height / start.height) + ')',
+                        borderRadius: '20px'
+                    });
+                });
+            });
+            runAfterTransition(ghost, function() {
+                target.removeClass('transition-hidden');
+                ghost.remove();
+                runCircularReveal(view, target);
+            });
+            this.posterTransition = {
+                rect: start,
+                image: imageUrl
+            };
+            delete App.detailPosterTransition;
+        },
+
+        runPosterCloseTransition: function(done) {
+            var view = this;
+            var transition = this.posterTransition;
+            var target = $('.shp-img');
+            if (!transition || !transition.rect || !transition.image || !target[0]) {
+                done();
+                return;
+            }
+            var start = target[0].getBoundingClientRect();
+            var end = transition.rect;
+            var ghost = $('<div class="detail-poster-transition"></div>');
+            ghost.css({
+                top: start.top,
+                left: start.left,
+                width: start.width,
+                height: start.height,
+                backgroundImage: transition.image,
+                borderRadius: '20px',
+                transform: 'translate3d(0, 0, 0) scale(1, 1)'
+            });
+            $('body').append(ghost);
+            target.addClass('shared-transition-target transition-hidden');
+            this.$el.addClass('detail-closing-poster');
+            window.requestAnimationFrame(function() {
+                window.requestAnimationFrame(function() {
+                    ghost.css({
+                        transform: 'translate3d(' + (end.left - start.left) + 'px, ' + (end.top - start.top) + 'px, 0) scale(' + (end.width / start.width) + ', ' + (end.height / start.height) + ')',
+                        borderRadius: '12px',
+                        boxShadow: '0 18px 44px rgba(0,0,0,0.42)'
+                    });
+                });
+            });
+            runAfterTransition(ghost, function() {
+                ghost.remove();
+                view.$el.addClass('detail-closing');
+                done();
+            });
         },
 
         onAttach: function () {
@@ -274,7 +470,6 @@
             }
             this.model.set('showTorrents', false);
 
-            this.loadAudioDropdown();
             this.getRegion('qualitySelector').empty();
             $('.star-container-tv,.shmi-year,.shmi-imdb,.shmi-tmdb-link,.magnet-icon,.source-icon').tooltip();
             var noimg = 'images/posterholder.png';
@@ -300,10 +495,16 @@
                 }
             }
 
+            $('.shp-img')
+                .css('background-image', 'url(' + (poster || noimg) + ')')
+                .addClass('fadein');
+            this.runPosterTransition($('.shp-img'), poster || noimg);
+
             Common.loadImage(poster).then((img) => {
-                $('.shp-img')
-                    .css('background-image', 'url(' + (img || noimg) + ')')
-                    .addClass('fadein');
+                if (!img) {
+                    $('.shp-img')
+                        .css('background-image', 'url(' + noimg + ')');
+                }
             });
             Common.loadImage(backdrop).then((img) => {
                 $('.shb-img')
@@ -318,10 +519,6 @@
             if (AdvSettings.get('ratingStars') === false) {
                 $('.star-container-tv').addClass('hidden');
                 $('.number-container-tv').removeClass('hidden');
-            }
-
-            if (this.model.get('seasonCount') < 2) {
-                this.ui.seasonTab.hide();
             }
 
             this.isShowWatched();
@@ -516,23 +713,6 @@
             AdvSettings.set('ratingStars', $('.number-container-tv').hasClass('hidden'));
         },
 
-        switchAudio: async function(lang) {
-            if (lang === this.model.get('contextLocale')) {
-                return;
-            }
-            $('.spinner').show();
-            const showProvider = App.Config.getProviderForType('tvshow')[0];
-            const data = await showProvider.contentOnLang(this.model.get('imdb_id'), lang);
-            this.model.set('contextLocale', data.contextLocale);
-            this.model.set('episodes', data.episodes);
-            this.initTorrents(data.episodes);
-            this.render();
-            this.onAttach();
-            App.vent.trigger('update:torrents', this.model.get('showTorrents') ? {
-                locale: this.model.get('contextLocale'),
-            } : null);
-        },
-
         loadDropdown: function(type, attrs) {
             this.views[type] && this.views[type].destroy();
             this.views[type] = new App.View.LangDropdown({
@@ -540,14 +720,6 @@
             });
             var types = type + 'Dropdown';
             this.getRegion(types).show(this.views[type]);
-        },
-
-        loadAudioDropdown: function() {
-            return this.loadDropdown('audio', {
-                title: i18n.__('Audio Language'),
-                selected: this.model.get('contextLocale'),
-                values: _.object(_.map(this.model.get('exist_translations'), (item) => [item, 'data'])),
-            });
         },
 
         // TODO: for subtitles
@@ -758,7 +930,17 @@
         },
 
         closeDetails: function (e) {
-            App.vent.trigger('show:closeDetail');
+            if (e && e.preventDefault) {
+                e.preventDefault();
+            }
+            var view = this && this.runPosterCloseTransition ? this : _this;
+            if (view.closingDetail) {
+                return;
+            }
+            view.closingDetail = true;
+            view.runPosterCloseTransition(function() {
+                App.vent.trigger('show:closeDetail');
+            });
         },
 
         clickSeason: function (e) {
@@ -806,21 +988,25 @@
             var episodesTorrents = _this.model.get('torrents');
             var selectedEpisode = episodesTorrents[season][episode];
             _this.model.set('selectedEpisode', selectedEpisode);
+            var initialTorrents = selectedEpisode.torrentSourceMode === 'collection' ? selectedEpisode.torrents : {};
             var qualitySelector = new App.View.QualitySelector({
                 model: new Backbone.Model({
-                    torrents: selectedEpisode.torrents,
+                    torrents: initialTorrents,
                     selectCallback: _this.selectTorrent,
-                    required: ['480p', '720p', '1080p'],
+                    required: [],
                     defaultQualityKey: 'shows_default_quality',
                     contentModel: _this.model,
                 }),
             });
             _this.getRegion('qualitySelector').show(qualitySelector);
-            _this.getEpisodeCollectionSources(selectedEpisode).then(function(collectionTorrents) {
-                if (!_this.model || _this.model.get('selectedEpisode') !== selectedEpisode || !collectionTorrents.length) {
+            Promise.all([
+                _this.getEpisodeCollectionSources(selectedEpisode),
+                _this.legacyEpisodeSourcesPromise(selectedEpisode),
+            ]).then(function(results) {
+                if (!_this.model || _this.model.get('selectedEpisode') !== selectedEpisode) {
                     return;
                 }
-                var preferred = _this.preferEpisodeCollectionSources(selectedEpisode, collectionTorrents);
+                var preferred = _this.applyEpisodeSources(selectedEpisode, results[0] || [], results[1] || []);
                 if (_this.getRegion('qualitySelector').currentView) {
                     _this.getRegion('qualitySelector').currentView.updateTorrents(preferred.torrents);
                 }
@@ -848,7 +1034,7 @@
             startStreaming.attr('data-season', selectedEpisode.season);
             startStreaming.attr('data-title', selectedEpisode.title);
 
-            _this.ui.startStreaming.show();
+            _this.ui.startStreaming.toggle(Object.keys(initialTorrents).length > 0);
 
             App.vent.trigger('update:torrents', this.model.get('showTorrents') ? {
                 locale: this.model.get('contextLocale'),
@@ -859,11 +1045,18 @@
         selectTorrent: function(torrent, key) {
             var startStreaming = $('.startStreaming');
             var downloadButton = $('#download-torrent');
+            if (!torrent) {
+                startStreaming.hide();
+                downloadButton.hide();
+                return;
+            }
             startStreaming.attr('data-file', torrent.file || '');
             startStreaming.attr('data-torrent', torrent.url);
             startStreaming.attr('data-source', torrent.source);
             startStreaming.attr('data-provider', torrent.provider);
             startStreaming.attr('data-quality', key);
+            startStreaming.show();
+            downloadButton.show();
             downloadButton.attr('data-torrent', torrent.url);
             downloadButton.attr('data-file', torrent.file || '');
 
@@ -1071,7 +1264,6 @@
         onBeforeDestroy: function () {
             this.unbindKeyboardShortcuts();
             App.vent.off('update:torrents');
-            App.vent.off('audio:lang');
             App.vent.off('show:watched:' + this.model.id);
             App.vent.off('show:unwatched:' + this.model.id);
         }

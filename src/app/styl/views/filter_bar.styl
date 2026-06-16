@@ -118,11 +118,43 @@
             scrollable()
             max-height 445px
             margin-top 14px
+            padding 8px
             border-radius 16px
             border 1px solid rgba(255,255,255,0.10)
             box-shadow 0 24px 54px rgba(0,0,0,0.48)
             -webkit-backdrop-filter blur(24px) saturate(145%)
             backdrop-filter blur(24px) saturate(145%)
+
+            li
+                margin 4px 0
+
+                &:first-child
+                    margin-top 0
+
+                &:last-child
+                    margin-bottom 0
+
+                a
+                    display block
+                    padding 10px 14px
+                    border-radius 12px
+                    color rgba(255,255,255,0.86)
+                    line-height 1.25
+                    transition background-color 160ms ease, color 160ms ease
+
+                    &:hover,
+                    &:focus
+                        color #fff
+                        background rgba(255,255,255,0.08)
+
+                    &.active
+                        color #161108
+                        background rgba(244,185,66,0.86)
+
+                        &:hover,
+                        &:focus
+                            color #161108
+                            background rgba(244,185,66,0.92)
 
     i
         transition color 180ms ease, background-color 180ms ease, transform 180ms ease
