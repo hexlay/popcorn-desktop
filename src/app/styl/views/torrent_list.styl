@@ -30,7 +30,7 @@
 
     table
         width 100%
-        table-layout auto
+        table-layout fixed
         tr
             cursor pointer
 
@@ -56,22 +56,40 @@
 
             &.ellipsis
                 position relative
+                min-width 0
             &.ellipsis:before
-                content '&nbsp;'
-                visibility hidden
+                display none
             &.ellipsis span
-                position absolute
-                left 0
-                right 0
+                display block
                 white-space nowrap
                 overflow hidden
                 text-overflow ellipsis
-                max-width fit-content
-                margin-top -9px
-                padding 9px 3px 9px 0
+                max-width none
+                margin-top 0
+                padding 0
+
+            &.ellipsis .item-play
+                min-width 0
+
+            &.source-kind
+                width 132px
+                text-align center
+
+            &.source-kind .source-badge
+                display inline-block
+                max-width 118px
+                padding 3px 7px
+                border-radius 999px
+                font-size 10px
+                line-height 1
+                color rgba(255,255,255,0.78)
+                background rgba(255,255,255,0.08)
+                white-space nowrap
+                overflow hidden
+                text-overflow ellipsis
 
             &.provider
-                width 35px
+                width 38px
                 line-height 30px
                 padding-left 8px
                 img
@@ -81,10 +99,19 @@
                     margin-top 7px
 
             &.info
-                width 0.1%
+                width 88px
                 white-space nowrap
                 text-align right
                 padding 3px 10px
+
+                &.info-peers
+                    width 98px
+
+                &.info-quality
+                    width 72px
+
+                &.info-size
+                    width 88px
             &.action
                 width 40px
                 cursor pointer
@@ -93,6 +120,16 @@
                 &:hover
                     color $ShowText1
                     transition color .5s
+
+        tr.collection-source
+            .source-badge
+                color #161108
+                background rgba(244,185,66,0.86)
+
+        tr.fallback-source
+            .source-badge
+                color rgba(255,255,255,0.62)
+                background rgba(255,255,255,0.07)
 
 #torrent-show-list
     font-size 15px

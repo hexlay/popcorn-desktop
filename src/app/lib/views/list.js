@@ -469,7 +469,6 @@
             }
 
             _.defer(function () {
-                self.$el.scrollTop(0);
                 self.checkFetchMore();
             });
 

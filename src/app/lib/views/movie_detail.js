@@ -99,7 +99,14 @@
         model: new Backbone.Model({
           provider,
           promise: Promise.all([collectionResults, providerResults]).then(function(results) {
-            return torrentCollectionSearch.sortSources(torrentCollectionSearch.dedupe(results[0].concat(results[1] || [])));
+            const collection = torrentCollectionSearch.dedupe(results[0] || []);
+            if (collection.length) {
+              return torrentCollectionSearch.sortSources(collection);
+            }
+            return (results[1] || []).map(function(torrent) {
+              torrent.isFallbackSource = true;
+              return torrent;
+            });
           }),
         }),
       });

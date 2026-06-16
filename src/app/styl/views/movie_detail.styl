@@ -712,3 +712,551 @@
                         position absolute
                         top -1px
                         width 10px
+
+// Modern movie detail composition. Kept as an override layer so the existing
+// Marionette regions and player/torrent controls continue to work unchanged.
+@keyframes detailPosterEnter
+    0%
+        opacity 0
+        transform translateY(18px) scale(.94)
+    70%
+        opacity 1
+        transform translateY(-2px) scale(1.01)
+    100%
+        opacity 1
+        transform translateY(0) scale(1)
+
+.movie-detail
+    display grid
+    grid-template-columns minmax(260px, 33vw) 1fr
+    grid-template-rows 1fr
+    column-gap 34px
+    align-items stretch
+    padding $HeaderHeight + 46px 58px 42px
+    min-height 100vh
+    box-sizing border-box
+    overflow hidden
+    background #080a0f
+
+    .backdrop
+        margin-top 0
+        height 100vh
+        opacity 0
+        transform scale(1.04)
+        -webkit-filter blur(18px) brightness(0.62) saturate(1.14)
+        filter blur(18px) brightness(0.62) saturate(1.14)
+
+        &.fadein
+            transition opacity 420ms ease, transform 720ms cubic-bezier(.2,.8,.2,1)
+            opacity 1
+            transform scale(1.01)
+
+    .backdrop-overlay
+        opacity 1
+        background radial-gradient(circle at 78% 22%, rgba(244,185,66,0.16), transparent 28%), radial-gradient(circle at 34% 78%, rgba(183,64,45,0.22), transparent 34%), linear-gradient(90deg, rgba(5,7,11,0.96) 0%, rgba(9,10,13,0.74) 42%, rgba(5,7,11,0.90) 100%)
+
+    .close-icon
+        top $HeaderHeight + 18px
+        right 24px
+        z-index 4
+        width 38px
+        height 38px
+        border-radius 50%
+        background rgba(255,255,255,0.08)
+        border 1px solid rgba(255,255,255,0.10)
+        color rgba(255,255,255,0.78)
+        font-size 17px
+        line-height 38px
+        text-align center
+        -webkit-backdrop-filter blur(16px) saturate(145%)
+        backdrop-filter blur(16px) saturate(145%)
+
+        &:hover
+            color #fff
+            background rgba(255,255,255,0.13)
+
+    .poster-box
+        position relative
+        z-index 1
+        width 100%
+        height calc(100vh - 184px)
+        min-height 520px
+        margin 0
+        padding 0
+        display flex
+        align-items flex-start
+        justify-content center
+
+        .mcover-image
+            float none
+            width min(100%, 390px)
+            height 100%
+            max-width none
+            max-height none
+            margin 0
+            object-fit cover
+            border-radius 22px
+            opacity 0
+            transform translateY(18px) scale(.94)
+            box-shadow 0 34px 86px rgba(0,0,0,0.70), 0 0 0 1px rgba(255,255,255,0.12), 0 0 42px rgba(244,185,66,0.08)
+            transition opacity 360ms ease, transform 420ms cubic-bezier(.2,.8,.2,1), box-shadow 260ms ease
+
+            &.fadein
+                opacity 1
+                transform translateY(0)
+                animation detailPosterEnter 560ms cubic-bezier(.2,.8,.2,1)
+
+            &:hover
+                transform translateY(-4px) scale(1.01)
+                box-shadow 0 40px 96px rgba(0,0,0,0.74), 0 0 0 1px rgba(244,185,66,0.26), 0 0 42px rgba(244,185,66,0.12)
+
+    .content-box
+        position relative
+        z-index 1
+        width 100%
+        height calc(100vh - 184px)
+        min-height 520px
+        margin 0
+        padding 0
+        min-width 0
+        display flex
+        flex-direction column
+        gap 18px
+        justify-content stretch
+
+        .meta-container
+            flex 1 1 auto
+            height auto
+            min-height 300px
+            max-height none
+            margin 0
+            padding 32px 76px 30px 34px
+            overflow auto
+            background linear-gradient(135deg, rgba(18,20,27,0.68), rgba(12,14,20,0.46))
+            border 1px solid rgba(255,255,255,0.11)
+            border-radius 26px
+            box-shadow 0 30px 76px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.04)
+            -webkit-backdrop-filter blur(30px) saturate(155%)
+            backdrop-filter blur(30px) saturate(155%)
+            scrollable()
+
+            .title
+                top 0
+                font-family $MainFontBold
+                font-size clamp(34px, 4vw, 56px)
+                line-height 1.02
+                letter-spacing -0.055em
+                margin-bottom 18px
+
+            .metadatas
+                top 0
+                height auto
+                min-height 24px
+                align-items center
+                gap 10px 0
+                margin-bottom 20px
+
+                .metaitem, .year, .certification, .show-cast
+                    font-size 13px
+                    color rgba(255,255,255,0.78)
+                    line-height 20px
+
+                .metaitem
+                    max-width 40%
+
+                    &::before
+                        margin 8px 12px 0 12px
+                        width 4px
+                        height 4px
+
+                .movie-imdb-link
+                    margin-top 1px
+
+                .rating-container
+                    display flex
+                    align-items center
+
+                    .star-container
+                        .rating-star,
+                        .rating-star-half
+                            color $FilterBarActive
+                            font-size 13px
+
+                        .rating-star-empty,
+                        .rating-star-half-empty
+                            color rgba(255,255,255,0.36)
+                            font-size 13px
+
+                    .number-container
+                        font-size 13px
+
+                .status-indicators
+                    margin-right 0
+                    gap 12px
+
+            .overview
+                top 0
+                max-height none
+                padding 0
+                margin 0
+                color rgba(255,255,255,0.84)
+                font-size 16px
+                line-height 1.58
+                overflow visible
+
+            #torrent-list
+                top 0
+                max-height 340px
+                margin 26px 0 0
+                border 1px solid rgba(255,255,255,0.08)
+                background rgba(0,0,0,0.16)
+                border-radius 18px
+                overflow auto
+                scrollable()
+
+                table
+                    width 100%
+
+                    tr
+                        transition background-color 160ms ease
+
+                        &:hover
+                            background rgba(255,255,255,0.08)
+
+                    td
+                        padding-top 10px
+                        padding-bottom 10px
+
+        .play-control
+            flex 0 0 auto
+            height auto
+            min-height 104px
+            margin 0
+            padding 18px 20px
+            display flex
+            align-items center
+            justify-content space-between
+            gap 20px
+            line-height normal
+            background linear-gradient(135deg, rgba(18,20,27,0.66), rgba(12,14,20,0.50))
+            border 1px solid rgba(255,255,255,0.11)
+            border-radius 24px
+            box-shadow 0 24px 60px rgba(0,0,0,0.34), inset 0 1px 0 rgba(255,255,255,0.04)
+            -webkit-backdrop-filter blur(26px) saturate(150%)
+            backdrop-filter blur(26px) saturate(150%)
+
+            .flex-left
+                min-width 0
+                flex 1
+                margin-right 0
+
+            .row
+                margin 0
+                display flex
+                align-items center
+                gap 12px
+
+            .setup-container
+                margin 0 0 12px
+
+            .toggles-container
+                gap 14px
+                padding-bottom 0
+
+            .favourites-toggle,
+            .watched-toggle
+                height 24px
+                margin 0
+                padding-top 3px
+                color rgba(255,255,255,0.82)
+                font-size 13px
+
+            .play-selector
+                float none
+                display flex
+
+                .startStreaming
+                    margin-left 0
+                    margin-right 0
+
+            #watch-trailer
+                margin-left 0
+
+            .quality-selector
+                float none
+
+                .sdow-quality
+                    display flex
+                    align-items center
+                    gap 4px
+                    height auto
+                    padding 0
+
+                    div
+                        float none
+                        margin 0
+                        padding 7px 8px
+                        border-radius 10px
+                        color rgba(255,255,255,0.78)
+
+                    .active
+                        color #12100a
+                        background $FilterBarActive
+
+            .show-all-torrents
+                float none
+                margin 0
+                height 32px
+                line-height 32px
+                padding 0 10px
+                color rgba(255,255,255,0.82)
+
+            .flex-right
+                min-width 245px
+                display flex
+                flex-direction column
+                gap 10px
+                align-items flex-end
+
+            .button.dropup
+                position relative
+                display flex
+                align-items center
+                height 46px
+                min-width 172px
+                border-radius 999px
+                overflow visible
+
+                #watch-now
+                    display flex
+                    align-items center
+                    justify-content center
+                    height 46px
+                    min-width 118px
+                    padding 0 24px
+                    margin 0
+                    line-height 46px
+
+                .playerchoice
+                    display grid
+                    grid-template-columns 22px 0
+                    align-items center
+                    justify-content center
+                    gap 12px
+                    width 70px
+                    height 46px
+                    margin 0
+                    padding 0
+                    box-sizing border-box
+                    border-left 1px solid rgba(55,38,8,0.18)
+                    background rgba(70,45,0,0.06)
+                    border-radius 0 999px 999px 0
+                    transition background-color 160ms ease
+
+                    &:hover
+                        background rgba(70,45,0,0.10)
+
+                    &:after
+                        display none
+
+                    .imgplayerchoice
+                        float none
+                        width 21px
+                        height 21px
+                        margin 0
+                        opacity .64
+                        filter brightness(0) saturate(100%) invert(9%) sepia(22%) saturate(1079%) hue-rotate(2deg) brightness(96%) contrast(92%)
+
+                    .caret
+                        margin 0
+                        border-top-color rgba(25,18,7,0.88)
+
+            .dropdown-menu
+                opacity 1
+                margin 0 0 12px
+                padding 10px
+                background linear-gradient(135deg, rgba(28,31,39,0.78), rgba(13,15,22,0.66))
+                border 1px solid rgba(255,255,255,0.13)
+                border-radius 20px
+                box-shadow 0 28px 70px rgba(0,0,0,0.52), inset 0 1px 0 rgba(255,255,255,0.05)
+                -webkit-backdrop-filter blur(28px) saturate(160%)
+                backdrop-filter blur(28px) saturate(160%)
+
+            .playerchoicemenu
+                right 0
+                bottom 100%
+                min-width 250px
+                max-width 300px
+
+                .playerchoicetoolbar
+                    position static
+                    display flex
+                    justify-content flex-end
+                    gap 8px
+                    width auto
+                    height auto
+                    margin 0 0 8px
+                    padding 0
+                    background transparent
+
+                    .playerchoicerefresh,
+                    .playerchoicehelp
+                        position static
+                        top auto
+                        left auto
+                        right auto
+                        display inline-flex
+                        align-items center
+                        justify-content center
+                        width 28px
+                        height 28px
+                        padding 0
+                        border-radius 50%
+                        color rgba(255,255,255,0.72)
+                        background rgba(255,255,255,0.08)
+                        opacity 1
+
+                        &:hover
+                            color #fff
+                            background rgba(244,185,66,0.18)
+
+                > li
+                    margin 2px 0
+
+                    > a
+                        position relative
+                        display block
+                        max-width none
+                        min-height 38px
+                        padding 10px 44px 10px 14px
+                        border-radius 13px
+                        color rgba(255,255,255,0.86)
+                        font-size 15px
+                        line-height 20px
+                        text-overflow ellipsis
+                        overflow hidden
+                        white-space nowrap
+                        transition background-color 160ms ease, color 160ms ease, transform 160ms ease
+
+                        img
+                            right 12px
+                            top 50%
+                            width 22px
+                            height 22px
+                            margin-top -11px
+                            opacity .9
+
+                        &:hover,
+                        &:focus
+                            color #fff
+                            background rgba(244,185,66,0.18)
+                            transform translateX(2px)
+
+            #subs-dropdown,
+            #audio-dropdown
+                position relative
+
+                .dropup
+                    position relative
+                    overflow visible
+
+                .dropdown-menu
+                    right 0
+                    left auto
+                    bottom 100%
+                    min-width 260px
+                    max-width 340px
+
+                .lang-option-list
+                    display flex
+                    flex-direction column
+                    gap 4px
+                    margin 0
+
+                    .lang-option
+                        display flex
+                        align-items center
+                        gap 12px
+                        min-height 42px
+                        padding 8px 12px
+                        border-radius 13px
+                        color rgba(255,255,255,0.86)
+                        cursor pointer
+                        transition background-color 160ms ease, color 160ms ease, transform 160ms ease
+
+                        &:hover
+                            color #fff
+                            background rgba(244,185,66,0.17)
+                            transform translateX(2px)
+
+                        .flag
+                            flex 0 0 auto
+                            width 36px
+                            height 27px
+                            margin 0
+                            border-radius 7px
+                            background-size cover
+                            background-position center
+                            box-shadow 0 8px 22px rgba(0,0,0,0.26)
+
+                        .lang-option-name
+                            min-width 0
+                            overflow hidden
+                            text-overflow ellipsis
+                            white-space nowrap
+                            font-size 14px
+
+                .lang-dropdown
+                    height 38px
+                    width 250px
+                    padding 0 14px 0 16px
+                    box-sizing border-box
+                    border-radius 999px
+                    background rgba(255,255,255,0.07)
+                    border 1px solid rgba(255,255,255,0.10)
+                    color rgba(255,255,255,0.82)
+                    transition background-color 160ms ease, border-color 160ms ease
+
+                    &:hover
+                        background rgba(255,255,255,0.10)
+                        border-color rgba(244,185,66,0.24)
+
+                    .lang-name
+                        flex 1 1 auto
+                        max-width none
+                        overflow hidden
+                        text-overflow ellipsis
+                        white-space nowrap
+
+                    .flag.toggle
+                        flex 0 0 auto
+                        top auto
+                        width 32px
+                        height 24px
+                        margin 0 10px 0 12px
+                        border-radius 6px
+                        background-size cover
+                        background-position center
+
+                    .caret
+                        flex 0 0 auto
+                        margin 0
+
+@media (max-width: 1180px)
+    .movie-detail
+        grid-template-columns 280px 1fr
+        column-gap 24px
+        padding-left 34px
+        padding-right 34px
+
+        .content-box
+            .meta-container
+                padding 26px 64px 26px 26px
+
+            .play-control
+                flex-direction column
+                align-items stretch
+
+                .flex-right
+                    align-items flex-start
+                    min-width 0

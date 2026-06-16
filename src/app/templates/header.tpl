@@ -4,7 +4,4 @@
     <% }); %>
 </nav>
 
-<nav class="btn-set fs-<%= process.platform %>">
-    <button class="btn-os fullscreen tooltipped" data-toggle="tooltip" data-placement="<%= fsTooltipPos() %>" title="<%= i18n.__("Toggle Fullscreen") %>"></button>
-</nav>
 <div class="events img-<%= events() %>"></div>

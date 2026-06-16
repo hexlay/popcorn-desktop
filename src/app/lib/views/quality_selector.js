@@ -39,6 +39,7 @@
         },
 
         updateTorrents: function (torrents) {
+            torrents = torrents || {};
             let keys = Object.keys(torrents).sort(Common.qualityCollator.compare);
             let sortedTorrents = {};
             for (let key of this.model.get('required')) {

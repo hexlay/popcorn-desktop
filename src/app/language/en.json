@@ -538,10 +538,10 @@
 	"Popular Now": "Popular Now",
 	"Find your next watch": "Find your next watch",
 	"Browse movies and shows with a cleaner, cinematic layout.": "Browse movies and shows with a cleaner, cinematic layout.",
-	"Trending": "Trending",
 	"New": "New",
 	"Recently Added": "Recently Added",
 	"Explore": "Explore",
 	"Top Rated": "Top Rated",
-	"Details": "Details"
+	"Details": "Details",
+	"Fallback API": "Fallback API"
 }

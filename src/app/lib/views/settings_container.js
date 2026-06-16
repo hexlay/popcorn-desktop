@@ -66,7 +66,7 @@
 
             $('.filter-bar').hide();
             $('#movie-detail').hide();
-            $('#header').addClass('header-shadow');
+            $('#header').addClass('header-compact');
             $('.tooltipped').tooltip({
                 delay: {
                     'show': 800,
@@ -198,7 +198,7 @@
                 App.vent.trigger('movie:closeDetail');
             });
             $('.filter-bar').show();
-            $('#header').removeClass('header-shadow');
+            $('#header').removeClass('header-compact');
             $('#movie-detail').show();
             clearInterval(waitComplete);
             if ($('#authTraktCode').is(':visible') && !App.Trakt.authenticated) {

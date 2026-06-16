@@ -34,3 +34,11 @@ lib-cov
 *.pid
 *.gz
 *.iml
+
+# AI assistant / local tooling
+AGENTS.md
+.agents/
+.codex/
+.claude/
+.cursor/
+.continue/

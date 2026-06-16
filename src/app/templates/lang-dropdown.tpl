@@ -5,18 +5,24 @@
         <div class="caret"></div>
     </div>
     <div class="dropdown-menu" role="menu">
-        <div class="flag-container">
+        <div class="lang-option-list">
             <% for(var lang in values){ %>
                 <% if(Settings.multipleExtSubtitles) { %>
                     <% if(lang.indexOf('|')!==-1 && lang.substr(0,2) !== Settings.subtitle_language) continue; %>
                 <% } else { %>
                     <% if(lang.indexOf('|')!==-1) continue; %>
                 <% } %>
-                <% if(lang !== 'none') { %>
-                    <div class="flag-icon flag <%= lang.substr(0,2) %> tooltipped" data-toggle="tooltip" data-placement="top" data-lang="<%= lang %>" title="<%= App.Localization.nativeName(lang.substr(0,2)) + ' ' + lang.substr(3) %>"></div>
-                <% } else { %>
-                    <div class="flag-icon flag <%= lang %> tooltipped" data-toggle="tooltip" data-placement="top" data-lang="<%= lang %>" title="<%= App.Localization.nativeName(lang) %>"></div>
-                <% } %>
+                <%
+                    var langCode = lang !== 'none' ? lang.substr(0,2) : lang;
+                    var langTitle = lang !== 'none' ? App.Localization.nativeName(langCode) : App.Localization.nativeName(lang);
+                    if (lang !== 'none' && lang.substr(3)) {
+                        langTitle += ' ' + lang.substr(3);
+                    }
+                %>
+                <div class="lang-option flag-icon tooltipped" data-toggle="tooltip" data-placement="top" data-lang="<%= lang %>" title="<%= langTitle %>">
+                    <span class="flag <%= langCode %>"></span>
+                    <span class="lang-option-name"><%= langTitle %></span>
+                </div>
             <% } %>
         </div>
     </div>

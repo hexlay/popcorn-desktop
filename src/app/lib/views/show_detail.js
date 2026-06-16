@@ -4,6 +4,26 @@
     let healthButton;
 
     var _this, bookmarked;
+    function padEpisodePart(value) {
+        return String(value || '').padStart(2, '0');
+    }
+
+    function episodeCode(episode) {
+        return 'S' + padEpisodePart(episode.season) + 'E' + padEpisodePart(episode.episode);
+    }
+
+    function torrentMatchesEpisode(torrent, episode) {
+        var title = String(torrent && torrent.title || '');
+        var season = parseInt(episode.season, 10);
+        var episodeNumber = parseInt(episode.episode, 10);
+        if (!season || !episodeNumber) {
+            return false;
+        }
+        var seasonEpisodePattern = new RegExp('s0*' + season + '\\s*e0*' + episodeNumber, 'i');
+        var xPattern = new RegExp('(?:^|[^0-9])0*' + season + 'x0*' + episodeNumber + '(?:[^0-9]|$)', 'i');
+        return seasonEpisodePattern.test(title) || xPattern.test(title);
+    }
+
     var ShowDetail = Marionette.View.extend({
         template: '#show-detail-tpl',
         className: 'shows-container-contain',
@@ -74,7 +94,7 @@
 
             const providers = this.model.get('providers');
             healthButton = new Common.HealthButton('.health-icon', this.retrieveTorrentHealth.bind(this));
-            this.model.set('showTorrentsMore', providers.torrent.feature('torrents'));
+            this.model.set('showTorrentsMore', providers.torrent.feature('torrents') || this.hasEpisodeCollectionSources());
             this.icons = App.Providers.get('Icons');
 
             //Handle keyboard shortcuts when other views are appended or removed
@@ -109,6 +129,46 @@
             App.vent.on('update:torrents', _this.onUpdateTorrentsList.bind(_this));
             App.vent.on('audio:lang', this.switchAudio.bind(this));
             this.initTorrents(this.model.get('episodes'));
+        },
+
+        hasEpisodeCollectionSources: function() {
+            return Settings.includeTorrentCollectionInMovieSources && torrentCollectionSearch.hasEnabledEngines(Settings);
+        },
+
+        episodeCollectionQuery: function(episode) {
+            return [this.model.get('title'), episodeCode(episode)].filter(Boolean).join(' ');
+        },
+
+        getEpisodeCollectionSources: function(episode) {
+            if (!this.hasEpisodeCollectionSources() || !episode) {
+                return Promise.resolve([]);
+            }
+            if (episode.torrentCollectionPromise) {
+                return episode.torrentCollectionPromise;
+            }
+            episode.torrentCollectionPromise = torrentCollectionSearch.search({
+                query: this.episodeCollectionQuery(episode),
+                category: 'TV',
+                timeout: 8000,
+                settings: Settings,
+                clients: torrentCollection,
+                logger: win,
+            }).then(function(torrents) {
+                return torrents.filter(function(torrent) {
+                    return torrentMatchesEpisode(torrent, episode);
+                });
+            });
+            return episode.torrentCollectionPromise;
+        },
+
+        preferEpisodeCollectionSources: function(episode, collectionTorrents) {
+            var preferred = torrentCollectionSearch.preferByQuality(episode.torrents, collectionTorrents);
+            episode.fallbackTorrents = episode.fallbackTorrents || episode.torrents;
+            episode.torrents = collectionTorrents.length ? preferred.torrents : episode.fallbackTorrents;
+            if (preferred.quality) {
+                this.model.set('preferredTorrentQuality', preferred.quality);
+            }
+            return preferred;
         },
 
         initTorrents: function (episodes) {
@@ -180,10 +240,23 @@
             }
             const episode = this.model.get('selectedEpisode');
             this.getRegion('torrentList').empty();
+            const providerPromise = showProvider.episodeTorrents(this.model.get('imdb_id'), info.locale, episode.season, episode.episode);
             const torrentList = new App.View.TorrentList({
                 model: new Backbone.Model({
                     provider: showProvider,
-                    promise: showProvider.episodeTorrents(this.model.get('imdb_id'), info.locale, episode.season, episode.episode),
+                    promise: Promise.all([
+                        this.getEpisodeCollectionSources(episode),
+                        providerPromise,
+                    ]).then(function(results) {
+                        const collection = torrentCollectionSearch.dedupe(results[0] || []);
+                        if (collection.length) {
+                            return torrentCollectionSearch.sortSources(collection);
+                        }
+                        return (results[1] || []).map(function(torrent) {
+                            torrent.isFallbackSource = true;
+                            return torrent;
+                        });
+                    }),
                 }),
             });
             this.getRegion('torrentList').show(torrentList);
@@ -285,23 +358,10 @@
             let title = episode.title;
             let listTitle = episode.title;
             let overview = episode.overview;
-            if (Settings.translateEpisodes && episode.locale) {
-                if (Settings.translateSynopsis && episode.locale.overview) {
-                    overview = episode.locale.overview;
-                }
-                if (episode.locale.title) {
-                    if (Settings.translateTitle === 'translated-origin') {
-                        title = episode.locale.title;
-                        listTitle = episode.locale.title + ' (' + episode.title + ')';
-                    }
-                    if (Settings.translateTitle === 'origin-translated') {
-                        listTitle = episode.title + ' (' + episode.locale.title + ')';
-                    }
-                    if (Settings.translateTitle === 'translated') {
-                        title = episode.locale.title;
-                        listTitle = episode.locale.title;
-                    }
-                }
+            if (episode.locale) {
+                title = title || episode.locale.title;
+                listTitle = listTitle || episode.locale.title;
+                overview = overview || episode.locale.overview;
             }
             return {
                 title,
@@ -752,9 +812,19 @@
                     selectCallback: _this.selectTorrent,
                     required: ['480p', '720p', '1080p'],
                     defaultQualityKey: 'shows_default_quality',
+                    contentModel: _this.model,
                 }),
             });
             _this.getRegion('qualitySelector').show(qualitySelector);
+            _this.getEpisodeCollectionSources(selectedEpisode).then(function(collectionTorrents) {
+                if (!_this.model || _this.model.get('selectedEpisode') !== selectedEpisode || !collectionTorrents.length) {
+                    return;
+                }
+                var preferred = _this.preferEpisodeCollectionSources(selectedEpisode, collectionTorrents);
+                if (_this.getRegion('qualitySelector').currentView) {
+                    _this.getRegion('qualitySelector').currentView.updateTorrents(preferred.torrents);
+                }
+            });
 
             var first_aired = selectedEpisode.first_aired ? dayjs.unix(selectedEpisode.first_aired).locale(Settings.language).format('LLLL') : '';
             var synopsis = $('.sdoi-synopsis');
