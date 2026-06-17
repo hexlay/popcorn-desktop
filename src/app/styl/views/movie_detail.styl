@@ -715,76 +715,6 @@
 
 // Modern movie detail composition. Kept as an override layer so the existing
 // Marionette regions and player/torrent controls continue to work unchanged.
-@keyframes detailPosterEnter
-    0%
-        opacity 0
-        transform translateY(18px) scale(.94)
-    70%
-        opacity 1
-        transform translateY(-2px) scale(1.01)
-    100%
-        opacity 1
-        transform translateY(0) scale(1)
-
-.detail-poster-transition
-    position fixed
-    z-index 9999
-    border-radius 12px
-    background-size cover
-    background-position center
-    pointer-events none
-    transform-origin 0 0
-    will-change transform, border-radius, box-shadow
-    box-shadow 0 34px 86px rgba(0,0,0,0.64), 0 0 0 1px rgba(255,255,255,0.12)
-    transition transform 460ms cubic-bezier(.2,.8,.2,1), border-radius 460ms cubic-bezier(.2,.8,.2,1), box-shadow 460ms ease
-
-.detail-reveal-mask
-    position fixed
-    inset 0
-    z-index 9998
-    pointer-events none
-    background #080a0f
-    will-change background
-
-.transition-hidden
-    opacity 0 !important
-    visibility hidden !important
-
-.detail-closing
-    pointer-events none
-    opacity 0
-    transition opacity 140ms ease
-
-.detail-opening
-    .content-box, .backdrop, .backdrop-overlay, .close-icon
-        opacity 0 !important
-        transform translateY(10px)
-
-.detail-closing-poster
-    pointer-events none
-
-    .content-box, .backdrop, .backdrop-overlay, .close-icon
-        opacity 0 !important
-        transform translateY(8px)
-        transition opacity 160ms ease, transform 160ms ease
-
-.movie-detail
-    .content-box, .backdrop-overlay, .close-icon
-        transition opacity 180ms ease, transform 180ms cubic-bezier(.2,.8,.2,1)
-
-.shows-container-contain.detail-opening
-    .show-header, .show-details, .close-icon
-        opacity 0 !important
-        transform translateY(10px)
-
-.shows-container-contain.detail-closing-poster
-    pointer-events none
-
-    .show-header, .show-details, .close-icon
-        opacity 0 !important
-        transform translateY(8px)
-        transition opacity 160ms ease, transform 160ms ease
-
 .movie-detail
     display grid
     grid-template-columns minmax(260px, 33vw) 1fr
@@ -796,6 +726,11 @@
     box-sizing border-box
     overflow hidden
     background #080a0f
+    animation appSurfaceEnter $AppMotionNormal $AppMotionEase both
+
+    &.detail-exiting
+        pointer-events none
+        animation appSurfaceExit $AppMotionFast ease both
 
     .backdrop
         margin-top 0
@@ -859,16 +794,11 @@
             opacity 0
             transform translateY(18px) scale(.94)
             box-shadow 0 34px 86px rgba(0,0,0,0.70), 0 0 0 1px rgba(255,255,255,0.12), 0 0 42px rgba(244,185,66,0.08)
-            transition opacity 360ms ease, transform 420ms cubic-bezier(.2,.8,.2,1), box-shadow 260ms ease
+            transition opacity 260ms ease, transform 260ms $AppMotionEase, box-shadow 220ms $AppMotionEase
 
             &.fadein
                 opacity 1
                 transform translateY(0)
-                animation detailPosterEnter 560ms cubic-bezier(.2,.8,.2,1)
-
-            &.shared-transition-target
-                animation none !important
-                transform translateY(0) scale(1) !important
 
     .content-box
         position relative

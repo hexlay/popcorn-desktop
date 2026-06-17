@@ -1,0 +1,480 @@
+.home-browser
+    .filter-bar
+        z-index 20
+
+.home-page
+    fixed top left
+    width calc(100% - 5px)
+    height 100%
+    padding $HeaderHeight 30px 54px
+    box-sizing border-box
+    overflow-x hidden
+    overflow-y auto
+    scrollable()
+    text-align left
+    color $Text1
+    background radial-gradient(circle at 18% 10%, rgba(244,185,66,0.12), transparent 28%), radial-gradient(circle at 85% 18%, rgba(90,102,255,0.11), transparent 26%)
+
+    &::-webkit-scrollbar-track
+        margin-top $HeaderHeight
+
+.default-frame
+    .home-page
+        padding-top $FilterBarHeight
+
+        &::-webkit-scrollbar-track
+            margin-top $FilterBarHeight
+
+.home-section
+    margin 0 0 38px
+    contain layout paint style
+    content-visibility auto
+    contain-intrinsic-size 1000px 460px
+    animation appSurfaceEnter $AppMotionNormal $AppMotionEase both
+
+    &:nth-of-type(2)
+        animation-delay 40ms
+
+    &:nth-of-type(3)
+        animation-delay 80ms
+
+    &:nth-of-type(4)
+        animation-delay 120ms
+
+    &:nth-of-type(5)
+        animation-delay 160ms
+
+.home-section-title
+    display flex
+    align-items center
+    gap 12px
+    min-height 42px
+    margin 0 0 18px
+
+    .section-icon
+        display flex
+        align-items center
+        justify-content center
+        width 34px
+        height 34px
+        border-radius 8px
+        color #f5bd45
+        background rgba(112,78,255,0.26)
+        box-shadow inset 0 0 0 1px rgba(255,255,255,0.08), 0 12px 26px rgba(0,0,0,0.24)
+
+    h2
+        margin 0
+        font-family $MainFontBold
+        font-size 26px
+        line-height 1
+        letter-spacing 0
+
+    em
+        margin-left auto
+        color rgba(255,255,255,0.46)
+        font-style normal
+        font-family $MainFontBold
+        font-size 13px
+
+    b
+        display inline-flex
+        align-items center
+        height 24px
+        padding 0 10px
+        border-radius 999px
+        color #ff8383
+        background rgba(255,78,78,0.16)
+        border 1px solid rgba(255,106,106,0.28)
+        font-size 11px
+        text-transform uppercase
+
+.spotlight-grid
+    display grid
+    grid-template-columns minmax(420px, 1.35fr) minmax(420px, 1fr)
+    gap 22px
+    min-height 430px
+
+.spotlight-side
+    display grid
+    grid-template-columns repeat(2, minmax(0, 1fr))
+    gap 18px
+
+.home-card
+    position relative
+    overflow hidden
+    cursor pointer
+    border 1px solid rgba(255,255,255,0.10)
+    app-glass-panel()
+    box-shadow 0 24px 60px rgba(0,0,0,0.34)
+    contain layout paint style
+    animation appCardEnter $AppMotionNormal $AppMotionEase both
+    transition transform 220ms $AppMotionEase, border-color $AppMotionFast ease, box-shadow 220ms $AppMotionEase
+
+    &:hover
+        transform translateY(-4px)
+        border-color rgba(244,185,66,0.42)
+        box-shadow 0 30px 70px rgba(0,0,0,0.46), 0 0 0 1px rgba(244,185,66,0.16)
+
+.home-card-bg
+    position absolute
+    top 0
+    right 0
+    bottom 0
+    left 0
+    background-size cover
+    background-position center
+    transform scale(1.02)
+
+.home-card-shade
+    position absolute
+    top 0
+    right 0
+    bottom 0
+    left 0
+    background linear-gradient(to top, rgba(0,0,0,0.92), rgba(0,0,0,0.24) 58%, rgba(0,0,0,0.06))
+
+.spotlight-hero
+    min-height 430px
+    border-radius 8px
+
+    .spotlight-copy
+        position absolute
+        left 24px
+        right 24px
+        bottom 22px
+        z-index 2
+
+    h3
+        margin 0 0 10px
+        max-width 760px
+        font-family $MainFontBold
+        font-size 28px
+        line-height 1.08
+        letter-spacing 0
+
+    p
+        max-width 780px
+        margin 0
+        color rgba(255,255,255,0.76)
+        font-size 15px
+        line-height 1.45
+
+.spotlight-tile
+    min-height 206px
+    border-radius 8px
+
+    h3
+        position absolute
+        left 18px
+        right 18px
+        bottom 15px
+        z-index 2
+        margin 0
+        font-family $MainFontBold
+        font-size 18px
+        line-height 1.15
+
+.rank-pill,
+.rating-pill
+    position absolute
+    z-index 3
+    height 30px
+    padding 7px 12px 0
+    box-sizing border-box
+    border-radius 999px
+    font-family $MainFontBold
+    font-size 12px
+    line-height 1
+    background rgba(0,0,0,0.45)
+    border 1px solid rgba(255,255,255,0.14)
+
+.rank-pill
+    top 18px
+    left 18px
+    text-transform uppercase
+    letter-spacing 0
+
+.rating-pill
+    top 12px
+    right 12px
+
+    i
+        margin-right 6px
+        color #f5bd45
+
+.home-row
+    display flex
+    gap 20px
+    margin -8px -6px 0
+    padding 10px 6px 24px
+    scrollable()
+    overflow-x scroll
+    overflow-y hidden
+
+    &::-webkit-scrollbar
+        display none
+        height 0
+        width 0
+
+.home-poster-card
+    flex 0 0 178px
+    border-radius 10px
+    overflow hidden
+    background linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.025))
+    border 1px solid rgba(255,255,255,0.09)
+    box-shadow 0 16px 36px rgba(0,0,0,0.30)
+    padding 0
+    contain layout paint style
+
+    &.watched
+        opacity 0.74
+        border-color rgba(244,185,66,0.42)
+        box-shadow 0 18px 46px rgba(0,0,0,0.42), 0 0 0 1px rgba(244,185,66,0.12)
+
+        .poster-frame
+            &:after
+                content ''
+                position absolute
+                top 0
+                right 0
+                bottom 0
+                left 0
+                z-index 2
+                background linear-gradient(180deg, rgba(0,0,0,0.26), rgba(0,0,0,0.46))
+                pointer-events none
+
+            &:before
+                content '\f06e'
+                font-family "Font Awesome 6 Free"
+                font-weight 900
+                position absolute
+                top 12px
+                left 12px
+                z-index 4
+                display flex
+                align-items center
+                justify-content center
+                width 30px
+                height 30px
+                border-radius 50%
+                color #17130c
+                background #f5bd45
+                box-shadow 0 10px 24px rgba(0,0,0,0.42), 0 0 24px rgba(244,185,66,0.26)
+
+            .seen-chip
+                display inline-flex
+
+        .home-watched
+            color #17130c
+            background #f5bd45
+            border-color rgba(244,185,66,0.72)
+
+    .poster-frame
+        position relative
+        width 100%
+        height 260px
+        border-radius 0
+        overflow hidden
+        background-size cover
+        background-position center
+
+    .seen-chip
+        display none
+        position absolute
+        left 12px
+        bottom 12px
+        z-index 5
+        align-items center
+        height 28px
+        padding 0 10px
+        border-radius 999px
+        color #17130c
+        background #f5bd45
+        font-family $MainFontBold
+        font-size 12px
+        box-shadow 0 10px 24px rgba(0,0,0,0.42), 0 0 24px rgba(244,185,66,0.18)
+
+        i
+            margin-right 6px
+
+    .home-card-meta
+        position relative
+        min-height 66px
+        padding 9px 70px 9px 12px
+        box-sizing border-box
+        overflow hidden
+        background linear-gradient(180deg, rgba(32,34,40,0.94), rgba(12,14,19,0.96))
+        border-width 1px 0 0
+        border-top 1px solid rgba(255,255,255,0.12)
+        isolation isolate
+
+        &:before
+            display none
+
+        &:after
+            content ''
+            position absolute
+            top 0
+            right 0
+            bottom 0
+            left 0
+            z-index 0
+            background linear-gradient(180deg, rgba(255,255,255,0.05), rgba(6,7,10,0))
+
+        > *
+            position relative
+            z-index 1
+
+    .home-card-actions
+        position absolute
+        top 8px
+        right 10px
+        display flex
+        gap 8px
+        z-index 4
+
+        i
+            display inline-flex
+            align-items center
+            justify-content center
+            width 24px
+            height 24px
+            border-radius 50%
+            color rgba(255,255,255,0.64)
+            app-glass-control()
+            font-size 13px
+            line-height 1
+            transition color 160ms ease, background-color 160ms ease, border-color 160ms ease, transform 160ms ease
+
+            &:hover
+                color #fff
+                background rgba(255,255,255,0.12)
+                border-color rgba(244,185,66,0.38)
+                transform translateY(-1px)
+
+            &.selected
+                color #f5bd45
+                background rgba(244,185,66,0.14)
+                border-color rgba(244,185,66,0.36)
+
+    h3
+        margin 0 0 2px
+        min-height 32px
+        color #fff
+        font-family $MainFontBold
+        font-size 14px
+        line-height 1.18
+        letter-spacing 0
+        overflow hidden
+        white-space nowrap
+
+        span
+            display inline-block
+            max-width 100%
+            overflow hidden
+            text-overflow ellipsis
+            vertical-align top
+
+        &:hover span
+            max-width none
+            animation titleMarquee 5.5s linear infinite alternate
+
+    p
+        margin 0
+        color rgba(255,255,255,0.55)
+        font-size 12px
+
+    .home-seasons
+        display inline-flex
+        align-items center
+        height 20px
+        margin-top 5px
+        padding 0 8px
+        max-width 96px
+        border 1px solid rgba(244,185,66,0.72)
+        border-radius 999px
+        color #fff
+        overflow hidden
+        text-overflow ellipsis
+        white-space nowrap
+
+.wide-row
+    .home-poster-card
+        flex-basis 178px
+
+.ranked-row
+    align-items flex-end
+    gap 30px
+
+    .home-poster-card
+        flex-basis 142px
+        overflow visible
+        background transparent
+        border 0
+        box-shadow none
+
+        .poster-frame
+            height auto
+            aspect-ratio 2 / 3
+            border-radius 7px
+            box-shadow 0 20px 42px rgba(0,0,0,0.42)
+            transition box-shadow 180ms ease, filter 180ms ease
+
+        .home-card-meta
+            display none
+
+        h3,
+        p
+            display none
+
+        &:hover
+            box-shadow none
+
+            .poster-frame
+                filter brightness(1.08) saturate(1.08)
+                box-shadow 0 24px 54px rgba(0,0,0,0.54), 0 0 0 2px rgba(244,185,66,0.78), 0 0 34px rgba(244,185,66,0.32)
+
+.big-rank
+    position absolute
+    right -31px
+    bottom 14px
+    z-index -1
+    color rgba(255,255,255,0.12)
+    -webkit-text-stroke 2px rgba(255,255,255,0.2)
+    font-family $MainFontBold
+    font-size 118px
+    line-height 0.8
+
+.home-loading,
+.home-error
+    display flex
+    flex-direction column
+    align-items center
+    justify-content center
+    min-height 60vh
+    text-align center
+
+.home-error
+    h2
+        margin 0 0 10px
+        font-family $MainFontBold
+        font-size 28px
+
+    p
+        color rgba(255,255,255,0.68)
+
+    button
+        margin-top 18px
+        border 0
+        border-radius 999px
+        padding 10px 18px
+        color #17130c
+        background #f5bd45
+        font-family $MainFontBold
+
+@media (max-width: 1120px)
+    .spotlight-grid
+        grid-template-columns 1fr
+
+    .spotlight-side
+        grid-template-columns repeat(2, minmax(0, 1fr))

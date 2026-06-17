@@ -689,17 +689,6 @@
         pointer-events none
 
 // Modern series detail composition.
-@keyframes showPosterEnter
-    0%
-        opacity 0
-        transform translateY(18px) scale(.94)
-    70%
-        opacity 1
-        transform translateY(-2px) scale(1.01)
-    100%
-        opacity 1
-        transform translateY(0) scale(1)
-
 .show-detail-container
     display grid
     grid-template-rows auto 1fr
@@ -711,7 +700,15 @@
     box-sizing border-box
     overflow hidden
     background #080a0f
+    animation appSurfaceEnter $AppMotionNormal $AppMotionEase both
 
+.shows-container-contain.detail-exiting
+    pointer-events none
+
+    .show-detail-container
+        animation appSurfaceExit $AppMotionFast ease both
+
+.show-detail-container
     .close-icon
         top $HeaderHeight + 16px
         right 24px
@@ -805,14 +802,9 @@
                 cursor pointer
 
                 &.fadein
-                    transition opacity 360ms ease, transform 420ms cubic-bezier(.2,.8,.2,1), box-shadow 260ms ease
+                    transition opacity 260ms ease, transform 260ms $AppMotionEase, box-shadow 220ms $AppMotionEase
                     opacity 1
                     transform translateY(0) scale(1)
-                    animation showPosterEnter 560ms cubic-bezier(.2,.8,.2,1)
-
-                &.shared-transition-target
-                    animation none !important
-                    transform translateY(0) scale(1) !important
 
                 &:hover
                     transform translateY(-3px) scale(1.01)

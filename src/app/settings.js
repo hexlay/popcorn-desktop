@@ -90,7 +90,7 @@ Settings.trackers = {
 
 // User Interface
 Settings.theme = 'Official_-_Dark_theme';
-Settings.startScreen = 'Movies';
+Settings.startScreen = 'Home';
 Settings.lastTab = '';
 Settings.moviesTabEnable = true;
 Settings.seriesTabEnable = true;

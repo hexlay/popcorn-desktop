@@ -3,6 +3,7 @@
 
     var prevX = 0;
     var prevY = 0;
+    var selectedItem;
 
     var Item = Marionette.View.extend({
         template: '#item-tpl',
@@ -42,21 +43,6 @@
             this.loadImage();
             this.setCoverStates();
             this.setTooltips();
-
-            $('.tooltipped').tooltip({
-                delay: {
-                    'show': 800,
-                    'hide': 100
-                }
-            });
-
-            $('.providerinfo').tooltip({
-                delay: {
-                    'show': 2400,
-                    'hide': 100
-                },
-                html: true
-            });
         },
 
         localizeTexts: function () {
@@ -84,15 +70,21 @@
 
         hoverItem: function (e) {
             if (e.pageX !== prevX || e.pageY !== prevY) {
-                $('.item.selected').removeClass('selected');
-                $(this.el).addClass('selected');
+                if (selectedItem && selectedItem !== this.el) {
+                    selectedItem.classList.remove('selected');
+                }
+                this.el.classList.add('selected');
+                selectedItem = this.el;
                 prevX = e.pageX;
                 prevY = e.pageY;
             }
         },
 
         unhoverItem: function () {
-            $(this.el).removeClass('selected');
+            this.el.classList.remove('selected');
+            if (selectedItem === this.el) {
+                selectedItem = null;
+            }
         },
 
         isAprilFools: function () {
@@ -225,10 +217,12 @@
                     this.model.set('cover', poster);
                     Common.loadImage(poster).then((img) => {
                         if (this.ui.cover.css) {
+                            this.$el[0].style.setProperty('--poster-bg', 'url("' + (img || noimg) + '")');
                             this.ui.cover.css('background-image', 'url(' + (img || noimg) + ')').addClass('fadein');
                         }
                     });
                 } else if (this.ui.cover.css) {
+                    this.$el[0].style.setProperty('--poster-bg', 'url("' + (img || noimg) + '")');
                     this.ui.cover.css('background-image', 'url(' + (img || noimg) + ')').addClass('fadein');
                 }
             });
@@ -253,26 +247,18 @@
             });
         },
 
+        onBeforeDestroy: function () {
+            this.$('.tooltipped').tooltip('destroy');
+            if (selectedItem === this.el) {
+                selectedItem = null;
+            }
+        },
+
         showDetail: function (e) {
             e.preventDefault();
 
             var realtype = this.model.get('type');
             var itemtype = realtype.replace('bookmarked', '');
-            var cover = this.ui.cover && this.ui.cover[0];
-            if (cover) {
-                var rect = cover.getBoundingClientRect();
-                var image = this.ui.cover.css('background-image');
-                App.detailPosterTransition = {
-                    type: itemtype,
-                    image: image && image !== 'none' ? image : null,
-                    rect: {
-                        top: rect.top,
-                        left: rect.left,
-                        width: rect.width,
-                        height: rect.height
-                    }
-                };
-            }
             var providerType = itemtype === 'show' ? 'tvshow' : itemtype;
             var providers = {torrent:App.Config.getProviderForType(providerType)[0]};
             this.model.set('providers', providers);

@@ -11,14 +11,59 @@
     border 1px solid rgba(255,255,255,0.09)
     box-shadow 0 16px 36px rgba(0,0,0,0.30)
     transform-origin center bottom
-    transition transform 260ms cubic-bezier(.2,.8,.2,1), border-color 220ms ease, box-shadow 260ms ease, background-color 220ms ease
+    contain layout paint style
+    content-visibility auto
+    contain-intrinsic-size 178px 328px
+    animation appCardEnter $AppMotionNormal $AppMotionEase both
+    transition transform 220ms $AppMotionEase, border-color $AppMotionFast ease, box-shadow 220ms $AppMotionEase, background-color $AppMotionFast ease
     &.watched
-        opacity 0.4
+        opacity 0.74
+        border-color rgba(244,185,66,0.42)
+        box-shadow 0 18px 46px rgba(0,0,0,0.42), 0 0 0 1px rgba(244,185,66,0.12)
 
         .cover
-        &.selected
-            opacity 1
+            &:after
+                content ''
+                position absolute
+                top 0
+                right 0
+                bottom 0
+                left 0
+                z-index 2
+                background linear-gradient(180deg, rgba(0,0,0,0.26), rgba(0,0,0,0.46))
+                pointer-events none
 
+            &:before
+                content '\f06e'
+                font-family "Font Awesome 6 Free"
+                font-weight 900
+                position absolute
+                top 12px
+                left 12px
+                z-index 4
+                display flex
+                align-items center
+                justify-content center
+                width 30px
+                height 30px
+                border-radius 50%
+                color #17130c
+                background $FilterBarActive
+                box-shadow 0 10px 24px rgba(0,0,0,0.42), 0 0 24px rgba(244,185,66,0.26)
+
+            .cover-imgs
+                filter grayscale(0.35) saturate(0.72) brightness(0.72)
+
+            .seen-chip
+                display inline-flex
+
+        .actions-watched
+            color #17130c
+            background $FilterBarActive
+            border-color rgba(244,185,66,0.72)
+
+    &.watched.selected
+        opacity 1
     .cover
         background-image url(../images/posterholder.png)
         background-size 178px 260px
@@ -208,6 +253,7 @@
                 filter saturate(1.08) brightness(0.98)
 
             .cover-info-overlay
+                z-index 3
                 opacity 1
                 will-change transform
 
@@ -233,65 +279,165 @@
         box-shadow 0 28px 68px rgba(0,0,0,0.66), 0 0 0 1px rgba(244,185,66,0.25), 0 0 38px rgba(244,185,66,0.12)
 
     .item-meta
-        min-height 88px
-        padding 12px 14px 13px
+        position relative
+        min-height 66px
+        padding 9px 70px 9px 12px
         box-sizing border-box
-        background linear-gradient(180deg, rgba(14,17,23,0.94), rgba(9,11,15,0.98))
+        overflow hidden
+        background linear-gradient(180deg, rgba(32,34,40,0.94), rgba(12,14,19,0.96))
+        border-width 1px 0 0
+        border-top 1px solid rgba(255,255,255,0.12)
+        isolation isolate
+
+        &:before
+            display none
+
+        &:after
+            content ''
+            position absolute
+            top 0
+            right 0
+            bottom 0
+            left 0
+            z-index 0
+            background linear-gradient(180deg, rgba(255,255,255,0.05), rgba(6,7,10,0))
+
+        > *
+            position relative
+            z-index 1
+
+    .item-actions
+        position absolute
+        top 8px
+        right 10px
+        display flex
+        gap 8px
+        z-index 4
+
+        i
+            display inline-flex
+            align-items center
+            justify-content center
+            width 24px
+            height 24px
+            border-radius 50%
+            color rgba(255,255,255,0.64)
+            app-glass-control()
+            font-size 13px
+            line-height 1
+            transition color 160ms ease, background-color 160ms ease, border-color 160ms ease, transform 160ms ease
+
+            &:hover
+                color #fff
+                background rgba(255,255,255,0.12)
+                border-color rgba(244,185,66,0.38)
+                transform translateY(-1px)
+
+            &.selected
+                color $FilterBarActive
+                background rgba(244,185,66,0.14)
+                border-color rgba(244,185,66,0.36)
 
     .title
         height auto
-        margin 0 0 7px
+        margin 0 0 5px
         color $Text1
         max-width 100%
         overflow hidden
         text-overflow ellipsis
         white-space nowrap
-        padding-bottom 2px
+        padding-bottom 1px
         font-family $MainFontBold
-        font-size 1.05em
+        font-size 1em
         letter-spacing -0.01em
+
+        span
+            display inline-block
+            max-width 100%
+            overflow hidden
+            text-overflow ellipsis
+            vertical-align top
+
+        &:hover span
+            max-width none
+            animation titleMarquee 5.5s linear infinite alternate
 
     .title2
         font-size 0.85em
         color $Text1
         height auto
-        margin -2px 0 3px
+        margin -2px 0 2px
         overflow hidden
         text-overflow ellipsis
         white-space nowrap
-        padding-bottom 2px
+        padding-bottom 1px
 
     .year
-        font-size 0.95em
+        font-size 0.88em
         color $Text3
         display block
-        margin 0 0 8px
+        margin 0
 
     .item-meta-bottom
         display flex
         align-items center
         justify-content space-between
         gap 8px
+        margin-top 5px
+
+        &:empty
+            display none
 
     .card-rating
+        position absolute
+        top 12px
+        right 12px
+        z-index 3
+        height 30px
+        padding 7px 12px 0
+        box-sizing border-box
+        border-radius 999px
         color $Text1
-        font-family $MainFont
-        font-size 0.95em
+        font-family $MainFontBold
+        font-size 12px
+        line-height 1
+        app-glass-control()
 
         i
             color $FilterBarActive
             margin-right 6px
 
+    .seen-chip
+        display none
+        position absolute
+        left 12px
+        bottom 12px
+        z-index 5
+        align-items center
+        height 28px
+        padding 0 10px
+        border-radius 999px
+        color #17130c
+        background $FilterBarActive
+        font-family $MainFontBold
+        font-size 12px
+        box-shadow 0 10px 24px rgba(0,0,0,0.42), 0 0 24px rgba(244,185,66,0.18)
+
+        i
+            margin-right 6px
+
     .seasons
         font-size 0.82em
         color $Text1
-        display inline-block
+        display inline-flex
+        align-items center
+        height 20px
         float none
         margin 0
         border 1px solid rgba(244,185,66,0.72)
-        border-radius 5px
-        padding 1px 6px
-        max-width 78px
+        border-radius 999px
+        padding 0 8px
+        max-width 96px
         overflow hidden
         text-overflow ellipsis
         white-space nowrap
@@ -316,13 +462,19 @@
     100%
         box-shadow 0 0 0 0 rgba(244,185,66,0), 0 14px 34px rgba(0,0,0,0.52)
 
+@keyframes titleMarquee
+    from
+        transform translateX(0)
+    to
+        transform translateX(calc(-100% + 100px))
+
 .load-more,
 .search-more
     position relative
     background-size cover
     background-position center center
     width 178px
-    height 348px
+    height 318px
     border-radius 10px
     border 1px solid rgba(255, 255, 255, 0.08)
     cursor pointer

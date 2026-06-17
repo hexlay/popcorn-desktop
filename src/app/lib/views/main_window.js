@@ -37,7 +37,7 @@
     lockDesignSettings: function() {
       var lockedSettings = {
         theme: 'Official_-_Dark_theme',
-        startScreen: 'Movies',
+        startScreen: 'Home',
         moviesTabEnable: true,
         seriesTabEnable: true,
         animeTabEnable: false,
@@ -89,6 +89,7 @@
       });
 
       // Application events
+      App.vent.on('home:list', _.bind(this.homeTabShow, this));
       App.vent.on('movies:list', _.bind(this.movieTabShow, this));
       App.vent.on('shows:list', _.bind(this.tvshowTabShow, this));
       App.vent.on('favorites:list', _.bind(this.showFavorites, this));
@@ -295,12 +296,13 @@
         var openScreen = Settings.startScreen === 'Last Open' ? Settings.lastTab : Settings.startScreen;
 
         switch (openScreen) {
+          case 'Home': that.homeTabShow(); break;
           case 'Watchlist': that.showWatchlist(); break;
           case 'Favorites': that.showFavorites(); break;
           case 'Watched': that.showFavorites(); break;
           case 'TV Series': that.tvshowTabShow(); break;
           default:
-            that.movieTabShow();
+            that.homeTabShow();
         }
 
         // do we celebrate events?
@@ -355,6 +357,13 @@
       this.getRegion('MovieDetail').empty();
 
       this.showChildView('Content', new App.View.MovieBrowser());
+    },
+
+    homeTabShow: function(e) {
+      this.getRegion('Settings').empty();
+      this.getRegion('MovieDetail').empty();
+
+      this.showChildView('Content', new App.View.HomeBrowser());
     },
 
     tvshowTabShow: function(e) {

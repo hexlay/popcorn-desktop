@@ -167,9 +167,12 @@
             _this = this;
             this.listenTo(this.collection, 'loading', this.onLoading);
             this.listenTo(this.collection, 'loaded', this.onLoaded);
+            this.resizeGhosts = _.debounce(this.AddGhostsToBottomRow.bind(this), 100);
+            this.scrollCheckQueued = false;
 
             filterBarElem = _.pluck(App.Config.getTabTypes(), 'name');
             filterBarElem = filterBarElem.map(v => v.toLowerCase());
+            filterBarElem.unshift('home');
             for (var i = 0; i < filterBarElem.length; i++) {
                 if (filterBarElem[i] === 'series') {
                     filterBarElem[i] = 'shows';
@@ -186,7 +189,7 @@
 
             _this.initPosterResizeKeys();
 
-            App.vent.on('viewstack:pop', function() {
+            this.listenTo(App.vent, 'viewstack:pop', function() {
                 if (_.last(App.ViewStack) === 'init-container' || _.last(App.ViewStack) === 'main-browser') {
                     _this.initKeyboardShortcuts();
                 }
@@ -238,10 +241,14 @@
                     App.currentview = filterBarElem[filterBarPos];
                     if (App.currentview === 'Watched') {
                         App.vent.trigger('favorites:list', []);
+                    } else if (App.currentview === 'home') {
+                        App.vent.trigger('home:list', []);
                     } else {
                         App.vent.trigger(App.currentview.toLowerCase() + ':list', []);
                     }
-                    if (App.currentview === 'movies') {
+                    if (App.currentview === 'home') {
+                        $('.source.homeTabShow').addClass('active');
+                    } else if (App.currentview === 'movies') {
                         $('.source.movieTabShow').addClass('active');
                     } else if (App.currentview === 'shows') {
                             $('.source.tvshowTabShow').addClass('active');
@@ -263,10 +270,14 @@
                     App.currentview = filterBarElem[combo.charAt(5) - 1];
                     if (App.currentview === 'Watched') {
                         App.vent.trigger('favorites:list', []);
+                    } else if (App.currentview === 'home') {
+                        App.vent.trigger('home:list', []);
                     } else {
                         App.vent.trigger(App.currentview.toLowerCase() + ':list', []);
                     }
-                    if (App.currentview === 'movies') {
+                    if (App.currentview === 'home') {
+                        $('.source.homeTabShow').addClass('active');
+                    } else if (App.currentview === 'movies') {
                         $('.source.movieTabShow').addClass('active');
                     } else if (App.currentview === 'shows') {
                         $('.source.tvshowTabShow').addClass('active');
@@ -297,7 +308,8 @@
 
         initPosterResizeKeys: function () {
             $(window)
-                .on('mousewheel', function (event) { // Ctrl + wheel doesnt seems to be working on node-webkit (works just fine on chrome)
+                .off('.listPosterResize')
+                .on('mousewheel.listPosterResize', function (event) { // Ctrl + wheel doesnt seems to be working on node-webkit (works just fine on chrome)
                     if (event.altKey === true) {
                         event.preventDefault();
                         if (event.originalEvent.wheelDelta > 0) {
@@ -307,7 +319,7 @@
                         }
                     }
                 })
-                .on('keydown', function (event) {
+                .on('keydown.listPosterResize', function (event) {
                     if (event.ctrlKey === true || event.metaKey === true) {
 
                         if ($.inArray(event.keyCode, [107, 187]) !== -1) {
@@ -327,6 +339,7 @@
                 this.onLoading();
             }
             this.$el.scrollTop(0);
+            $(window).off('resize.listGhosts').on('resize.listGhosts', this.resizeGhosts);
         },
 
         onLoading: function () {
@@ -346,13 +359,6 @@
             this.addloadmore();
 
             this.AddGhostsToBottomRow();
-            $(window).resize(function () {
-                var addghost;
-                clearTimeout(addghost);
-                addghost = setTimeout(function () {
-                    self.AddGhostsToBottomRow();
-                }, 100);
-            });
 
             if (typeof (this.ui.spinner) === 'object') {
                 this.ui.spinner.hide();
@@ -362,14 +368,14 @@
                 self.checkFetchMore();
             });
 
-            $('.tooltipped').tooltip({
+            this.$('.tooltipped').tooltip({
                 delay: {
                     'show': 800,
                     'hide': 100
                 }
             });
 
-            $('.providerinfo').tooltip({
+            this.$('.providerinfo').tooltip({
                 delay: {
                     'show': 2400,
                     'hide': 100
@@ -426,9 +432,18 @@
             var item = $('.items .item:not(.ghost)');
 
             $('.ghost').remove();
+            if (!item.length) {
+                return;
+            }
             var listWidth = items.width();
             var itemWidth = item.width() + (2 * parseInt(item.css('margin')));
+            if (!itemWidth) {
+                return;
+            }
             var itemsPerRow = parseInt(listWidth / itemWidth);
+            if (!itemsPerRow) {
+                return;
+            }
             /* in case we .hide() items at some point:
             var visibleItems = 0;
             var hiddenItems = 0;
@@ -446,6 +461,15 @@
         },
 
         onScroll: function () {
+            if (this.scrollCheckQueued) {
+                return;
+            }
+            this.scrollCheckQueued = true;
+            requestAnimationFrame(this.checkScrollPosition.bind(this));
+        },
+
+        checkScrollPosition: function () {
+            this.scrollCheckQueued = false;
             if (!this.collection.hasMore) {
                 return;
             }
@@ -455,6 +479,13 @@
             if (this.collection.state === 'loaded' && viewsToBottom < 3) {
                 this.collection.fetchMore();
             }
+        },
+
+        onBeforeDestroy: function () {
+            $(window).off('.listPosterResize');
+            $(window).off('resize.listGhosts', this.resizeGhosts);
+            this.$('.tooltipped').tooltip('destroy');
+            this.$('.providerinfo').tooltip('destroy');
         },
 
         focusSearch: function (e) {

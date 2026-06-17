@@ -4,65 +4,6 @@
     let healthButton;
 
     var _this, bookmarked;
-    function runAfterTransition(element, done) {
-        var complete = false;
-        var fallback;
-
-        function finish() {
-            if (complete) {
-                return;
-            }
-            complete = true;
-            window.clearTimeout(fallback);
-            element.off('transitionend webkitTransitionEnd', finish);
-            done();
-        }
-
-        fallback = window.setTimeout(finish, 620);
-        element.one('transitionend webkitTransitionEnd', finish);
-    }
-
-    function runCircularReveal(view, target) {
-        if (!target || !target[0]) {
-            view.$el.removeClass('detail-opening');
-            return;
-        }
-        var targetRect = target[0].getBoundingClientRect();
-        var centerX = targetRect.left + targetRect.width / 2;
-        var centerY = targetRect.top + targetRect.height / 2;
-        var maxX = Math.max(centerX, window.innerWidth - centerX);
-        var maxY = Math.max(centerY, window.innerHeight - centerY);
-        var startRadius = Math.max(targetRect.width, targetRect.height) / 2;
-        var endRadius = Math.sqrt(maxX * maxX + maxY * maxY) + 80;
-        var duration = 620;
-        var startTime = Date.now();
-        var overlay = $('<div class="detail-reveal-mask"></div>');
-
-        function ease(progress) {
-            return 1 - Math.pow(1 - progress, 3);
-        }
-
-        function paint(radius) {
-            overlay.css('background', 'radial-gradient(circle at ' + centerX + 'px ' + centerY + 'px, transparent 0, transparent ' + radius + 'px, #080a0f ' + (radius + 1) + 'px)');
-        }
-
-        $('body').append(overlay);
-        view.$el.removeClass('detail-opening');
-        paint(startRadius);
-
-        function step() {
-            var progress = Math.min((Date.now() - startTime) / duration, 1);
-            paint(startRadius + (endRadius - startRadius) * ease(progress));
-            if (progress < 1) {
-                window.requestAnimationFrame(step);
-            } else {
-                overlay.remove();
-            }
-        }
-
-        window.requestAnimationFrame(step);
-    }
-
     function padEpisodePart(value) {
         return String(value || '').padStart(2, '0');
     }
@@ -374,90 +315,6 @@
             this.getRegion('torrentList').show(torrentList);
         },
 
-        runPosterTransition: function(target, image) {
-            var view = this;
-            var transition = App.detailPosterTransition;
-            if (this.didRunPosterTransition || !transition || transition.type !== 'show' || !transition.rect || !target || !target[0]) {
-                return;
-            }
-            this.didRunPosterTransition = true;
-            var start = transition.rect;
-            var imageUrl = transition.image || (image ? 'url("' + image.replace(/"/g, '\\"') + '")' : null);
-            if (!imageUrl) {
-                return;
-            }
-            var ghost = $('<div class="detail-poster-transition"></div>');
-            ghost.css({
-                top: start.top,
-                left: start.left,
-                width: start.width,
-                height: start.height,
-                backgroundImage: imageUrl,
-                transform: 'translate3d(0, 0, 0) scale(1, 1)'
-            });
-            $('body').append(ghost);
-            target.addClass('shared-transition-target transition-hidden');
-            this.$el.addClass('detail-opening');
-            window.requestAnimationFrame(function() {
-                window.requestAnimationFrame(function() {
-                    var end = target[0].getBoundingClientRect();
-                    ghost.css({
-                        transform: 'translate3d(' + (end.left - start.left) + 'px, ' + (end.top - start.top) + 'px, 0) scale(' + (end.width / start.width) + ', ' + (end.height / start.height) + ')',
-                        borderRadius: '20px'
-                    });
-                });
-            });
-            runAfterTransition(ghost, function() {
-                target.removeClass('transition-hidden');
-                ghost.remove();
-                runCircularReveal(view, target);
-            });
-            this.posterTransition = {
-                rect: start,
-                image: imageUrl
-            };
-            delete App.detailPosterTransition;
-        },
-
-        runPosterCloseTransition: function(done) {
-            var view = this;
-            var transition = this.posterTransition;
-            var target = $('.shp-img');
-            if (!transition || !transition.rect || !transition.image || !target[0]) {
-                done();
-                return;
-            }
-            var start = target[0].getBoundingClientRect();
-            var end = transition.rect;
-            var ghost = $('<div class="detail-poster-transition"></div>');
-            ghost.css({
-                top: start.top,
-                left: start.left,
-                width: start.width,
-                height: start.height,
-                backgroundImage: transition.image,
-                borderRadius: '20px',
-                transform: 'translate3d(0, 0, 0) scale(1, 1)'
-            });
-            $('body').append(ghost);
-            target.addClass('shared-transition-target transition-hidden');
-            this.$el.addClass('detail-closing-poster');
-            window.requestAnimationFrame(function() {
-                window.requestAnimationFrame(function() {
-                    ghost.css({
-                        transform: 'translate3d(' + (end.left - start.left) + 'px, ' + (end.top - start.top) + 'px, 0) scale(' + (end.width / start.width) + ', ' + (end.height / start.height) + ')',
-                        borderRadius: '12px',
-                        boxShadow: '0 18px 44px rgba(0,0,0,0.42)'
-                    });
-                });
-            });
-            runAfterTransition(ghost, function() {
-                ghost.remove();
-                view.$el.addClass('detail-closing');
-                done();
-            });
-        },
-
         onAttach: function () {
             win.info('Show series details (' + this.model.get('imdb_id') + ')');
 
@@ -495,16 +352,10 @@
                 }
             }
 
-            $('.shp-img')
-                .css('background-image', 'url(' + (poster || noimg) + ')')
-                .addClass('fadein');
-            this.runPosterTransition($('.shp-img'), poster || noimg);
-
             Common.loadImage(poster).then((img) => {
-                if (!img) {
-                    $('.shp-img')
-                        .css('background-image', 'url(' + noimg + ')');
-                }
+                $('.shp-img')
+                    .css('background-image', 'url(' + (img || noimg) + ')')
+                    .addClass('fadein');
             });
             Common.loadImage(backdrop).then((img) => {
                 $('.shb-img')
@@ -933,14 +784,15 @@
             if (e && e.preventDefault) {
                 e.preventDefault();
             }
-            var view = this && this.runPosterCloseTransition ? this : _this;
-            if (view.closingDetail) {
+            var view = this && this.$el ? this : _this;
+            if (!view || view.closingDetail) {
                 return;
             }
             view.closingDetail = true;
-            view.runPosterCloseTransition(function() {
+            view.$el.addClass('detail-exiting');
+            window.setTimeout(function() {
                 App.vent.trigger('show:closeDetail');
-            });
+            }, 180);
         },
 
         clickSeason: function (e) {

@@ -26,6 +26,7 @@
       'click .ratings .dropdown-menu a': 'changeRating',
       'click #filterbar-settings': 'settings',
       'click #filterbar-tempf': 'tempf',
+      'click .homeTabShow': 'homeTabShow',
       'click .movieTabShow': 'movieTabShow',
       'click .tvshowTabShow': 'tvshowTabShow',
       'click #filterbar-favorites': 'showFavorites',
@@ -60,6 +61,12 @@
         .find('.active')
         .removeClass('active');
       switch (set) {
+        case 'Home':
+        case 'home':
+          rightSearch.hide();
+          navFilters.hide();
+          $('.source.homeTabShow').addClass('active');
+          break;
         case 'TV Series':
         case 'shows':
           $('.source.tvshowTabShow').addClass('active');
@@ -147,6 +154,9 @@
           case 'TV Series':
             App.currentview = 'shows';
             break;
+          case 'Home':
+            App.currentview = 'home';
+            break;
           case 'Movies':
             App.currentview = 'movies';
             break;
@@ -163,7 +173,7 @@
             App.previousview = 'movies';
             break;
           default:
-            App.currentview = 'movies';
+            App.currentview = 'home';
         }
         this.setActive(App.currentview);
       }
@@ -328,6 +338,16 @@
 
     tempf: function (e) {
       App.settings.os === 'windows' ? nw.Shell.openExternal(Settings.tmpLocation) : nw.Shell.openItem(Settings.tmpLocation);
+    },
+
+    homeTabShow: function(e) {
+      e.preventDefault();
+      App.currentview = 'home';
+      App.vent.trigger('about:close');
+      App.vent.trigger('torrentCollection:close');
+      App.vent.trigger('seedbox:close');
+      App.vent.trigger('home:list', []);
+      this.setActive('Home');
     },
 
     tvshowTabShow: function(e) {
