@@ -5,6 +5,6 @@
     </div>
 </div>
 <div class="content-section-header">
-    <h2><%= i18n.__("Popular Now") %></h2>
+    <h2><%= title %></h2>
 </div>
 <div class="items"></div>

@@ -79,6 +79,21 @@
             spinner: '.spinner'
         },
 
+        serializeData: function () {
+            return {
+                title: this.getTitle()
+            };
+        },
+
+        getTitle: function () {
+            var filter = this.collection && this.collection.filter;
+
+            if (this.collection && ['movies', 'shows'].indexOf(this.collection.type) !== -1 && filter && filter.sorters && filter.sorter) {
+                return filter.sorters[filter.sorter] || i18n.__(filter.sorter.capitalizeEach());
+            }
+
+            return i18n.__('Popular Now');
+        },
 
         isEmpty: function () {
             return !this.collection.length && this.collection.state !== 'loading';
