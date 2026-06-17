@@ -11,21 +11,37 @@
     left 0
     right 0
     padding-top $TitleHeight
+    background-image radial-gradient(circle at 18% 0%, rgba(244,185,66,0.10), transparent 34%), radial-gradient(circle at 82% 8%, rgba(58,92,164,0.18), transparent 38%)
     -webkit-backface-visibility hidden
 
     .minimize-icon
-        top 47px
-        right 20px
+        top $TitleHeight + 22px
+        right 34px
         position fixed
-        color $CloseButton
-        font-size 18px
+        color rgba(255,255,255,0.78)
+        font-size 17px
+        width 38px
+        height 38px
+        line-height 38px
+        padding 0
+        display flex
+        align-items center
+        justify-content center
+        box-sizing border-box
+        border-radius 50%
+        background rgba(255,255,255,0.08)
+        border 1px solid rgba(255,255,255,0.10)
         cursor pointer
         z-index 100
         -webkit-font-smoothing antialiased
-        transition color 0.2s
+        -webkit-backdrop-filter blur(16px) saturate(145%)
+        backdrop-filter blur(16px) saturate(145%)
+        transition color 180ms ease, background-color 180ms ease, transform 180ms ease
 
         &:hover
-            color $CloseButtonHover
+            color #fff
+            background rgba(255,255,255,0.13)
+            transform translateY(-1px)
 
     .maximize-icon
         display none
@@ -36,17 +52,20 @@
         font-size 25px
         cursor pointer
         z-index 100
-        background $BgColor2
-        padding 10px 20px
-        opacity 0.9
-        border-radius 3px
-        box-shadow 0 2px 6px 0 rgba(0,0,0,0.15), 0 4px 14px 0 rgba(0,0,0,0.25)
+        background rgba(255,255,255,0.08)
+        padding 12px 18px
+        opacity 1
+        border-radius 18px
+        border 1px solid rgba(255,255,255,0.10)
+        box-shadow 0 18px 42px rgba(0,0,0,0.34), inset 0 1px 0 rgba(255,255,255,0.06)
+        -webkit-backdrop-filter blur(24px) saturate(145%)
+        backdrop-filter blur(24px) saturate(145%)
         -webkit-font-smoothing antialiased
         transition background 0.2s, color 0.2s, opacity 0.2s
 
         &:hover
             color $ButtonText
-            background $ButtonBgHover
+            background rgba(255,255,255,0.13)
             opacity 1
 
         &.done:hover
@@ -70,7 +89,7 @@
 
     .seed_status
         visibility hidden
-        margin-top 20px
+        margin-top 18px
 
     .loading-backdrop
         position absolute
@@ -80,62 +99,82 @@
         background-position-x 50%
         background-position-y 50%
         background-size cover
-        -webkit-filter blur(20px) brightness(0.7)
+        -webkit-filter blur(22px) brightness(0.62) saturate(1.12)
+        transform scale(1.04)
 
     .loading-backdrop-overlay
         width 100%
         height 100%
         position absolute
         opacity 0.65
-        background-color #000
+        background radial-gradient(circle at 50% 44%, rgba(244,185,66,0.08), transparent 24%), linear-gradient(180deg, rgba(3,5,9,0.52), rgba(3,5,9,0.74)), rgba(0,0,0,0.46)
 
     .state-flex
         height 100%
         display flex
         align-items center
         justify-content center
+        box-sizing border-box
+        padding 72px 28px
 
     .state
         color #fff
         font-family $MainFont
         -webkit-font-smoothing antialiased
         text-align center
-        width 500px
-        height 400px
+        width 100%
+        max-width 560px
+        min-height 360px
+        height auto
         z-index 11
         -webkit-backface-visibility hidden
+        box-sizing border-box
+        padding 30px 34px 34px
+        border 1px solid rgba(255,255,255,0.10)
+        border-radius 18px
+        background rgba(255,255,255,0.055)
+        box-shadow 0 22px 56px rgba(0,0,0,0.34), inset 0 1px 0 rgba(255,255,255,0.06)
+        -webkit-backdrop-filter blur(28px) saturate(150%)
+        backdrop-filter blur(28px) saturate(150%)
+        animation appSurfaceEnter $AppMotionNormal $AppMotionEase both
 
         .title
             font-family $MainFontBold
-            font-size 16px
-            line-height 20px
-            padding-bottom 10px
+            font-size 18px
+            line-height 24px
+            padding-bottom 18px
             text-overflow ellipsis
             word-wrap break-word
-            display inline-block
+            display block
+            max-width 100%
+            color $Text1
 
         .external-play
             font-size 14px
             font-style italic
-            padding-bottom 6px
+            padding-bottom 12px
             visibility hidden
+            color rgba(255,255,255,0.72)
 
         .loading-progressbar
             position relative
-            margin-bottom 29px
+            margin 0 auto 24px
             width 100%
-            background-color #bababa
-            border-radius 13px
+            height 8px
+            background-color rgba(255,255,255,0.18)
+            border-radius 999px
             overflow hidden
             visibility hidden
+            box-shadow inset 0 1px 2px rgba(0,0,0,0.32)
 
             & > div
                 background-color $ButtonBgActive
                 margin-left -100%
                 width 100%
-                height 5px
-                border-radius 13px
+                height 8px
+                border-radius 999px
                 left 0px
+                box-shadow 0 0 18px rgba(244,185,66,0.30)
                 animation-name bounce_bar
                 animation-duration 3s
                 animation-iteration-count infinite
@@ -145,26 +184,39 @@
             position relative
             margin-bottom 4px
             margin-top 10px
-            background-color #bababa
-            border-radius 13px
+            height 8px
+            background-color rgba(255,255,255,0.18)
+            border-radius 999px
             display none
+            overflow hidden
 
             & > div
                 background-color $ButtonBgActive
-                height 10px
-                border-radius 13px
+                height 8px
+                border-radius 999px
                 left 0px
 
         .player-controls
             text-align center
-            margin-left 30px
+            margin-left 0
             color $Text1
-            font-size 14px
-            margin-top 20px
+            font-size 15px
+            margin-top 18px
             display none
             i
                 cursor pointer
-                margin-right 20px
+                margin 0 8px
+                width 34px
+                height 34px
+                line-height 34px
+                border-radius 50%
+                background rgba(255,255,255,0.08)
+                border 1px solid rgba(255,255,255,0.10)
+                transition background-color 180ms ease, color 180ms ease
+
+                &:hover
+                    color #fff
+                    background rgba(255,255,255,0.13)
 
         #rbreak1, #rbreak2, #rbreak3
             line-height 13px
@@ -213,23 +265,27 @@
         .cancel-button
             z-index 2
             cursor pointer
-            width 120px
-            height 35px
+            width 140px
+            height 38px
             line-height 1
-            margin 20px auto auto auto
-            -moz-border-radius 3px
-            -webkit-border-radius 3px
-            border-radius 3px
+            margin 24px auto auto auto
+            -moz-border-radius 999px
+            -webkit-border-radius 999px
+            border-radius 999px
             -moz-background-clip padding
             -webkit-background-clip padding-box
             background-clip padding-box
             background-color $ButtonBg
+            border 1px solid rgba(255,255,255,0.12)
+            box-shadow 0 12px 28px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.18)
             -webkit-backface-visibility hidden
-            transition background-color .5s
+            transition background-color 180ms ease, box-shadow 180ms ease, transform 180ms ease
 
             &:hover
                 background $ButtonBgHover
                 text-decoration none
+                transform translateY(-1px)
+                box-shadow 0 16px 34px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.18)
 
             &:active
                 box-shadow inset 0 1px 4px rgba(0,0,0,0.6)
@@ -241,7 +297,7 @@
                 font-family $MainFont, $Font, $AlternateFont
                 -webkit-font-smoothing antialiased
                 text-align center
-                top 12px
+                top 13px
                 font-size 12px
 
         .open-button
@@ -268,15 +324,19 @@
                 font-size 12px
 
         .loading-info
-            width auto
+            width 100%
+            max-width 430px
             height auto
             margin auto
-            padding 14px 14px 10px 14px
-            border-radius 4px
+            padding 18px 18px 16px
+            border-radius 14px
             left 0
             right 0
-            background rgba(0, 0, 0, .6)
+            background rgba(0,0,0,0.28)
+            border 1px solid rgba(255,255,255,0.08)
+            box-shadow inset 0 1px 0 rgba(255,255,255,0.04)
             display inline-block
+            box-sizing border-box
 
             &:hover
                 > .show-pcontrols,
@@ -303,21 +363,23 @@
 
             span
                 position relative
-                color #fff
+                color rgba(255,255,255,0.86)
                 font-family $MainFont
                 -webkit-font-smoothing antialiased
                 font-size 12px
-                line-height 14px
+                line-height 17px
 
                 &.loading-info-text
                     float left
                     padding-right 32px
+                    color rgba(255,255,255,0.62)
                 &.value
                     float right
                     text-align right
+                    max-width 250px
 
             .text_filename
-                width 255px
+                width 240px
                 padding-right 3px
                 overflow hidden
                 white-space nowrap
@@ -340,8 +402,14 @@
 
             .buffer_percent
                 text-align center
-                font-size 14px
-                line-height 10px
+                font-size 15px
+                line-height 18px
+                color $Text1
+
+        .text_download
+            color rgba(255,255,255,0.82)
+            font-size 15px
+            margin-bottom 0
 
     .warning-nospace
         display none

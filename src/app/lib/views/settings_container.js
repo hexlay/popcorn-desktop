@@ -55,7 +55,8 @@
             'click .update-dht': 'updateDht',
             'click .update-app': 'updateApp',
             'mousedown #customMoviesServer': 'showFullDatalist',
-            'mousedown #customSeriesServer': 'showFullDatalist'
+            'mousedown #customSeriesServer': 'showFullDatalist',
+            'scroll': 'updateHeaderShadow'
         },
 
         onAttach: function () {
@@ -66,7 +67,10 @@
 
             $('.filter-bar').hide();
             $('#movie-detail').hide();
-            $('#header').addClass('header-compact');
+            $('#header')
+                .addClass('header-compact settings-header')
+                .attr('data-view-title', i18n.__('Settings'));
+            this.updateHeaderShadow();
             $('.tooltipped').tooltip({
                 delay: {
                     'show': 800,
@@ -103,6 +107,10 @@
             }
             oldTmpLocation = $('#faketmpLocation').val();
             oldDownloadsLocation = $('#fakedownloadsLocation').val();
+        },
+
+        updateHeaderShadow: function () {
+            $('#header').toggleClass('header-shadow', this.$el.scrollTop() > 0);
         },
 
         rightclick_field: function (e) {
@@ -198,7 +206,9 @@
                 App.vent.trigger('movie:closeDetail');
             });
             $('.filter-bar').show();
-            $('#header').removeClass('header-compact');
+            $('#header')
+                .removeClass('header-compact settings-header header-shadow')
+                .removeAttr('data-view-title');
             $('#movie-detail').show();
             clearInterval(waitComplete);
             if ($('#authTraktCode').is(':visible') && !App.Trakt.authenticated) {

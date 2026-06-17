@@ -339,6 +339,7 @@
                 this.onLoading();
             }
             this.$el.scrollTop(0);
+            this.updateHeaderShadow();
             $(window).off('resize.listGhosts').on('resize.listGhosts', this.resizeGhosts);
         },
 
@@ -470,6 +471,7 @@
 
         checkScrollPosition: function () {
             this.scrollCheckQueued = false;
+            this.updateHeaderShadow();
             if (!this.collection.hasMore) {
                 return;
             }
@@ -484,8 +486,13 @@
         onBeforeDestroy: function () {
             $(window).off('.listPosterResize');
             $(window).off('resize.listGhosts', this.resizeGhosts);
+            $('#header').removeClass('header-shadow');
             this.$('.tooltipped').tooltip('destroy');
             this.$('.providerinfo').tooltip('destroy');
+        },
+
+        updateHeaderShadow: function () {
+            $('#header').toggleClass('header-shadow', this.$el.scrollTop() > 0);
         },
 
         focusSearch: function (e) {

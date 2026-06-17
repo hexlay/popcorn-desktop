@@ -34,10 +34,23 @@
             this.renderFilterBar();
             this.finishStartup();
             this.loadHome();
+            this.updateHeaderShadow();
         },
 
         onRender: function () {
             this.renderFilterBar();
+            this.bindHomeScroll();
+            this.updateHeaderShadow();
+        },
+
+        bindHomeScroll: function () {
+            this.$('.home-page')
+                .off('scroll.homeHeader')
+                .on('scroll.homeHeader', this.updateHeaderShadow.bind(this));
+        },
+
+        updateHeaderShadow: function () {
+            $('#header').toggleClass('header-shadow', this.$('.home-page').scrollTop() > 2);
         },
 
         renderFilterBar: function () {
@@ -365,6 +378,8 @@
         onBeforeDestroy: function () {
             this.homeRequestId++;
             this.itemsById = {};
+            this.$('.home-page').off('scroll.homeHeader');
+            $('#header').removeClass('header-shadow');
             if (this.bar && !this.bar.isDestroyed()) {
                 this.bar.destroy();
             }

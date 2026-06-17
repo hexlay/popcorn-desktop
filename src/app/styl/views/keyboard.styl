@@ -1,37 +1,84 @@
-.keyboard-container 
+.keyboard-container
     z-index 15
     height 100%
     width 100%
     position fixed
     -webkit-user-select none
     opacity 1
+    box-sizing border-box
+    padding $TitleHeight + 36px 8vw 46px
+    background-color rgba($BgColor1, 0.88)
+    background-image radial-gradient(circle at 18% 0%, rgba(244,185,66,0.12), transparent 34%), radial-gradient(circle at 82% 8%, rgba(58,92,164,0.18), transparent 38%)
 
-    .overlay-content 
+    .overlay-content
         height 100%
         width 100%
         position absolute
-        background $BgColor1
-        opacity 0.95
+        top 0
+        left 0
+        background rgba(0,0,0,0.38)
+        -webkit-backdrop-filter blur(12px)
+        backdrop-filter blur(12px)
         z-index -1
 
-    h1 
-        font-family $AlternateFont
+    .close-icon
+        top $TitleHeight + 22px
+        right 34px
+        width 38px
+        height 38px
+        border-radius 50%
+        background rgba(255,255,255,0.08)
+        border 1px solid rgba(255,255,255,0.10)
+        color rgba(255,255,255,0.78)
+        font-size 17px
+        line-height 38px
+        padding 0
+        display flex
+        align-items center
+        justify-content center
+        box-sizing border-box
+        text-align center
+        -webkit-backdrop-filter blur(16px) saturate(145%)
+        backdrop-filter blur(16px) saturate(145%)
+        transition color 180ms ease, background-color 180ms ease, transform 180ms ease
+
+        &:hover
+            color #fff
+            background rgba(255,255,255,0.13)
+            transform translateY(-1px)
+
+    h1
+        font-family $MainFontBold, $AlternateFont
         font-weight bold
-        font-size 20px
+        font-size 22px
+        line-height 1.2
+        margin 0
+        color $Text1
 
-        & + hr 
-            margin-top 10px
+        & + hr
+            margin 14px 0 22px
+            border 0
+            border-top 1px solid rgba(255,255,255,0.12)
 
-    .content 
+    .content
         height 100%
         margin 0 auto
-        margin-top 80px
-        width 80%
+        width 100%
+        max-width 1180px
+        box-sizing border-box
+        padding 28px 32px 30px
+        border 1px solid rgba(255,255,255,0.10)
+        border-radius 18px
+        background rgba(255,255,255,0.055)
+        box-shadow 0 22px 56px rgba(0,0,0,0.30), inset 0 1px 0 rgba(255,255,255,0.06)
+        -webkit-backdrop-filter blur(28px) saturate(150%)
+        backdrop-filter blur(28px) saturate(150%)
         color $Text1
-        font-family $AlternateFont
+        font-family $Font, $AlternateFont
         font-size 15px
+        animation appSurfaceEnter $AppMotionNormal $AppMotionEase both
 
-        .text-about 
+        .text-about
             margin-top 55px
             line-height 22px
             margin-bottom 20px
@@ -40,72 +87,78 @@
 
     .keyboard-outer
         scrollable()
-        height calc(100% - 200px)
+        height calc(100% - 66px)
+        padding-right 8px
 
     .fix-float
-        float left
-        position relative
-        left 50%
-    
-    .keyboard-table 
-        float left
-        position relative
-        left -50%
-        &.last 
-            margin-left 30px
+        display flex
+        justify-content center
+        align-items flex-start
+        gap 46px
+        min-width 0
 
-        tbody:first-child tr:first-child th 
+    .keyboard-table
+        float none
+        position relative
+        left auto
+        min-width 0
+
+        &.last
+            margin-left 0
+
+        tbody:first-child tr:first-child th
             padding-top 0
 
-        th 
+        th
             padding-top 25px
             font-size 16px
-            font-family $AlternateFont
+            font-family $MainFontBold, $AlternateFont
             font-weight bold
             line-height 1.5
-            color darken($Text1, 10%)
+            color $Text1
             text-align left
 
-        td 
-            padding-top 3px
-            padding-bottom 3px
+        td
+            padding-top 4px
+            padding-bottom 4px
             line-height 22px
+            color rgba(255,255,255,0.78)
 
-        tr td:first-child 
+        tr td:first-child
             padding-top 1px
-            padding-right 10px
+            padding-right 12px
             text-align right
             white-space nowrap
 
-        td span.mouse 
+        td span.mouse
             width 23px
             height 19px
             margin-left 1px
             margin-right 6px
             vertical-align bottom
 
-        td span.key 
+        td span.key
             margin-left 7px
             margin-right 7px
 
-            &:first-child 
+            &:first-child
                 margin-left 0
 
-            &:last-child 
+            &:last-child
                 margin-right 0
 
-    .key 
+    .key
         display inline-block
-        color lighten(#000, 10%)
+        color rgba(20,22,28,0.96)
         font bold 9pt arial
         text-decoration none
         text-align center
         width 23px
         height 21px
-        background #eff0f2
-        border-radius 4px
-        border-top 1px solid #f5f5f5
-        box-shadow inset 0 0 25px #e8e8e8, 0 1px 0 #c3c3c3, 0 2px 0 #c9c9c9, 0 2px 3px #333
+        background rgba(255,255,255,0.88)
+        border-radius 6px
+        border 1px solid rgba(255,255,255,0.92)
+        box-shadow inset 0 1px 0 rgba(255,255,255,0.70), 0 2px 0 rgba(195,195,195,0.86), 0 6px 14px rgba(0,0,0,0.28)
         text-shadow 0px 1px 0px #f5f5f5
         padding 3px 0 0
         text-transform uppercase
@@ -155,24 +208,44 @@
         &.down 
             height 11px
 
-        &.up, 
-        &.leftarrow, 
-        &.rightarrow 
+        &.up,
+        &.leftarrow,
+        &.rightarrow
             height 12px
 
-        &.leftarrow, 
-        &.rightarrow 
+        &.leftarrow,
+        &.rightarrow
             padding 5px 5px 5px
 
-        &.up 
-            padding 5px 5px 1px 
-            border-bottom-right-radius 0px 
+        &.up
+            padding 5px 5px 1px
+            border-bottom-right-radius 0px
             border-bottom-left-radius 0px
 
-        &.down 
-            padding 0 5px 5px 
-            border-top-left-radius 0px 
+        &.down
+            padding 0 5px 5px
+            border-top-left-radius 0px
             border-top-right-radius 0px
 
-        &.arrow 
+        &.arrow
             font-size 14px
+
+    @media (max-width: 1160px)
+        padding-left 5vw
+        padding-right 5vw
+
+        .fix-float
+            gap 28px
+
+    @media (max-width: 900px)
+        .content
+            padding 24px 22px
+
+        .fix-float
+            display block
+
+        .keyboard-table
+            width 100%
+
+            &.last
+                margin-top 24px

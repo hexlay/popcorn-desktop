@@ -125,6 +125,7 @@
     onAttach: function() {
       $('.filter-bar').hide();
       $('#header').addClass('header-compact');
+      $('body').addClass('loading-active');
       App.LoadingView = this;
       this.initKeyboardShortcuts();
       $('.minimize-icon,#maxic,.title,.text_filename,.text_streamurl,.show-pcontrols,.magnet-icon').tooltip({
@@ -404,6 +405,7 @@
     onBeforeDestroy: function() {
       $('.filter-bar').show();
       $('#header').removeClass('header-compact');
+      $('body').removeClass('loading-active');
       $('.button:not(#cancel-button), #watch-now, .show-details .sdo-watch, .sdow-watchnow, .playerchoice, .file-item, .file-item a, .result-item, .result-item > *:not(.item-icon), .trash-torrent, .collection-paste, .collection-import, .seedbox .item-play, .seedbox .exit-when-done, #torrent-list .item-row, #torrent-show-list .item-row, #torrent-list .item-play, #torrent-show-list .item-play').removeClass('disabled').removeProp('disabled');
       Mousetrap.bind(['esc', 'backspace'], function(e) {
         App.vent.trigger('show:closeDetail');

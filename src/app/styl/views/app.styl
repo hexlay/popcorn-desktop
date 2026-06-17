@@ -77,3 +77,17 @@ app-glass-control()
 @import 'loading'
 @import 'notification'
 @import 'seedbox'
+
+body.loading-active,
+body.player-active
+    .movie-detail
+        .subtitle-control,
+        .quality-selector,
+        .show-all-torrents
+            display none !important
+
+    .show-detail-container
+        .sh-actions .flex-right,
+        .sdo-watch #quality-selector,
+        .sdo-watch .show-all-torrents
+            display none !important

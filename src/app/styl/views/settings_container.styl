@@ -1,72 +1,104 @@
 .settings-container-contain
     z-index 1
     background-color $BgColor1
-    background-image radial-gradient(circle at 18% 0%, rgba(244,185,66,0.10), transparent 34%), radial-gradient(circle at 82% 8%, rgba(58,92,164,0.14), transparent 38%)
+    background-image radial-gradient(circle at 18% 0%, rgba(244,185,66,0.14), transparent 34%), radial-gradient(circle at 82% 8%, rgba(58,92,164,0.18), transparent 38%), linear-gradient(180deg, rgba(255,255,255,0.035), transparent 260px)
     height 100%
     width calc(100% - 5px)
     position fixed
     scrollable()
-    padding-top $TitleHeight + 22px
+    padding-top $TitleHeight + 28px
     &::-webkit-scrollbar-track
         margin-top $TitleHeight
         margin-bottom 5px
 
     .settings-container
         z-index 1
-        width 100%
+        width calc(100% - 72px)
+        max-width 1180px
         height auto
         position absolute
+        left 0
+        right 0
+        margin-left auto
+        margin-right auto
         background-color transparent
         -webkit-user-select none
-        padding-bottom 20px
+        padding-bottom 38px
+        animation appSurfaceEnter $AppMotionNormal $AppMotionEase both
 
         section
             display flex
             flex-direction row
             justify-content flex-start
             flex-flow row wrap
-            width 92%
-            margin-left auto
-            margin-right auto
+            width 100%
+            margin 0 auto 18px
             position relative
+            box-sizing border-box
+            overflow hidden
+            padding 22px 26px 24px
+            border 1px solid rgba(255,255,255,0.10)
+            border-radius 18px
+            background rgba(255,255,255,0.055)
+            box-shadow 0 22px 56px rgba(0,0,0,0.26), inset 0 1px 0 rgba(255,255,255,0.06)
+            -webkit-backdrop-filter blur(28px) saturate(150%)
+            backdrop-filter blur(28px) saturate(150%)
 
             .title
-                padding-top 26px
+                padding-top 3px
                 color $SettingsCategoriesText
                 font-family $Font, $AlternateFont
-                font-size 17px
-                width 160px
-                margin-right 30px
+                font-size 16px
+                width 178px
+                margin-right 26px
                 position relative
-                border-right 1px solid $SettingsSeparator
+                border-right 1px solid rgba(255,255,255,0.10)
+                line-height 1.3
 
             .content
                 position relative
-                padding-top 30px
-                padding-left 10px
+                padding-top 0
+                padding-left 0
                 float right
-                width calc(100% - 190px)
+                width calc(100% - 204px)
+                min-width 0
                 height 100%
                 color $SettingsText1
                 font-family $Font, $AlternateFont
                 font-size 13px
-                border-bottom 1px solid $SettingsSeparator
+                border-bottom 0
 
                 span
                     float left
                     width 100%
-                    height 40px
+                    min-height 40px
+                    height auto
+                    margin-bottom 8px
+                    display flex
+                    align-items center
+                    flex-wrap wrap
+                    gap 8px 0
+                    min-width 0
+
+                    &:last-child
+                        margin-bottom 0
 
                     p
                         min-width 158px
+                        max-width 240px
                         color $SettingsText1
                         font-family $Font, $AlternateFont
                         font-size 13px
                         float left
+                        margin 0
+                        line-height 1.35
 
                     em
                         color $SettingsText2
                         font-size 12px
+                        line-height 1.45
+                        min-width 0
+                        white-space normal
 
                     #downloadsDir,
                     #protocolEnc
@@ -127,31 +159,62 @@
             width 62px
 
         #title
+            padding 0
+            margin -2px 0 16px
+            border 0
+            background transparent
+            box-shadow none
+            -webkit-backdrop-filter none
+            backdrop-filter none
+            justify-content flex-end
+
             .title
-                color $Text1
-                padding-top 5px
-                font-size 22px
+                display none
 
             .content
-                padding-top 5px
-                height 30px
+                width auto
+                padding-top 0
+                height 38px
                 border-bottom 1px solid transparent
+                display flex
+                justify-content flex-end
+                margin-right 48px
 
                 label
                     margin-top -7px
 
+                span
+                    width auto
+                    min-height 38px
+                    margin-bottom 0
+                    display flex
+                    align-items center
+
                 .keyboard,.help,.about
-                    font-size 21px
-                    margin -3px 22px -3px -3px
-                    padding 3px
+                    font-size 18px
+                    margin 0 0 0 10px
+                    padding 0
+                    width 38px
+                    height 38px
+                    line-height 38px
                     border-radius 50%
-                    color $Text3
+                    color rgba(255,255,255,0.72)
+                    background rgba(255,255,255,0.07)
+                    border 1px solid rgba(255,255,255,0.09)
                     cursor pointer
-                    transition all .5s
+                    display inline-flex
+                    align-items center
+                    justify-content center
+                    box-sizing border-box
+                    text-align center
+                    transition color 180ms ease, background-color 180ms ease, transform 180ms ease
+                    -webkit-backdrop-filter blur(16px) saturate(145%)
+                    backdrop-filter blur(16px) saturate(145%)
 
                     &:hover
-                        color $Text1
-                        transition all .5s
+                        color #fff
+                        background rgba(255,255,255,0.13)
+                        transform translateY(-1px)
 
         #user-interface
             .subtitles-language > select,
@@ -475,8 +538,8 @@
             cursor default
 
         .btns
-            padding-top 10px
-            padding-right 2%
+            padding-top 2px
+            padding-right 0
             float right
             &.database
                 float left
@@ -490,16 +553,17 @@
             padding-left 10px
             padding-right 10px
             margin-right 20px
-            border-radius $ButtonRadius
-            height 35px
-            background-color $ButtonBg
+            border-radius 999px
+            height 36px
+            background-color rgba(255,255,255,0.08)
+            border 1px solid rgba(255,255,255,0.10)
             text-align center
             color $SettingsButtonText
             font-family $ButtonFont, $AlternateFont
             font-size 12px
-            line-height 34px
+            line-height 35px
             cursor pointer
-            transition background-color .5s
+            transition background-color 180ms ease, color 180ms ease, box-shadow 180ms ease
             &> label
                 cursor pointer
             &.database
@@ -508,6 +572,7 @@
                 background-color $ButtonBgHover
                 color $SettingsButtonTextHover
                 text-decoration none
+                box-shadow 0 10px 22px rgba(0,0,0,0.22)
             &.disabled
                 background-color $ButtonBgDisabled
                 &:hover
@@ -600,6 +665,9 @@
         border-radius 11px
         line-height 15px
         background-color $InputBoxBg
+        background-color rgba(255,255,255,0.09)
+        -webkit-backdrop-filter blur(18px) saturate(140%)
+        backdrop-filter blur(18px) saturate(140%)
         resize none
         color $InputBoxText
         font-family $Font, $AlternateFont
@@ -607,6 +675,10 @@
         cursor text
         outline 0 !important
         box-shadow inset 0 1px 0 rgba(255,255,255,0.04)
+
+        &:focus
+            border-color rgba(244,185,66,0.45) !important
+            box-shadow inset 0 1px 0 rgba(255,255,255,0.05), 0 0 0 3px rgba(244,185,66,0.10)
 
         &#fakedatabaseLocation
             pointer-events none
@@ -646,6 +718,11 @@
             vertical-align middle
             cursor pointer
             color $SettingsText1
+            min-width 0
+            max-width calc(100% - 32px)
+            height auto
+            line-height 1.35
+            white-space normal
 
         &.settings-checkbox:checked+label.settings-label
             &:after
@@ -719,6 +796,101 @@
         transform rotate(0deg)
     100%
         transform rotate(360deg)
+
+#header.settings-header
+    &:after
+        content attr(data-view-title)
+        position absolute
+        left 50%
+        top 10px
+        transform translateX(-50%)
+        color $Text1
+        font-family $MainFontBold, $AlternateFont
+        font-size 15px
+        line-height 18px
+        letter-spacing 0
+        pointer-events none
+
+.settings-container-contain
+    .settings-container
+        > .close-icon
+            position absolute
+            top -2px
+            right 0
+            z-index 4
+            width 38px
+            height 38px
+            border-radius 50%
+            background rgba(255,255,255,0.08)
+            border 1px solid rgba(255,255,255,0.10)
+            color rgba(255,255,255,0.78)
+            font-size 17px
+            line-height 38px
+            padding 0
+            display flex
+            align-items center
+            justify-content center
+            box-sizing border-box
+            text-align center
+            -webkit-backdrop-filter blur(16px) saturate(145%)
+            backdrop-filter blur(16px) saturate(145%)
+            transition color 180ms ease, background-color 180ms ease, transform 180ms ease
+
+            &:hover
+                color #fff
+                background rgba(255,255,255,0.13)
+                transform translateY(-1px)
+
+        > .btns
+            width 100%
+            display flex
+            flex-wrap wrap
+            justify-content flex-end
+            gap 10px
+
+            .btn-settings
+                margin-right 0
+
+    @media (max-width: 1120px)
+        .settings-container
+            width calc(100% - 42px)
+
+            section
+                padding 20px
+
+                .title
+                    width 145px
+                    margin-right 20px
+
+                .content
+                    width calc(100% - 165px)
+
+                    span p
+                        min-width 138px
+
+    @media (max-width: 820px)
+        .settings-container
+            width calc(100% - 28px)
+
+            section
+                display block
+
+                .title
+                    width 100%
+                    margin 0 0 16px
+                    padding 0 0 12px
+                    border-right 0
+                    border-bottom 1px solid rgba(255,255,255,0.10)
+
+                .content
+                    width 100%
+
+                    span
+                        align-items flex-start
+
+                    span p
+                        width 100%
+                        max-width none
 
 .settings-container
     section

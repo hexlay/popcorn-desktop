@@ -430,6 +430,7 @@
 
         onAttach: function () {
             $('#header').removeClass('header-shadow').hide();
+            $('body').addClass('player-active');
             // Test to make sure we have title
             win.info('Watching:', this.model.get('title'));
             $('.filter-bar').show();
@@ -1273,6 +1274,7 @@
             if (this.inFullscreen && !win.isFullscreen) {
                 $('.btn-os.fullscreen').removeClass('active');
             }
+            $('body').removeClass('player-active');
             $('.button:not(#cancel-button), #watch-now, .show-details .sdo-watch, .sdow-watchnow, .playerchoice, .file-item, .file-item a, .result-item, .result-item > *:not(.item-icon), .trash-torrent, .collection-paste, .collection-import, .seedbox .item-play, .seedbox .exit-when-done, #torrent-list .item-row, #torrent-show-list .item-row, #torrent-list .item-play, #torrent-show-list .item-play').removeClass('disabled').removeProp('disabled');
             this.unbindKeyboardShortcuts();
             Mousetrap.bind('ctrl+v', function (e) {
