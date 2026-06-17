@@ -303,13 +303,24 @@
         padding 9px 70px 9px 12px
         box-sizing border-box
         overflow hidden
-        background linear-gradient(180deg, rgba(32,34,40,0.94), rgba(12,14,19,0.96))
+        background rgba(10,12,16,0.84)
         border-width 1px 0 0
-        border-top 1px solid rgba(255,255,255,0.12)
+        border-top 1px solid rgba(255,255,255,0.16)
         isolation isolate
 
         &:before
-            display none
+            content ''
+            position absolute
+            top -18px
+            right -18px
+            bottom -18px
+            left -18px
+            z-index 0
+            background-image var(--poster-bg)
+            background-size 178px 260px
+            background-position center bottom
+            transform translateZ(0)
+            opacity 0.30
 
         &:after
             content ''
@@ -319,11 +330,12 @@
             bottom 0
             left 0
             z-index 0
-            background linear-gradient(180deg, rgba(255,255,255,0.05), rgba(6,7,10,0))
+            background linear-gradient(180deg, rgba(20,22,29,0.82), rgba(6,8,12,0.94))
 
         > *
             position relative
             z-index 1
+            text-shadow 0 1px 3px rgba(0,0,0,0.72)
 
     .home-card-actions
         position absolute
