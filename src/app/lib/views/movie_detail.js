@@ -151,6 +151,8 @@
             const torrents = this.model.get('torrents') || {};
             return torrents[this.model.get('quality')] || null;
           }.bind(this),
+          mediaTitle: this.model.get('title'),
+          mediaYear: this.model.get('year'),
           promise: Promise.all([collectionResults, providerResults]).then(function(results) {
             return torrentCollectionSearch.mergeSources(results[0] || [], results[1] || []);
           }),

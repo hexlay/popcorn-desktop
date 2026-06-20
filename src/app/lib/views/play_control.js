@@ -1,6 +1,8 @@
 (function(App) {
   'use strict';
 
+  const downloadedEpisodeFiles = require('./lib/downloaded_episode_files');
+
   var _this;
   App.View.PlayControl = Marionette.View.extend({
     template: '#play-control-tpl',
@@ -44,6 +46,9 @@
       this.model.set('showTorrentsMore', hasMovieSources || hasCollectionSources);
       this.model.set('torrentSourceState', hasCollectionSources ? 'loading' : 'empty');
       this.model.set('showTorrents', false);
+      if (navigator.onLine === false) {
+        this.applyCollectionSources([]);
+      }
       this.loadPreferredCollectionSources();
 
       this.subLangHandler = this.switchSubtitle.bind(this);
@@ -55,10 +60,13 @@
         App.vent.trigger('change:quality', this.model.get('quality'));
       }.bind(this);
       this.subtitleChangeHandler = this.loadSubDropdown.bind(this);
+      this.connectivityHandler = this.setSourceControls.bind(this);
       App.vent.on('sub:lang', this.subLangHandler);
       App.vent.on('torrent:list:complete', this.torrentListCompleteHandler);
       App.vent.on('update:subtitles', this.updateSubtitlesHandler);
       this.model.on('change:quality', this.qualityChangeHandler);
+      window.addEventListener('online', this.connectivityHandler);
+      window.addEventListener('offline', this.connectivityHandler);
     },
 
     onAttach: function() {
@@ -102,6 +110,8 @@
       const hasTorrents = this.hasPlayableTorrents(this.model.get('torrents'));
       const hasSources = (this.model.get('allTorrentSources') || []).length > 0;
       const sourceState = this.model.get('torrentSourceState');
+      this.$('.favourites-toggle, .watched-toggle, .subtitle-control').show();
+      this.$('#watch-trailer').toggle(Boolean(this.model.get('trailer')));
       this.$('#watch-now, #download-torrent, #player-chooser, #quality-selector').toggle(hasTorrents && sourceState === 'ready');
       this.$('#show-all-torrents').toggle(hasSources && this.model.get('showTorrentsMore'));
       this.$('#player-chooser .button, #player-chooser .startStreaming, #player-chooser .playerchoice').toggle(hasTorrents && sourceState === 'ready');
@@ -110,6 +120,14 @@
       if (!hasTorrents) {
         this.model.set('showTorrents', false);
         this.ui.showTorrents.removeClass('active fas fa-spinner fa-spin').html(i18n.__('more...'));
+      }
+      const selectedTorrent = this.model.get('torrents') && this.model.get('torrents')[this.model.get('quality')];
+      const offlineOnly = navigator.onLine === false && selectedTorrent && selectedTorrent.offlineFilePath;
+      this.$el.toggleClass('offline-only', Boolean(offlineOnly));
+      if (offlineOnly) {
+        this.$('.favourites-toggle, .watched-toggle, .subtitle-control, #watch-trailer, #download-torrent, #quality-selector, .torrent-source-status, #show-all-torrents').hide();
+        this.$('#player-chooser').show();
+        this.$('#watch-now').text(i18n.__('Watch Offline'));
       }
     },
 
@@ -168,17 +186,28 @@
     },
 
     applyCollectionSources: function(collectionTorrents) {
-      return this.applySources(collectionTorrents, this.flattenLegacySources());
+      var fallbackTorrents = this.flattenLegacySources();
+      var sources = (collectionTorrents || []).concat(fallbackTorrents);
+      return downloadedEpisodeFiles.annotateSources(
+        [Settings.tmpLocation, Settings.downloadsLocation],
+        sources,
+        this.model.get('title'),
+        this.model.get('year')
+      ).then(function() {
+        return this.applySources(collectionTorrents, fallbackTorrents);
+      }.bind(this));
     },
 
     loadPreferredCollectionSources: function() {
       if (!Settings.includeTorrentCollectionInMovieSources || !torrentCollectionSearch.hasEnabledEngines(Settings)) {
         Promise.resolve().then(function() {
           if (!this.isDestroyed()) {
-            if (!this.applySources([], this.flattenLegacySources())) {
-              this.model.set('torrentSourceState', 'empty');
-            }
-            this.setSourceControls();
+            return this.applyCollectionSources([]).then(function(applied) {
+              if (!applied) {
+                this.model.set('torrentSourceState', 'empty');
+              }
+              this.setSourceControls();
+            }.bind(this));
           }
         }.bind(this));
         return;
@@ -195,30 +224,37 @@
       collectionPromise.then(function(collectionTorrents) {
         this.model.set('torrentCollectionResults', collectionTorrents, {silent: true});
         if (!collectionTorrents.length || this.isDestroyed()) {
-          if (!this.isDestroyed() && !this.applySources([], this.flattenLegacySources())) {
-            this.selectFallbackSource();
-            this.model.set('torrentSourceState', 'empty');
-            this.loadQualitySelector();
-            this.setSourceControls();
+          if (!this.isDestroyed()) {
+            return this.applyCollectionSources([]).then(function(applied) {
+              if (!applied) {
+                this.selectFallbackSource();
+                this.model.set('torrentSourceState', 'empty');
+                this.loadQualitySelector();
+                this.setSourceControls();
+              }
+            }.bind(this));
           }
           return;
         }
-        this.applyCollectionSources(collectionTorrents);
+        return this.applyCollectionSources(collectionTorrents);
       }.bind(this)).catch(function(error) {
         win.error('Torrent collection search:', error);
         if (!this.isDestroyed()) {
-          if (!this.applySources([], this.flattenLegacySources())) {
-            this.selectFallbackSource();
-            this.model.set('torrentSourceState', 'empty');
-            this.loadQualitySelector();
-            this.setSourceControls();
-          }
+          return this.applyCollectionSources([]).then(function(applied) {
+            if (!applied) {
+              this.selectFallbackSource();
+              this.model.set('torrentSourceState', 'empty');
+              this.loadQualitySelector();
+              this.setSourceControls();
+            }
+          }.bind(this));
         }
       }.bind(this));
     },
 
     setQuality: function(torrent, key) {
       _this.model.set('quality', key);
+      _this.setSourceControls();
     },
 
     retrySources: function() {
@@ -383,6 +419,20 @@
         return;
       }
 
+      if (defaultTorrent.offlineFilePath) {
+        return App.vent.trigger('offline:play', {
+          path: defaultTorrent.offlineFilePath,
+          name: path.basename(defaultTorrent.offlineFilePath),
+          size: fs.statSync(defaultTorrent.offlineFilePath).size,
+          offlineOnly: true,
+          title: this.model.get('title'),
+          year: this.model.get('year'),
+          imdb_id: this.model.get('imdb_id'),
+          poster: this.model.get('cover'),
+          backdrop: this.model.get('backdrop')
+        });
+      }
+
       var filters = {
         quality: quality
       };
@@ -398,10 +448,13 @@
       var torrentStart = new Backbone.Model({
         imdb_id: this.model.get('imdb_id'),
         torrent: torrent,
+        offlinePath: defaultTorrent.offlinePath,
+        offlineFilePath: defaultTorrent.offlineFilePath,
         backdrop: this.model.get('backdrop'),
         subtitle: this.model.get('subtitle'),
         defaultSubtitle: this.subtitle_selected,
         title: this.model.get('title'),
+        year: this.model.get('year'),
         quality: quality,
         lang: null,
         type: 'movie',
@@ -492,6 +545,8 @@
       App.vent.off('update:subtitles', this.updateSubtitlesHandler);
       this.model.off('change:quality', this.qualityChangeHandler);
       this.model.off('change:subtitle', this.subtitleChangeHandler);
+      window.removeEventListener('online', this.connectivityHandler);
+      window.removeEventListener('offline', this.connectivityHandler);
       Object.values(this.views).forEach(v => v.destroy());
     }
   });

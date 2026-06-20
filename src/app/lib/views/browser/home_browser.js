@@ -1,6 +1,8 @@
 (function (App) {
     'use strict';
 
+    const downloadedEpisodeFiles = require('./lib/downloaded_episode_files');
+
     var HomeBrowser = Marionette.View.extend({
         template: '#home-tpl',
         className: 'main-browser home-browser',
@@ -27,6 +29,8 @@
             this.showProvider = App.Config.getProviderForType('tvshow')[0];
             this.itemsById = {};
             this.homeRequestId = 0;
+            this.offlineFilesHandler = this.refreshOfflineAvailability.bind(this);
+            App.vent.on('torrent:file:available', this.offlineFilesHandler);
         },
 
         onAttach: function () {
@@ -41,6 +45,23 @@
             this.renderFilterBar();
             this.bindHomeScroll();
             this.updateHeaderShadow();
+            this.refreshOfflineAvailability();
+        },
+
+        refreshOfflineAvailability: function(refresh) {
+            var roots = [Settings.tmpLocation, Settings.downloadsLocation];
+            return downloadedEpisodeFiles.getIndex(roots, refresh).then(function(index) {
+                if (this.isDestroyed()) {
+                    return;
+                }
+                Object.keys(this.itemsById).forEach(function(id) {
+                    var item = this.itemsById[id];
+                    var available = item.type === 'show' ?
+                        downloadedEpisodeFiles.showAvailable(index, item.title) :
+                        downloadedEpisodeFiles.movieAvailable(index, item.title, item.year);
+                    this.$('.home-card[data-imdb-id="' + id + '"]').toggleClass('offline-available', available);
+                }, this);
+            }.bind(this));
         },
 
         bindHomeScroll: function () {
@@ -382,6 +403,7 @@
 
         onBeforeDestroy: function () {
             this.homeRequestId++;
+            App.vent.off('torrent:file:available', this.offlineFilesHandler);
             this.itemsById = {};
             this.$('.home-page').off('scroll.homeHeader');
             $('#header').removeClass('header-shadow');

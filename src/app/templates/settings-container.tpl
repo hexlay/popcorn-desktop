@@ -455,6 +455,10 @@
                 <input class="settings-checkbox" name="deleteTmpOnClose" id="deleteTmpOnClose" type="checkbox" <%=(Settings.deleteTmpOnClose? "checked='checked'":"")%>>
                 <label class="settings-label" for="deleteTmpOnClose"><%= i18n.__("Clear Cache Folder after closing the app?") %></label>
             </span>
+            <span>
+                <input class="settings-checkbox" name="keepWatchedTorrentFiles" id="keepWatchedTorrentFiles" type="checkbox" <%=(Settings.keepWatchedTorrentFiles? "checked='checked'":"")%>>
+                <label class="settings-label" for="keepWatchedTorrentFiles"><%= i18n.__("Keep files downloaded while watching") %></label>
+            </span>
         </div>
     </section>
 

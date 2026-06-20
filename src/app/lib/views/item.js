@@ -1,6 +1,8 @@
 (function (App) {
     'use strict';
 
+    const downloadedEpisodeFiles = require('./lib/downloaded_episode_files');
+
     var prevX = 0;
     var prevY = 0;
     var selectedItem;
@@ -43,6 +45,23 @@
             this.loadImage();
             this.setCoverStates();
             this.setTooltips();
+            this.offlineFilesHandler = this.refreshOfflineAvailability.bind(this);
+            App.vent.on('torrent:file:available', this.offlineFilesHandler);
+            this.refreshOfflineAvailability();
+        },
+
+        refreshOfflineAvailability: function(refresh) {
+            var roots = [Settings.tmpLocation, Settings.downloadsLocation];
+            return downloadedEpisodeFiles.getIndex(roots, refresh).then(function(index) {
+                if (this._isDestroyed) {
+                    return;
+                }
+                var type = this.model.get('type') || '';
+                var available = type.match('show') ?
+                    downloadedEpisodeFiles.showAvailable(index, this.model.get('title')) :
+                    downloadedEpisodeFiles.movieAvailable(index, this.model.get('title'), this.model.get('year'));
+                this.$el.toggleClass('offline-available', available);
+            }.bind(this));
         },
 
         localizeTexts: function () {
@@ -249,6 +268,7 @@
 
         onBeforeDestroy: function () {
             this.$('.tooltipped').tooltip('destroy');
+            App.vent.off('torrent:file:available', this.offlineFilesHandler);
             if (selectedItem === this.el) {
                 selectedItem = null;
             }

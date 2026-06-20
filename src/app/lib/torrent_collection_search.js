@@ -128,6 +128,9 @@ function preferredQuality(torrents) {
 
 function sortSources(torrents) {
     return (torrents || []).slice().sort(function(a, b) {
+        if (Boolean(a.offlineAvailable) !== Boolean(b.offlineAvailable)) {
+            return a.offlineAvailable ? -1 : 1;
+        }
         if (Boolean(a.isTorrentCollection) !== Boolean(b.isTorrentCollection)) {
             return a.isTorrentCollection ? -1 : 1;
         }

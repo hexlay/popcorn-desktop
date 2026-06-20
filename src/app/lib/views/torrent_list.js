@@ -1,6 +1,8 @@
 (function (App){
     'use strict';
 
+    const downloadedEpisodeFiles = require('./lib/downloaded_episode_files');
+
     App.View.TorrentList = Marionette.View.extend({
         template: '#torrent-list-tpl',
         ui: {
@@ -72,6 +74,19 @@
         },
 
         updateTorrents: function (torrents) {
+            return downloadedEpisodeFiles.annotateSources(
+                [Settings.tmpLocation, Settings.downloadsLocation],
+                torrents,
+                this.model.get('mediaTitle'),
+                this.model.get('mediaYear')
+            ).then(function() {
+                if (!this.isDestroyed()) {
+                    this.renderTorrents(torrents);
+                }
+            }.bind(this));
+        },
+
+        renderTorrents: function (torrents) {
             const provider = this.model.get('provider');
             let loadIcons = [];
             for(let torrent of torrents) {
@@ -127,6 +142,16 @@
             const backdrop = ($('.backdrop')[0] && $('.backdrop')[0].style ? $('.backdrop')[0].style.backgroundImage : ($('.shb-img')[0] && $('.shb-img')[0].style ? $('.shb-img')[0].style.backgroundImage : null));
             Settings.droppedMagnet = torrent.url || null;
             Settings.droppedMagnetName = torrent.title || null;
+            if (!download && torrent.offlineFilePath) {
+                return App.vent.trigger('offline:play', {
+                    path: torrent.offlineFilePath,
+                    name: path.basename(torrent.offlineFilePath),
+                    size: fs.statSync(torrent.offlineFilePath).size,
+                    offlineOnly: true,
+                    title: this.model.get('mediaTitle'),
+                    year: this.model.get('mediaYear')
+                });
+            }
             if ($('.meta-container .title').text()) {
                 torrent.title = $('.meta-container .title').text();
             } else if ($('.sh-metadata .shm-title').text()) {
@@ -134,6 +159,8 @@
             }
             var torrentStart = new Backbone.Model({
                 torrent: torrent.url,
+                offlinePath: torrent.offlinePath,
+                offlineFilePath: torrent.offlineFilePath,
                 title: this.model.get('select') && !download ? null : torrent.title,
                 type: cover ? 'movie' : null,
                 cover: cover,

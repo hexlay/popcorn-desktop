@@ -335,6 +335,7 @@
                     i18n.setLocale(value);
                     break;
                 case 'deleteTmpOnClose':
+                case 'keepWatchedTorrentFiles':
                 case 'separateDownloadsDir':
                 case 'continueSeedingOnStart':
                 case 'protocolEncryption':
@@ -627,6 +628,7 @@
                         !value ? scrollPosOffset++ : scrollPosOffset--;
                     }
                     /* falls through */
+                case 'keepWatchedTorrentFiles':
                 case 'alwaysShowBookmarks':
                 case 'watchedCovers':
                 case 'defaultFilters':

@@ -391,6 +391,15 @@
                     &.true
                         color $ShowWatchedIcon_true
 
+                .episode-downloaded
+                    display none
+                    float right
+                    padding 9px 10px 9px 0
+                    color #46c37b
+
+                    &.true
+                        display block
+
             li:nth-child(odd)
                 background-color rgba($ShowOddHighlight, $ShowOddHighlightOp)
                 &:not(.active).transpOff
@@ -1264,6 +1273,17 @@
                 text-align center
                 align-self center
                 color rgba(255,255,255,0.28)
+
+            .episode-downloaded
+                display none
+                flex 0 0 28px
+                padding 0
+                text-align center
+                align-self center
+                color #46c37b
+
+                &.true
+                    display block
 
         .sd-overview
             grid-area overview

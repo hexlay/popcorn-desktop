@@ -292,13 +292,17 @@ gulp.task('jshint', () => {
     .pipe(glp.jshint.reporter('fail', { ignoreWarning: true, ignoreInfo: true }));
 });
 gulp.task('unit', () => {
-  return new Promise((resolve, reject) => {
-    const test = spawn(process.execPath, ['test/torrent_collection_search.test.js'], {
-      stdio: 'inherit'
-    });
-    test.on('close', (exitCode) => exitCode ? reject(new Error('Unit tests failed')) : resolve());
-    test.on('error', reject);
-  });
+  const tests = fs.readdirSync('test').filter((file) => file.endsWith('.test.js'));
+
+  return tests.reduce((run, file) => {
+    return run.then(() => new Promise((resolve, reject) => {
+      const test = spawn(process.execPath, [path.join('test', file)], {
+        stdio: 'inherit'
+      });
+      test.on('close', (exitCode) => exitCode ? reject(new Error('Unit tests failed')) : resolve());
+      test.on('error', reject);
+    }));
+  }, Promise.resolve());
 });
 // zip compress all
 gulp.task('compresszip', () => {

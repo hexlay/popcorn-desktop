@@ -72,6 +72,7 @@
 	"0 = Random": "0 = Random",
 	"Cache Directory": "Cache Directory",
 	"Clear Cache Folder after closing the app?": "Clear Cache Folder after closing the app?",
+	"Keep files downloaded while watching": "Keep files downloaded while watching",
 	"Database": "Database",
 	"Database Directory": "Database Directory",
 	"Import Database": "Import Database",
@@ -94,6 +95,7 @@
 	"Health false": "Health false",
 	"Add to bookmarks": "Add to bookmarks",
 	"Watch Trailer": "Watch Trailer",
+	"Watch Offline": "Watch Offline",
 	"Watch Now": "Watch Now",
 	"Ratio:": "Ratio:",
 	"Seeds:": "Seeds:",
@@ -109,6 +111,9 @@
 	"Streaming to": "Streaming to",
 	"connecting": "Connecting",
 	"Download": "Download",
+	"Available offline": "Available offline",
+	"Offline": "Offline",
+	"Downloaded file available": "Downloaded file available",
 	"Upload": "Upload",
 	"Active Peers": "Active Peers",
 	"Cancel": "Cancel",
@@ -557,5 +562,9 @@
 	"Best Trending Movies": "Best Trending Movies",
 	"New Releases": "New Releases",
 	"Top Rated Movies": "Top Rated Movies",
-	"Trending Shows": "Trending Shows"
+	"Trending Shows": "Trending Shows",
+	"The remote API failed to respond, please try again later.": "The remote API failed to respond, please try again later.",
+	"Home could not be loaded": "Home could not be loaded",
+	"Home And Garden": "Home And Garden",
+	"The remote shows API failed to respond, please check %s and try again later": "The remote shows API failed to respond, please check %s and try again later"
 }

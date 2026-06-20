@@ -265,6 +265,27 @@
                     opacity 1
                     transform scale(1)
                     animation cardPlayPulse 1500ms ease-in-out infinite
+
+    .offline-chip
+        display none
+        position absolute
+        right 10px
+        bottom 10px
+        z-index 5
+        align-items center
+        height 26px
+        padding 0 9px
+        border-radius 999px
+        color #07140d
+        background #46c37b
+        font-size 11px
+        box-shadow 0 8px 20px rgba(0,0,0,0.42)
+
+        i
+            margin-right 5px
+
+    &.offline-available .offline-chip
+        display inline-flex
     &:hover
         transform translateY(-5px)
         border-color rgba(244,185,66,0.55)

@@ -26,6 +26,7 @@
                         <div class="home-card-shade"></div>
                         <span class="rank-pill">#1 <%= i18n.__('Trending') %></span>
                         <% if (hero.ratingText) { %><span class="rating-pill"><i class="fa fa-star"></i><%= hero.ratingText %></span><% } %>
+                        <span class="offline-chip"><i class="fa fa-download"></i><%=i18n.__('Offline') %></span>
                         <div class="spotlight-copy">
                             <h3><%= hero.title %></h3>
                             <% if (hero.synopsis) { %><p><%= hero.synopsis %></p><% } %>
@@ -37,6 +38,7 @@
                                 <div class="home-card-bg" style="background-image:url('<%= item.backdrop || item.poster %>')"></div>
                                 <div class="home-card-shade"></div>
                                 <% if (item.ratingText) { %><span class="rating-pill"><i class="fa fa-star"></i><%= item.ratingText %></span><% } %>
+                                <span class="offline-chip"><i class="fa fa-download"></i><%=i18n.__('Offline') %></span>
                                 <h3><span><%= item.title %></span></h3>
                             </article>
                         <% }); %>
@@ -60,6 +62,7 @@
                                 <div class="home-card-shade"></div>
                                 <% if (item.ratingText) { %><span class="rating-pill"><i class="fa fa-star"></i><%= item.ratingText %></span><% } %>
                                 <span class="seen-chip"><i class="fa fa-eye"></i><%= i18n.__("Seen") %></span>
+                                <span class="offline-chip" title="<%=i18n.__('Available offline') %>"><i class="fa fa-download"></i><%=i18n.__('Offline') %></span>
                             </div>
                             <div class="home-card-meta">
                                 <div class="home-card-actions">

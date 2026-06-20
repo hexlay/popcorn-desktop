@@ -105,6 +105,10 @@ async function run() {
     assert.strictEqual(torrentCollectionSearch.torrentsByQuality([
         {provider: 'unknown-quality', quality: '-', url: hexMagnet, seed: 20, peer: 5, isTorrentCollection: true},
     ])['1080p'].provider, 'unknown-quality');
+    assert.strictEqual(torrentCollectionSearch.torrentsByQuality([
+        {provider: 'online', quality: '1080p', url: hexMagnet, peer: 100, isTorrentCollection: true},
+        {provider: 'offline', quality: '1080p', url: base32Magnet, peer: 1, offlineAvailable: true},
+    ])['1080p'].provider, 'offline');
     const playableSources = torrentCollectionSearch.torrentsByQuality(torrentCollectionSearch.mergeSources([
         {provider: 'collection-auto', quality: '-', url: hexMagnet, seed: 20, peer: 5, isTorrentCollection: true},
     ], [

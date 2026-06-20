@@ -710,9 +710,8 @@
             border 0
 
         &.settings-checkbox+label.settings-label
-            height 15px
-            display inline-block
-            line-height 15px
+            display inline-flex
+            align-items flex-start
             font-size 13px
             font-family $Font, $AlternateFont
             vertical-align middle
@@ -720,13 +719,28 @@
             color $SettingsText1
             min-width 0
             max-width calc(100% - 32px)
-            height auto
             line-height 1.35
             white-space normal
+            position relative
+            transition color .15s ease-in-out
+
+            &:hover:before
+                border-color $ButtonBgActive
+
+        &.settings-checkbox:focus+label.settings-label
+            &:before
+                border-color $ButtonBgActive
+                box-shadow 0 0 0 3px rgba($ButtonBgActive, 0.2)
 
         &.settings-checkbox:checked+label.settings-label
+            &:before
+                border-color $ButtonBgActive
+                background-color $ButtonBgActive
+                box-shadow 0 2px 6px rgba(0,0,0,0.22)
+
             &:after
                 opacity 1
+                transform rotate(-45deg) scale(1)
 
     input[type="text"]
         &#downloadLimit
@@ -737,26 +751,31 @@
 
     .settings-label
         &:before
-            content '\f0c8'
-            font-family "Font Awesome 6 Free"
-            font-weight 900
-            font-size 18px
-            padding-right 8px
-            float left
+            content ''
+            box-sizing border-box
+            flex 0 0 18px
+            width 18px
+            height 18px
+            margin-right 10px
             position relative
-            color $CheckboxBg
+            border 2px solid $CheckboxBg
+            border-radius 5px
+            background-color rgba(0,0,0,0.08)
+            transition background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out
+
         &:after
-            content '\f00c'
-            font-family "Font Awesome 6 Free"
-            font-weight 900
-            font-size 12px
-            margin-right -14px
-            color $CheckboxCheck
-            position relative
-            float left
-            left -21px
+            content ''
+            position absolute
+            width 9px
+            height 5px
+            margin-top 4px
+            margin-left 4px
+            border 2px solid #fff
+            border-top 0
+            border-right 0
             opacity 0
-            transition opacity .1s ease-in-out
+            transform rotate(-45deg) scale(.7)
+            transition opacity .15s ease-in-out, transform .15s ease-in-out
 
     .settings-container-check-settings
         width 14px

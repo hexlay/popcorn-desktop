@@ -90,6 +90,7 @@
                                 <% } %>
                             </a>
 
+                            <i class="fa fa-download episode-downloaded" data-toggle="tooltip" data-placement="left" title="<%=i18n.__('Downloaded file available') %>"></i>
                             <i id="watched-<%=episodeData.season%>-<%=episodeData.episode%>" class="fa fa-eye watched"></i>
                         </li>
                         <% }); %>

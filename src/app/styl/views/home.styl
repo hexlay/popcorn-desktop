@@ -174,6 +174,30 @@
         font-size 18px
         line-height 1.15
 
+.spotlight-hero,
+.spotlight-tile
+    .offline-chip
+        display none
+        position absolute
+        top 48px
+        right 14px
+        z-index 4
+        align-items center
+        height 26px
+        padding 0 9px
+        border-radius 999px
+        color #07140d
+        background #46c37b
+        font-family $MainFontBold
+        font-size 11px
+        box-shadow 0 8px 20px rgba(0,0,0,0.42)
+
+        i
+            margin-right 5px
+
+    &.offline-available .offline-chip
+        display inline-flex
+
 .rank-pill,
 .rating-pill
     position absolute
@@ -225,6 +249,28 @@
     box-shadow 0 16px 36px rgba(0,0,0,0.30)
     padding 0
     contain layout paint style
+
+    .offline-chip
+        display none
+        position absolute
+        right 10px
+        bottom 10px
+        z-index 5
+        align-items center
+        height 26px
+        padding 0 9px
+        border-radius 999px
+        color #07140d
+        background #46c37b
+        font-family $MainFontBold
+        font-size 11px
+        box-shadow 0 8px 20px rgba(0,0,0,0.42)
+
+        i
+            margin-right 5px
+
+    &.offline-available .offline-chip
+        display inline-flex
 
     &.watched
         opacity 0.74

@@ -202,6 +202,7 @@ Settings.proxyServer = '';
 // Cache
 Settings.tmpLocation = path.join(os.tmpdir(), Settings.projectName);
 Settings.deleteTmpOnClose = true;
+Settings.keepWatchedTorrentFiles = false;
 Settings.delSeedboxCache = 'ask';
 Settings.separateDownloadsDir = false;
 Settings.downloadsLocation = path.join(os.tmpdir(), Settings.projectName);

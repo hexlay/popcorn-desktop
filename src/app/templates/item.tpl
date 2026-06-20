@@ -11,6 +11,7 @@
         <span class="card-rating"><i class="fa fa-star"></i><%= displayRating.toFixed(1) %></span>
     <% } %>
     <span class="seen-chip"><i class="fa fa-eye"></i><%= i18n.__("Seen") %></span>
+    <span class="offline-chip" title="<%=i18n.__('Available offline') %>"><i class="fa fa-download"></i><%=i18n.__('Offline') %></span>
 </div>
 
 <div class="item-meta">

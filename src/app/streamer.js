@@ -1,5 +1,7 @@
 const Server = require("webtorrent/lib/server");
 const FileServer = require("./fileserver");
+const downloadedEpisodeFiles = require('./lib/downloaded_episode_files');
+const getTorrentLocation = require('./lib/torrent_location');
 (function (App) {
     'use strict';
     var subtitle_retry;
@@ -114,7 +116,7 @@ const FileServer = require("./fileserver");
                 this.stop();
             }
             this.setModels(model, state);
-            const location = this.downloadOnly && App.settings.separateDownloadsDir ? App.settings.downloadsLocation : App.settings.tmpLocation;
+            const location = this.torrentModel.get('offlinePath') || getTorrentLocation(App.settings, this.downloadOnly, this.preload);
             if (this.isLocalFile) {
                 if (this.torrentModel.get('isReady')) {
                     this.handleStreamInfo();
@@ -550,6 +552,13 @@ const FileServer = require("./fileserver");
                 this.stopped = true;
                 throw 'interrupt';
             }
+            downloadedEpisodeFiles.writeManifest(torrent, this.torrentModel);
+            var notifyFileAvailable = function() {
+                downloadedEpisodeFiles.invalidate();
+                App.vent.trigger('torrent:file:available');
+            };
+            torrent.once('download', notifyFileAvailable);
+            torrent.once('done', notifyFileAvailable);
             return;
         },
 

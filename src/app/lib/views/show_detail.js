@@ -1,6 +1,8 @@
 (function (App) {
     'use strict';
 
+    const downloadedEpisodeFiles = require('./lib/downloaded_episode_files');
+
     let healthButton;
 
     var _this, bookmarked;
@@ -151,9 +153,25 @@
 
             this.updateTorrentsHandler = this.onUpdateTorrentsList.bind(this);
             this.torrentListCompleteHandler = this.onTorrentListComplete.bind(this);
+            this.downloadedFilesHandler = this.refreshDownloadedEpisodes.bind(this);
             App.vent.on('update:torrents', this.updateTorrentsHandler);
             App.vent.on('torrent:list:complete', this.torrentListCompleteHandler);
+            App.vent.on('torrent:file:available', this.downloadedFilesHandler);
             this.initTorrents(this.model.get('episodes'));
+        },
+
+        refreshDownloadedEpisodes: function(refresh) {
+            var roots = [Settings.tmpLocation, Settings.downloadsLocation];
+            return downloadedEpisodeFiles.scan(roots, refresh).then(function(episodes) {
+                if (this._isDestroyed) {
+                    return;
+                }
+                this.$('.episode-downloaded').removeClass('true');
+                episodes.forEach(function(key) {
+                    var parts = key.split(':');
+                    this.$('.tab-episode[data-season="' + parts[0] + '"][data-episode="' + parts[1] + '"] .episode-downloaded').addClass('true');
+                }, this);
+            }.bind(this));
         },
 
         hasEpisodeCollectionSources: function() {
@@ -326,6 +344,8 @@
                 const torrentShowList = new App.View.TorrentList({
                     model: new Backbone.Model({
                         provider: showProvider,
+                        mediaTitle: this.model.get('title'),
+                        mediaYear: this.model.get('year'),
                         promise: settleWithin(this.legacyShowSourcesPromise(showProvider), 8000, 'Show source search'),
                         select: true,
                     }),
@@ -338,6 +358,8 @@
             const torrentList = new App.View.TorrentList({
                 model: new Backbone.Model({
                     provider: showProvider,
+                    mediaTitle: this.model.get('title'),
+                    mediaYear: this.model.get('year'),
                     selectedTorrent: function() {
                         const selectedEpisode = this.model.get('selectedEpisode');
                         const torrents = selectedEpisode && selectedEpisode.torrents || {};
@@ -376,6 +398,16 @@
             this.$('.magnet-icon, .source-icon, .health-icon').toggle(hasTorrents);
         },
 
+        setOfflineControls: function(torrent) {
+            var offlineOnly = navigator.onLine === false && torrent && torrent.offlineFilePath;
+            this.$el.toggleClass('offline-only', Boolean(offlineOnly));
+            this.$('.sha-bookmark, .sha-watched, #subs-dropdown').toggle(!offlineOnly);
+            if (offlineOnly) {
+                this.$('#quality-selector, #download-torrent, #show-all-torrents, .episode-source-status, .magnet-icon, .source-icon, .health-icon').hide();
+                this.$('.sdow-watchnow').show();
+            }
+        },
+
         retryEpisodeSources: function() {
             var selectedEpisode = this.model.get('selectedEpisode');
             if (this.model.get('episodeSourceState') !== 'empty' || !selectedEpisode) {
@@ -401,6 +433,8 @@
 
             this.getRegion('qualitySelector').empty();
             $('.star-container-tv,.shmi-year,.shmi-imdb,.shmi-tmdb-link,.magnet-icon,.source-icon').tooltip();
+            this.$('.episode-downloaded').tooltip();
+            this.refreshDownloadedEpisodes();
             var noimg = 'images/posterholder.png';
             var nobg = 'images/bg-header.jpg';
             var images = this.model.get('images');
@@ -754,11 +788,29 @@
             var that = this;
             var title = that.model.get('title');
             var file_name = $(e.currentTarget).attr('data-file');
+            var offlinePath = $(e.currentTarget).attr('data-offline-path');
+            var offlineFilePath = $(e.currentTarget).attr('data-offline-file-path');
             var episode = $(e.currentTarget).attr('data-episode');
             var season = $(e.currentTarget).attr('data-season');
             var name = $(e.currentTarget).attr('data-title');
             var episode_id = $(e.currentTarget).attr('data-episodeid');
             var imdbid = that.model.get('imdb_id').indexOf('mal') === -1 ? that.model.get('imdb_id') : null; //fix for anime
+
+            if (offlineFilePath) {
+                return App.vent.trigger('offline:play', {
+                    path: offlineFilePath,
+                    name: path.basename(offlineFilePath),
+                    size: fs.statSync(offlineFilePath).size,
+                    offlineOnly: true,
+                    title: that.model.get('title'),
+                    year: that.model.get('year'),
+                    imdb_id: imdbid,
+                    season: season,
+                    episode: episode,
+                    poster: that.model.get('poster'),
+                    backdrop: that.model.get('backdrop')
+                });
+            }
 
             title += ' - ' + i18n.__('Season %s', season) + ', ' + i18n.__('Episode %s', episode) + ' - ' + name;
             var epInfo = {
@@ -817,6 +869,8 @@
             }
             var torrentStart = new Backbone.Model({
                 torrent: $(e.currentTarget).attr('data-torrent'),
+                offlinePath: offlinePath,
+                offlineFilePath: offlineFilePath,
                 poster: that.model.get('poster'),
                 backdrop: that.model.get('backdrop') || images.banner,
                 type: 'episode',
@@ -931,14 +985,24 @@
                 _this.getEpisodeCollectionSources(selectedEpisode),
                 settleWithin(_this.legacyEpisodeSourcesPromise(selectedEpisode), 8000, 'Show episode source search'),
             ]).then(function(results) {
-                if (!_this.model || _this.model.get('selectedEpisode') !== selectedEpisode) {
-                    return;
-                }
-                var preferred = _this.applyEpisodeSources(selectedEpisode, results[0] || [], results[1] || []);
-                if (_this.getRegion('qualitySelector').currentView) {
-                    _this.getRegion('qualitySelector').currentView.updateTorrents(preferred.torrents);
-                }
-                _this.setEpisodeSourceState(preferred.quality ? 'ready' : 'empty');
+                var sources = (results[0] || []).concat(results[1] || []);
+                return downloadedEpisodeFiles.annotateSources(
+                    [Settings.tmpLocation, Settings.downloadsLocation],
+                    sources,
+                    _this.model.get('title'),
+                    _this.model.get('year')
+                ).then(function() {
+                    if (!_this.model || _this.model.get('selectedEpisode') !== selectedEpisode) {
+                        return;
+                    }
+                    var preferred = _this.applyEpisodeSources(selectedEpisode, results[0] || [], results[1] || []);
+                    var preferredTorrent = preferred.quality ? preferred.torrents[preferred.quality] : null;
+                    if (_this.getRegion('qualitySelector').currentView) {
+                        _this.getRegion('qualitySelector').currentView.updateTorrents(preferred.torrents);
+                    }
+                    _this.setEpisodeSourceState(preferred.quality ? 'ready' : 'empty');
+                    _this.setOfflineControls(preferredTorrent);
+                });
             }).catch(function(error) {
                 win.error('Show episode sources:', error);
                 if (_this.model && _this.model.get('selectedEpisode') === selectedEpisode) {
@@ -969,8 +1033,8 @@
             startStreaming.attr('data-episode', selectedEpisode.episode);
             startStreaming.attr('data-season', selectedEpisode.season);
             startStreaming.attr('data-title', selectedEpisode.title);
-            startStreaming.removeAttr('data-torrent data-file data-source data-provider data-quality');
-            $('#download-torrent').removeAttr('data-torrent data-file').hide();
+            startStreaming.removeAttr('data-torrent data-file data-source data-provider data-quality data-offline-path data-offline-file-path');
+            $('#download-torrent').removeAttr('data-torrent data-file data-offline-path data-offline-file-path').hide();
 
             _this.ui.startStreaming.hide();
 
@@ -993,12 +1057,16 @@
             startStreaming.attr('data-source', torrent.source);
             startStreaming.attr('data-provider', torrent.provider);
             startStreaming.attr('data-quality', key);
+            startStreaming.attr('data-offline-path', torrent.offlinePath || '');
+            startStreaming.attr('data-offline-file-path', torrent.offlineFilePath || '');
             _this.model.set('quality', key);
             App.vent.trigger('torrent:selection:changed');
             startStreaming.show();
             downloadButton.show();
             downloadButton.attr('data-torrent', torrent.url);
             downloadButton.attr('data-file', torrent.file || '');
+            downloadButton.attr('data-offline-path', torrent.offlinePath || '');
+            downloadButton.attr('data-offline-file-path', torrent.offlineFilePath || '');
 
             _this.resetTorrentHealth();
             _this.toggleSourceLink();
@@ -1211,6 +1279,7 @@
             this.unbindKeyboardShortcuts();
             App.vent.off('update:torrents', this.updateTorrentsHandler);
             App.vent.off('torrent:list:complete', this.torrentListCompleteHandler);
+            App.vent.off('torrent:file:available', this.downloadedFilesHandler);
             App.vent.off('show:watched:' + this.model.id, this.watchedHandler);
             App.vent.off('show:unwatched:' + this.model.id, this.unwatchedHandler);
         }

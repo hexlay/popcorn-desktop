@@ -202,15 +202,19 @@ App.onStart = function (options) {
   initTemplates().then(initApp);
 };
 
-var deleteFolder = function (folderPath) {
+var deleteFolder = function (folderPath, preservedNames) {
   if (typeof folderPath !== 'string') {
     return;
   }
 
+  preservedNames = preservedNames || [];
   var files = [];
   if (fs.existsSync(folderPath)) {
     files = fs.readdirSync(folderPath);
     files.forEach(function (file) {
+      if (preservedNames.indexOf(file) !== -1) {
+        return;
+      }
       var curPath = path.join(folderPath, file);
       if (fs.lstatSync(curPath).isDirectory()) {
         deleteFolder(curPath);
@@ -218,7 +222,9 @@ var deleteFolder = function (folderPath) {
         fs.unlinkSync(curPath);
       }
     });
-    fs.rmdirSync(folderPath);
+    if (!preservedNames.length) {
+      fs.rmdirSync(folderPath);
+    }
   }
 };
 
@@ -338,11 +344,8 @@ function close() {
           if (err) {
             return onError(err);
           }
-          if (App.settings.deleteTmpOnClose) {
-            deleteFolder(App.settings.tmpLocation);
-          }
-          if (App.settings.separateDownloadsDir && !App.settings.continueSeedingOnStart) {
-            deleteFolder(App.settings.downloadsLocation + '/TorrentCache/');
+          if (App.settings.deleteTmpOnClose && !(App.settings.keepWatchedTorrentFiles && !App.settings.separateDownloadsDir)) {
+            deleteFolder(App.settings.tmpLocation, ['TorrentCache']);
           }
           deleteLogs();
           win.close(true);
@@ -596,12 +599,29 @@ var handleVideoFile = function (file) {
     // init our objects
     var playObj = {
       src: 'file://' + path.join(file.path),
-      type: 'video/mp4'
+      type: 'video/mp4',
+      title: file.title || file.name,
+      year: file.year,
+      imdb_id: file.imdb_id,
+      season: file.season,
+      episode: file.episode,
+      poster: file.poster,
+      backdrop: file.backdrop,
+      metadataCheckRequired: false,
+      videoFile: file.path
     };
     var sub_data = {
       filename: path.basename(file.path),
       path: file.path
     };
+
+    if (file.offlineOnly) {
+      var localSubtitle = checkSubs();
+      playObj.subtitle = localSubtitle;
+      playObj.defaultSubtitle = localSubtitle ? 'local' : 'none';
+      resolve(playObj);
+      return;
+    }
 
     App.Trakt.client.matcher
       .match({
@@ -706,8 +726,15 @@ var handleVideoFile = function (file) {
     const fileName = localVideo.get('src').replace(/\\/g, '/').split('/').pop();
     var torrentStart = new Backbone.Model({
       torrent: localVideo,
-      title: fileName,
-      defaultSubtitle: localVideo.defaultSubtitle || Settings.subtitle_language,
+      title: localVideo.get('title') || fileName,
+      year: localVideo.get('year'),
+      imdb_id: localVideo.get('imdb_id'),
+      season: localVideo.get('season'),
+      episode: localVideo.get('episode'),
+      poster: localVideo.get('poster'),
+      backdrop: localVideo.get('backdrop'),
+      subtitle: localVideo.get('subtitle'),
+      defaultSubtitle: localVideo.get('defaultSubtitle') || Settings.subtitle_language,
       device: App.Device.Collection.selected,
       video_file: {
         name: fileName,
@@ -733,6 +760,8 @@ var handleVideoFile = function (file) {
     $('.vjs-load-progress').css('width', '100%');
   });
 };
+
+App.vent.on('offline:play', handleVideoFile);
 
 var handleTorrent = function (torrent) {
   try {

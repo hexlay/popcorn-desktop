@@ -2,6 +2,7 @@
   'use strict';
   var cache = (App.Providers._cache = {});
   var registry = (App.Providers._registry = {});
+  var apiResponseCache = require('./lib/api_response_cache');
 
   App.Providers.Generic = require('butter-provider');
 
@@ -109,6 +110,9 @@
 
     //HACK(xaiki): set the provider name in the returned object.
     p.name = name;
+    if (p.config && (p.config.type === 'movie' || p.config.type === 'tvshow')) {
+      apiResponseCache.decorate(p, App.settings);
+    }
     return p;
   }
 
