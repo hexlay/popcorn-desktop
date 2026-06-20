@@ -15,43 +15,90 @@
 
         initialize: function() {
             this.model.set('torrents', []);
+            this.model.set('state', 'loading');
             this.icons = App.Providers.get('Icons');
+            this.selectionChangeHandler = this.refreshSelection.bind(this);
+            App.vent.on('torrent:selection:changed', this.selectionChangeHandler);
+        },
+
+        serializeData: function() {
+            const data = this.model.toJSON();
+            const getSelectedTorrent = this.model.get('selectedTorrent');
+            const selectedTorrent = typeof getSelectedTorrent === 'function' ? getSelectedTorrent() : null;
+            data.selectedTorrent = selectedTorrent;
+            data.selectedTorrentHash = torrentCollectionSearch.infoHash(selectedTorrent);
+            data.selectedTorrentUrl = selectedTorrent && (selectedTorrent.url || selectedTorrent.magnet) || null;
+            return data;
         },
 
         onAttach: function () {
             this.model.set('torrents', []);
             this.model.get('promise').then((data) => {
                 if (!this.isDestroyed()) {
-                    this.updateTorrents(data);
+                    this.updateTorrents(data || []);
+                }
+            }).catch((error) => {
+                win.error('Torrent list:', error);
+                if (!this.isDestroyed()) {
+                    this.model.set({state: 'error', torrents: []});
+                    this.render();
+                    this.finishLoading();
                 }
             });
+        },
+
+        finishLoading: function() {
+            App.vent.trigger('torrent:list:complete');
+        },
+
+        refreshSelection: function() {
+            if (this.isDestroyed() || this.model.get('state') !== 'ready') {
+                return;
+            }
+            this.render();
+            this.initializeRows();
+        },
+
+        initializeRows: function() {
+            this.$('.tooltipped').tooltip({
+                delay: {
+                    'show': 1200,
+                    'hide': 100
+                }
+            });
+            if ($('.loading .maximize-icon').is(':visible') || $('.player .maximize-icon').is(':visible')) {
+                this.$('.item-row, .item-play').addClass('disabled').prop('disabled', true);
+            }
         },
 
         updateTorrents: function (torrents) {
             const provider = this.model.get('provider');
             let loadIcons = [];
             for(let torrent of torrents) {
+                torrent.icon = torrent.icon || '/src/app/images/icons/' + torrent.provider + '.png';
                 loadIcons.push(this.icons.getLink(provider, torrent.provider)
-                    .then((icon) => torrent.icon = icon || torrent.icon || '/src/app/images/icons/' + torrent.provider + '.png')
-                    .catch((error) => { !torrent.icon ? torrent.icon = '/src/app/images/icons/' + torrent.provider + '.png' : null; }));
+                    .then((icon) => torrent.icon = icon || torrent.icon)
+                    .catch((error) => error));
             }
-            Promise.all(loadIcons).then((data) => {
+            Promise.race([
+                Promise.all(loadIcons),
+                new Promise((resolve) => setTimeout(resolve, 3000)),
+            ]).then((data) => {
                 if (this.isDestroyed()) {
                     return;
                 }
-                this.model.set('torrents', torrents);
-                this.render();
-                this.$('.tooltipped').tooltip({
-                    delay: {
-                        'show': 1200,
-                        'hide': 100
-                    }
+                this.model.set({
+                    state: torrents.length ? 'ready' : 'empty',
+                    torrents: torrents,
                 });
-                if ($('.loading .maximize-icon').is(':visible') || $('.player .maximize-icon').is(':visible')) {
-                    $('#torrent-list .item-row, #torrent-show-list .item-row, #torrent-list .item-play, #torrent-show-list .item-play').addClass('disabled').prop('disabled', true);
-                }
-                $('.show-all-torrents').removeClass('fas fa-spinner fa-spin').html(i18n.__('less...'));
+                this.render();
+                this.initializeRows();
+                this.finishLoading();
             });
+        },
+
+        onBeforeDestroy: function() {
+            App.vent.off('torrent:selection:changed', this.selectionChangeHandler);
         },
 
         getTorrent: function(node) {

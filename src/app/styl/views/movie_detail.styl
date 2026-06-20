@@ -560,6 +560,56 @@
                     &:hover, &.active
                         background none
 
+            .torrent-source-status
+                position relative
+                float left
+                height 23px
+                line-height 23px
+                margin 6px 6px 0 4px
+                color rgba(255,255,255,.72)
+                font-size 11px
+                display flex
+                align-items center
+                gap 7px
+                padding 0 10px
+                border 1px solid rgba(255,255,255,.08)
+                border-radius 999px
+                background rgba(255,255,255,.045)
+                box-shadow inset 0 1px 0 rgba(255,255,255,.035)
+
+                .torrent-source-empty
+                    display none
+                    color #e6a3a3
+
+                &.is-empty
+                    color rgba(255,255,255,.62)
+                    border-color rgba(230,163,163,.15)
+                    background rgba(230,120,120,.055)
+                    cursor pointer
+                    transition color .18s ease, border-color .18s ease, background .18s ease
+
+                    &:hover
+                        color rgba(255,255,255,.84)
+                        border-color rgba(244,185,66,.28)
+                        background rgba(244,185,66,.08)
+
+                    .source-loader
+                        display none
+
+                    .torrent-source-empty
+                        display inline-block
+
+            .show-all-torrents.loading
+                display flex
+                align-items center
+                justify-content center
+                width 24px
+                padding 0
+                cursor wait
+
+                &:hover
+                    background transparent
+
             .play-selector
                 position relative
                 float left
@@ -822,7 +872,9 @@
             max-height none
             margin 0
             padding 32px 76px 30px 34px
-            overflow auto
+            overflow hidden
+            display flex
+            flex-direction column
             background linear-gradient(135deg, rgba(18,20,27,0.68), rgba(12,14,20,0.46))
             border 1px solid rgba(255,255,255,0.11)
             border-radius 26px
@@ -832,6 +884,7 @@
             scrollable()
 
             .title
+                flex 0 0 auto
                 top 0
                 font-family $MainFontBold
                 font-size clamp(34px, 4vw, 56px)
@@ -840,6 +893,7 @@
                 margin-bottom 18px
 
             .metadatas
+                flex 0 0 auto
                 top 0
                 height auto
                 min-height 24px
@@ -886,6 +940,8 @@
                     gap 12px
 
             .overview
+                flex 0 1 auto
+                min-height 0
                 top 0
                 max-height none
                 padding 0
@@ -896,14 +952,19 @@
                 overflow visible
 
             #torrent-list
+                flex 1 1 220px
                 top 0
-                max-height 340px
+                min-height 160px
+                max-height none
                 margin 26px 0 0
                 border 1px solid rgba(255,255,255,0.08)
                 background rgba(0,0,0,0.16)
                 border-radius 18px
                 overflow auto
                 scrollable()
+
+                &:empty
+                    display none
 
                 table
                     width 100%

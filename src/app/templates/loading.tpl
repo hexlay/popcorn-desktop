@@ -27,19 +27,34 @@
             <div class="seed_status">
                 <!-- downloading info -->
                 <div class="loading-info">
-                    <span class="buffer_percent"></span>&nbsp;&nbsp;&nbsp;<span class="text">(</span><span class="text_downloadedformatted"></span><span class="text_size"></span><span class="text">)</span>
+                    <div class="loading-summary">
+                        <span class="buffer_percent"></span>
+                        <span class="download-size"><span class="text">(</span><span class="text_downloadedformatted"></span><span class="text_size"></span><span class="text">)</span></span>
+                    </div>
                     <span class="magnet-icon tooltipped" data-toggle="tooltip" data-placement="bottom" title="<%= i18n.__("Magnet link") %>"><i class="fa fa-magnet"></i></span><br>
-                    <span class="text_remaining"></span><span id="rbreak1"><br></span><br>
-                    <span class="loading-info-text" id="rdownl"><%= i18n.__("Download") %>:&nbsp;</span>
-                    <span class="download_speed value"><%= Common.fileSize(0) %>/s</span><span id="rbreak2"><br></span>
-                    <span class="loading-info-text"><%= i18n.__("Upload") %>:&nbsp;</span>
-                    <span class="upload_speed value"><%= Common.fileSize(0) %>/s</span><br>
-                    <span class="loading-info-text" id="ractpr"><%= i18n.__("Active Peers") %>:&nbsp;</span>
-                    <span class="value_peers value">0</span><span id="rbreak3"><br></span>
-                    <span class="loading-info-text"><%= i18n.__("Filename") %>:&nbsp;</span>
-                    <span class="text_filename value tooltipped copytoclip" data-copy="filename" data-toggle="tooltip" data-placement="bottom"></span><br>
-                    <span class="loading-info-text"><%= i18n.__("Stream Url") %>:&nbsp;</span>
-                    <span class="text_streamurl value tooltipped copytoclip" data-copy="stream url" data-toggle="tooltip" data-placement="bottom"></span><br>
+                    <div class="text_remaining"></div><span id="rbreak1"></span>
+                    <div class="loading-info-rows">
+                        <div class="loading-info-row" id="rbreak2">
+                            <span class="loading-info-text" id="rdownl"><%= i18n.__("Download") %>:</span>
+                            <span class="download_speed value"><%= Common.fileSize(0) %>/s</span>
+                        </div>
+                        <div class="loading-info-row">
+                            <span class="loading-info-text"><%= i18n.__("Upload") %>:</span>
+                            <span class="upload_speed value"><%= Common.fileSize(0) %>/s</span>
+                        </div>
+                        <div class="loading-info-row" id="rbreak3">
+                            <span class="loading-info-text" id="ractpr"><%= i18n.__("Active Peers") %>:</span>
+                            <span class="value_peers value">0</span>
+                        </div>
+                        <div class="loading-info-row">
+                            <span class="loading-info-text"><%= i18n.__("Filename") %>:</span>
+                            <span class="text_filename value tooltipped copytoclip" data-copy="filename" data-toggle="tooltip" data-placement="bottom"></span>
+                        </div>
+                        <div class="loading-info-row">
+                            <span class="loading-info-text"><%= i18n.__("Stream Url") %>:</span>
+                            <span class="text_streamurl value tooltipped copytoclip" data-copy="stream url" data-toggle="tooltip" data-placement="bottom"></span>
+                        </div>
+                    </div>
                     <div class="fa fa-caret-down show-pcontrols tooltipped" data-toggle="tooltip" data-placement="bottom" title="<%= i18n.__("Show playback controls") %>"></div>
                     <div class="player-controls">
                         <i class="fa fa-backward backward"></i>

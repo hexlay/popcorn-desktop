@@ -24,6 +24,8 @@ async function run() {
     assert.deepStrictEqual(normalized.audioLanguages, ['en']);
 
     assert.strictEqual(torrentCollectionSearch.parseQuality('Movie.1080P.BluRay'), '1080p');
+    assert.strictEqual(torrentCollectionSearch.parseQuality('Movie UHD WEB-DL'), '2160p');
+    assert.strictEqual(torrentCollectionSearch.parseQuality('Movie 1920x1080 WEB-DL'), '1080p');
     assert.strictEqual(torrentCollectionSearch.parseQuality('Movie without quality'), '-');
     assert.deepStrictEqual(torrentCollectionSearch.detectAudioLanguages('Movie.ENG.RUS.DUB.1080p'), ['en', 'ru']);
     assert.deepStrictEqual(torrentCollectionSearch.detectAudioLanguages('Фильм.Лицензия.1080p'), ['ru']);
@@ -88,18 +90,29 @@ async function run() {
         '1080p': {provider: 'legacy', seed: 999},
         '720p': {provider: 'legacy', seed: 10},
     }, [
-        {provider: 'collection-low', quality: '1080p', seed: 20, peer: 1, isTorrentCollection: true},
-        {provider: 'collection-best', quality: '2160p', seed: 80, peer: 10, isTorrentCollection: true},
-        {provider: 'collection-high', quality: '1080p', seed: 50, peer: 5, isTorrentCollection: true},
+        {provider: 'collection-low', quality: '1080p', url: hexMagnet, seed: 20, peer: 1, isTorrentCollection: true},
+        {provider: 'collection-best', quality: '2160p', url: base32Magnet, seed: 80, peer: 10, isTorrentCollection: true},
+        {provider: 'collection-high', quality: '1080p', url: 'magnet:?xt=urn:btih:1111111111111111111111111111111111111111', seed: 50, peer: 5, isTorrentCollection: true},
     ]);
-    assert.strictEqual(preferred.quality, '2160p');
+    assert.strictEqual(preferred.quality, '1080p');
     assert.strictEqual(preferred.torrents['1080p'].provider, 'collection-high');
     assert.strictEqual(preferred.torrents['720p'].provider, 'legacy');
     assert.strictEqual(torrentCollectionSearch.torrentsByQuality([
-        {provider: 'low-peer', quality: '1080p', seed: 99, peer: 1, isTorrentCollection: true},
-        {provider: 'high-peer', quality: '1080p', seed: 10, peer: 12, isTorrentCollection: true},
-        {provider: 'legacy', quality: '1080p', seed: 999, peer: 999},
+        {provider: 'low-peer', quality: '1080p', url: hexMagnet, seed: 99, peer: 1, isTorrentCollection: true},
+        {provider: 'high-peer', quality: '1080p', url: base32Magnet, seed: 10, peer: 12, isTorrentCollection: true},
+        {provider: 'legacy', quality: '1080p', url: 'magnet:?xt=urn:btih:2222222222222222222222222222222222222222', seed: 999, peer: 999},
     ])['1080p'].provider, 'high-peer');
+    assert.strictEqual(torrentCollectionSearch.torrentsByQuality([
+        {provider: 'unknown-quality', quality: '-', url: hexMagnet, seed: 20, peer: 5, isTorrentCollection: true},
+    ])['1080p'].provider, 'unknown-quality');
+    const playableSources = torrentCollectionSearch.torrentsByQuality(torrentCollectionSearch.mergeSources([
+        {provider: 'collection-auto', quality: '-', url: hexMagnet, seed: 20, peer: 5, isTorrentCollection: true},
+    ], [
+        {provider: 'fallback-1080p', quality: '1080p', url: 'magnet:?xt=urn:btih:3333333333333333333333333333333333333333', seed: 200, peer: 50},
+    ]));
+    assert.strictEqual(playableSources['1080p'].provider, 'collection-auto');
+    assert.strictEqual(torrentCollectionSearch.preferredQuality(playableSources), '1080p');
+    assert.strictEqual(torrentCollectionSearch.isPlayableTorrent({quality: '1080p'}), false);
     assert.deepStrictEqual(torrentCollectionSearch.mergeSources([
         {provider: 'collection', quality: '720p', url: 'magnet:?xt=urn:btih:3333333333333333333333333333333333333333', isTorrentCollection: true},
     ], [

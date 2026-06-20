@@ -6,6 +6,25 @@
     overflow-y overlay
     -webkit-overflow-scrolling touch
 
+    .torrent-list-state
+        padding 18px 12px
+        text-align center
+        color rgba(255,255,255,.72)
+
+        .fa
+            margin-right 6px
+
+    .torrent-list-loading
+        display flex
+        flex-direction column
+        align-items center
+        gap 10px
+        padding 24px 12px
+        letter-spacing .04em
+
+    .torrent-list-error
+        color #e6a3a3
+
     &::-webkit-scrollbar
         width 5px
 
@@ -131,6 +150,27 @@
             .source-badge
                 color rgba(255,255,255,0.62)
                 background rgba(255,255,255,0.07)
+
+        tr.selected-source
+            td
+                background rgba(244,185,66,.09)
+                border-top 1px solid rgba(244,185,66,.16)
+                border-bottom 1px solid rgba(244,185,66,.12)
+
+                &:first-child
+                    box-shadow inset 3px 0 0 rgba(244,185,66,.92)
+
+            &:hover > td
+                background rgba(244,185,66,.14)
+
+            .source-badge
+                color #171108
+                background linear-gradient(135deg, #f8ca62, #e5a92f)
+                box-shadow 0 0 16px rgba(244,185,66,.18)
+
+                .fa
+                    margin-right 3px
+                    font-size 9px
 
 #torrent-show-list
     font-size 15px

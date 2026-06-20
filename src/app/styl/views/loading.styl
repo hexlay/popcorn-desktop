@@ -10,7 +10,7 @@
     margin auto
     left 0
     right 0
-    padding-top $TitleHeight
+    box-sizing border-box
     background-image radial-gradient(circle at 18% 0%, rgba(244,185,66,0.10), transparent 34%), radial-gradient(circle at 82% 8%, rgba(58,92,164,0.18), transparent 38%)
     -webkit-backface-visibility hidden
 
@@ -93,6 +93,8 @@
 
     .loading-backdrop
         position absolute
+        top 0
+        left 0
         width 100%
         height 100%
         background-repeat no-repeat
@@ -106,6 +108,8 @@
         width 100%
         height 100%
         position absolute
+        top 0
+        left 0
         opacity 0.65
         background radial-gradient(circle at 50% 44%, rgba(244,185,66,0.08), transparent 24%), linear-gradient(180deg, rgba(3,5,9,0.52), rgba(3,5,9,0.74)), rgba(0,0,0,0.46)
 
@@ -338,6 +342,35 @@
             display inline-block
             box-sizing border-box
 
+            .loading-summary
+                display flex
+                align-items baseline
+                justify-content center
+                gap 8px
+
+            .download-size
+                white-space nowrap
+
+            .text_remaining
+                min-height 17px
+                margin-top 2px
+                color rgba(255,255,255,0.86)
+                font-size 12px
+                line-height 17px
+
+            .loading-info-rows
+                display flex
+                flex-direction column
+                gap 7px
+                margin-top 16px
+
+            .loading-info-row
+                display flex
+                align-items baseline
+                justify-content space-between
+                gap 20px
+                min-width 0
+
             &:hover
                 > .show-pcontrols,
                 > .magnet-icon
@@ -370,24 +403,18 @@
                 line-height 17px
 
                 &.loading-info-text
-                    float left
-                    padding-right 32px
+                    flex 0 0 auto
                     color rgba(255,255,255,0.62)
                 &.value
-                    float right
+                    flex 1 1 auto
+                    min-width 0
                     text-align right
-                    max-width 250px
+                    overflow hidden
+                    white-space nowrap
+                    text-overflow ellipsis
 
             .text_filename
-                width 240px
-                padding-right 3px
-                overflow hidden
-                white-space nowrap
-                text-overflow ellipsis
                 cursor pointer
-
-                &:hover
-                    overflow visible
 
             .show-pcontrols
                 float right

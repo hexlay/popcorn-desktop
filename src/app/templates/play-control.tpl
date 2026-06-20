@@ -20,6 +20,11 @@
             <div id="download-torrent"    class="button play-selector"><%=i18n.__("Download") %></div>
             <% } %>
             <div id="quality-selector" class="quality-selector"></div>
+            <div class="torrent-source-status is-loading">
+                <span class="source-loader source-loader-compact"><span class="source-loader-core"></span></span>
+                <i class="torrent-source-empty fa fa-exclamation-circle"></i>
+                <span class="torrent-source-status-text"><%=i18n.__("Loading torrent sources...") %></span>
+            </div>
             <% if (showTorrentsMore) { %>
             <div id="show-all-torrents" class="show-all-torrents"><%=i18n.__("more...") %></div>
             <% } %>

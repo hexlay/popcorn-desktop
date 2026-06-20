@@ -2,6 +2,29 @@
   'use strict';
   var healthButton, curSynopsis;
 
+  function settleWithin(promise, timeout, label) {
+    return new Promise(function(resolve) {
+      var settled = false;
+      var timer;
+      var finish = function(value) {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        clearTimeout(timer);
+        resolve(value || []);
+      };
+      timer = setTimeout(function() {
+        win.error(label + ' timed out');
+        finish([]);
+      }, timeout);
+      Promise.resolve(promise).then(finish).catch(function(error) {
+        win.error(label + ':', error);
+        finish([]);
+      });
+    });
+  }
+
   var _this;
   App.View.MovieDetail = Marionette.View.extend({
     template: '#movie-detail-tpl',
@@ -68,8 +91,10 @@
 
       App.vent.on('shortcuts:movies', _this.initKeyboardShortcuts);
 
-      App.vent.on('update:torrents', _this.onUpdateTorrentsList.bind(_this));
-      App.vent.on('change:quality', _this.onChangeQuality.bind(_this));
+      this.updateTorrentsHandler = this.onUpdateTorrentsList.bind(this);
+      this.changeQualityHandler = this.onChangeQuality.bind(this);
+      App.vent.on('update:torrents', this.updateTorrentsHandler);
+      App.vent.on('change:quality', this.changeQualityHandler);
       // init fields in model
       this.model.set('displayTitle', '');
       this.model.set('displaySynopsis', '');
@@ -87,7 +112,9 @@
         return Promise.resolve([]);
       }
       return Promise.all(languageKeys.map(function(language) {
-        return provider.torrents(this.model.get('imdb_id'), language, altShowAll).then(function(torrents) {
+        return Promise.resolve().then(function() {
+          return provider.torrents(this.model.get('imdb_id'), language, altShowAll);
+        }.bind(this)).then(function(torrents) {
           return (torrents || []).map(function(torrent) {
             torrent.audioLanguages = torrent.audioLanguages || [language];
             torrent.isFallbackSource = true;
@@ -108,7 +135,7 @@
         return;
       }
       const provider = App.Config.getProviderForType('movie')[0];
-      const providerResults = this.legacyMovieSourcesPromise(provider);
+      const providerResults = settleWithin(this.legacyMovieSourcesPromise(provider), 8000, 'Movie source search');
       const collectionResults = this.model.get('torrentCollectionPromise') || (Settings.includeTorrentCollectionInMovieSources ? torrentCollectionSearch.search({
         query: this.model.get('title'),
         category: 'Movies',
@@ -120,6 +147,10 @@
       const torrentList = new App.View.TorrentList({
         model: new Backbone.Model({
           provider,
+          selectedTorrent: function() {
+            const torrents = this.model.get('torrents') || {};
+            return torrents[this.model.get('quality')] || null;
+          }.bind(this),
           promise: Promise.all([collectionResults, providerResults]).then(function(results) {
             return torrentCollectionSearch.mergeSources(results[0] || [], results[1] || []);
           }),
@@ -130,6 +161,9 @@
 
     onChangeQuality: function (quality) {
       this.model.set('quality', quality);
+      const torrent = this.model.get('torrents')[quality];
+      App.vent.trigger('torrent:selection:changed');
+      this.$('.magnet-link, .health-icon').toggle(Boolean(torrent));
       this.toggleSourceLink(quality);
       healthButton.render();
     },
@@ -345,8 +379,8 @@
 
     onBeforeDestroy: function() {
       $('[data-toggle="tooltip"]').tooltip('hide');
-      App.vent.off('update:torrents');
-      App.vent.off('change:quality');
+      App.vent.off('update:torrents', this.updateTorrentsHandler);
+      App.vent.off('change:quality', this.changeQualityHandler);
       this.unbindKeyboardShortcuts();
       Object.values(this.views).forEach(v => v.destroy());
     },

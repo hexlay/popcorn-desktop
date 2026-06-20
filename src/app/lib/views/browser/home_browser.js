@@ -270,23 +270,28 @@
             var item = this.itemsById[id];
             var provider = type === 'show' ? this.showProvider : this.movieProvider;
             var eventName = type === 'show' ? 'show:showDetail' : 'movie:showDetail';
+            var Model = type === 'show' ? App.Model.Show : App.Model.Movie;
+            var detailModel;
 
             if (!item) {
                 return;
             }
 
-            item.providers = {
-                torrent: provider
-            };
+            detailModel = new Model(Object.assign({}, item, {
+                providers: {torrent: provider}
+            }));
 
             $('.spinner').show();
-            return provider.detail(id, item).then(function (data) {
+            return this.withTimeout(Promise.resolve().then(function () {
+                return provider.detail(id, detailModel.attributes);
+            }), 'Home detail request timed out: ' + id).then(function (data) {
                 if (this.isDestroyed()) {
                     $('.spinner').hide();
                     return;
                 }
                 $('.spinner').hide();
-                App.vent.trigger(eventName, new App.Model.Movie(Object.assign(item, data)));
+                detailModel.set(data || {});
+                App.vent.trigger(eventName, detailModel);
             }.bind(this)).catch(function (err) {
                 if (this.isDestroyed()) {
                     $('.spinner').hide();
@@ -294,7 +299,7 @@
                 }
                 win.error('home detail failed:', err);
                 $('.spinner').hide();
-                App.vent.trigger(eventName, new App.Model.Movie(item));
+                App.vent.trigger(eventName, detailModel);
             }.bind(this));
         },
 

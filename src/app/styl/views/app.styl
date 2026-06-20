@@ -91,3 +91,75 @@ body.player-active
         .sdo-watch #quality-selector,
         .sdo-watch .show-all-torrents
             display none !important
+
+body.loading-active
+    #header
+        background transparent !important
+        border-bottom-color transparent !important
+        box-shadow none
+        -webkit-backdrop-filter none !important
+        backdrop-filter none !important
+
+@keyframes sourceLoaderOrbit
+    from
+        transform rotate(0deg)
+    to
+        transform rotate(360deg)
+
+@keyframes sourceLoaderPulse
+    0%, 100%
+        opacity .45
+        transform scale(.72)
+    50%
+        opacity 1
+        transform scale(1)
+
+.source-loader
+    position relative
+    display inline-block
+    flex 0 0 auto
+    width 34px
+    height 34px
+    border-radius 50%
+    border 1px solid rgba(244,185,66,.18)
+    box-shadow inset 0 0 12px rgba(244,185,66,.12), 0 0 18px rgba(112,78,255,.16)
+
+    &:before, &:after
+        content ''
+        position absolute
+        border-radius 50%
+
+    &:before
+        inset 3px
+        border 2px solid transparent
+        border-top-color #f4b942
+        border-right-color rgba(112,78,255,.82)
+        animation sourceLoaderOrbit 1.05s linear infinite
+
+    &:after
+        inset 8px
+        border 1px solid rgba(255,255,255,.14)
+        border-bottom-color rgba(244,185,66,.72)
+        animation sourceLoaderOrbit 1.6s linear infinite reverse
+
+    .source-loader-core
+        position absolute
+        inset 13px
+        border-radius 50%
+        background #f8c85f
+        box-shadow 0 0 10px #f4b942, 0 0 18px rgba(112,78,255,.72)
+        animation sourceLoaderPulse 1.15s ease-in-out infinite
+
+.source-loader-compact
+    width 20px
+    height 20px
+
+    &:before
+        inset 2px
+        border-width 1px
+
+    &:after
+        inset 5px
+
+    .source-loader-core
+        inset 8px

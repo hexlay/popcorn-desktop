@@ -16,12 +16,18 @@ function enabledEngines(settings) {
 
 function parseQuality(title) {
     const value = title || '';
+    if (/(?:3840\s*[x×]\s*2160|(?:^|[^a-z0-9])(4k|uhd|ultra[ ._-]?hd)(?:[^a-z0-9]|$))/i.test(value)) {
+        return '2160p';
+    }
+    if (/(?:1920\s*[x×]\s*1080|(?:^|[^a-z0-9])(fhd|full[ ._-]?hd)(?:[^a-z0-9]|$))/i.test(value)) {
+        return '1080p';
+    }
+    if (/1280\s*[x×]\s*720/i.test(value)) {
+        return '720p';
+    }
     const match = value.match(/(?:^|[^0-9])(2160p|1080p|720p|576p|480p)(?:[^0-9]|$)/i);
     if (match) {
         return match[1].toLowerCase();
-    }
-    if (/(?:^|[^a-z0-9])4k(?:[^a-z0-9]|$)/i.test(value)) {
-        return '2160p';
     }
     return '-';
 }
@@ -98,6 +104,28 @@ function peerCount(torrent) {
     return Number(torrent && (torrent.peer || torrent.peers)) || 0;
 }
 
+function isPlayableTorrent(torrent) {
+    if (!torrent) {
+        return false;
+    }
+    return Boolean(
+        (typeof torrent.url === 'string' && torrent.url.trim()) ||
+        (typeof torrent.magnet === 'string' && torrent.magnet.trim())
+    );
+}
+
+function qualityKey(torrent) {
+    const quality = torrent && torrent.quality;
+    return quality && quality !== '-' ? quality : null;
+}
+
+function preferredQuality(torrents) {
+    if (torrents && torrents['1080p']) {
+        return '1080p';
+    }
+    return Object.keys(torrents || {})[0] || null;
+}
+
 function sortSources(torrents) {
     return (torrents || []).slice().sort(function(a, b) {
         if (Boolean(a.isTorrentCollection) !== Boolean(b.isTorrentCollection)) {
@@ -122,34 +150,46 @@ function groupByAudioLanguage(torrents) {
     return languages;
 }
 
+function torrentsByQuality(torrents) {
+    const grouped = {};
+    let unknownCollection = null;
+    sortSources(torrents).forEach(function(torrent) {
+        if (!isPlayableTorrent(torrent)) {
+            return;
+        }
+        const quality = qualityKey(torrent);
+        if (!quality) {
+            if (!unknownCollection && torrent.isTorrentCollection) {
+                unknownCollection = torrent;
+            }
+            return;
+        }
+        if (grouped[quality]) {
+            return;
+        }
+        grouped[quality] = torrent;
+    });
+    if (unknownCollection && (!grouped['1080p'] || !grouped['1080p'].isTorrentCollection)) {
+        grouped['1080p'] = unknownCollection;
+    }
+    return grouped;
+}
+
 function preferByQuality(legacyTorrents, collectionTorrents) {
     const torrents = Object.assign({}, legacyTorrents || {});
-    const preferred = sortSources(collectionTorrents).filter(function(torrent) {
-        return torrent.quality && torrent.quality !== '-';
-    });
+    const preferred = torrentsByQuality(collectionTorrents);
 
-    preferred.forEach(function(torrent) {
-        if (!torrents[torrent.quality] || !torrents[torrent.quality].isTorrentCollection) {
-            torrents[torrent.quality] = torrent;
+    Object.keys(preferred).forEach(function(quality) {
+        const torrent = preferred[quality];
+        if (!torrents[quality] || !torrents[quality].isTorrentCollection) {
+            torrents[quality] = torrent;
         }
     });
 
     return {
         torrents: torrents,
-        quality: preferred.length ? preferred[0].quality : null,
+        quality: preferredQuality(torrents),
     };
-}
-
-function torrentsByQuality(torrents) {
-    const grouped = {};
-    sortSources(torrents).forEach(function(torrent) {
-        const quality = torrent && torrent.quality;
-        if (!quality || quality === '-' || grouped[quality]) {
-            return;
-        }
-        grouped[quality] = torrent;
-    });
-    return grouped;
 }
 
 function base32ToHex(value) {
@@ -314,6 +354,9 @@ module.exports = {
     dedupe: dedupe,
     sortSources: sortSources,
     groupByAudioLanguage: groupByAudioLanguage,
+    isPlayableTorrent: isPlayableTorrent,
+    qualityKey: qualityKey,
+    preferredQuality: preferredQuality,
     preferByQuality: preferByQuality,
     torrentsByQuality: torrentsByQuality,
     mergeSources: mergeSources,

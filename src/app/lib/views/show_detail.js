@@ -4,6 +4,29 @@
     let healthButton;
 
     var _this, bookmarked;
+
+    function settleWithin(promise, timeout, label) {
+        return new Promise(function(resolve) {
+            var settled = false;
+            var timer;
+            var finish = function(value) {
+                if (settled) {
+                    return;
+                }
+                settled = true;
+                clearTimeout(timer);
+                resolve(value || []);
+            };
+            timer = setTimeout(function() {
+                win.error(label + ' timed out');
+                finish([]);
+            }, timeout);
+            Promise.resolve(promise).then(finish).catch(function(error) {
+                win.error(label + ':', error);
+                finish([]);
+            });
+        });
+    }
     function padEpisodePart(value) {
         return String(value || '').padStart(2, '0');
     }
@@ -58,7 +81,8 @@
             'mousedown .show-detail-container': 'exitZoom', 
             'mousedown .shm-title, .sdoi-title, .episodeData div': 'copytoclip',
             'click .playerchoicehelp': 'showPlayerList',
-            'click .playerchoicerefresh': 'refreshPlayerList'
+            'click .playerchoicerefresh': 'refreshPlayerList',
+            'click .episode-source-status.is-empty': 'retryEpisodeSources'
         },
 
         regions: {
@@ -116,16 +140,19 @@
                     _this.unbindKeyboardShortcuts();
                 }
             });
-            App.vent.on('show:watched:' + this.model.id,
-                _.bind(this.onWatched, this));
-            App.vent.on('show:unwatched:' + this.model.id,
-                _.bind(this.onUnWatched, this));
+            this.watchedHandler = this.onWatched.bind(this);
+            this.unwatchedHandler = this.onUnWatched.bind(this);
+            App.vent.on('show:watched:' + this.model.id, this.watchedHandler);
+            App.vent.on('show:unwatched:' + this.model.id, this.unwatchedHandler);
 
             App.vent.on('shortcuts:shows', function () {
                 _this.initKeyboardShortcuts();
             });
 
-            App.vent.on('update:torrents', _this.onUpdateTorrentsList.bind(_this));
+            this.updateTorrentsHandler = this.onUpdateTorrentsList.bind(this);
+            this.torrentListCompleteHandler = this.onTorrentListComplete.bind(this);
+            App.vent.on('update:torrents', this.updateTorrentsHandler);
+            App.vent.on('torrent:list:complete', this.torrentListCompleteHandler);
             this.initTorrents(this.model.get('episodes'));
         },
 
@@ -176,7 +203,9 @@
                 return Promise.resolve([]);
             }
             return Promise.all(this.legacyShowLanguages().map(function(language) {
-                return showProvider.episodeTorrents(this.model.get('imdb_id'), language, episode.season, episode.episode).then(function(torrents) {
+                return Promise.resolve().then(function() {
+                    return showProvider.episodeTorrents(this.model.get('imdb_id'), language, episode.season, episode.episode);
+                }.bind(this)).then(function(torrents) {
                     return (torrents || []).map(function(torrent) {
                         torrent.audioLanguages = torrent.audioLanguages || [language];
                         torrent.isFallbackSource = true;
@@ -196,7 +225,9 @@
                 return Promise.resolve([]);
             }
             return Promise.all(this.legacyShowLanguages().map(function(language) {
-                return showProvider.torrents(this.model.get('imdb_id'), language).then(function(torrents) {
+                return Promise.resolve().then(function() {
+                    return showProvider.torrents(this.model.get('imdb_id'), language);
+                }.bind(this)).then(function(torrents) {
                     return (torrents || []).map(function(torrent) {
                         torrent.audioLanguages = torrent.audioLanguages || [language];
                         torrent.isFallbackSource = true;
@@ -214,16 +245,18 @@
         applyEpisodeSources: function(episode, collectionTorrents, fallbackTorrents) {
             var mergedSources = torrentCollectionSearch.mergeSources(collectionTorrents, fallbackTorrents);
             if (!mergedSources.length) {
-                return {torrents: episode.torrents || {}, quality: null};
+                episode.allTorrentSources = [];
+                episode.torrents = {};
+                episode.torrentSourceMode = 'none';
+                this.model.set('preferredTorrentQuality', null);
+                return {torrents: {}, quality: null};
             }
-            var collectionQualitySources = (collectionTorrents || []).filter(function(torrent) {
-                return torrent.quality && torrent.quality !== '-';
-            });
-            var torrents = torrentCollectionSearch.torrentsByQuality(collectionQualitySources);
-            var preferredQuality = Object.keys(torrents)[0] || null;
+            var torrents = torrentCollectionSearch.torrentsByQuality(mergedSources);
+            var preferredQuality = torrentCollectionSearch.preferredQuality(torrents);
+            var preferredTorrent = preferredQuality ? torrents[preferredQuality] : null;
             episode.allTorrentSources = mergedSources;
             episode.torrents = torrents;
-            episode.torrentSourceMode = preferredQuality ? 'collection' : 'none';
+            episode.torrentSourceMode = preferredTorrent ? (preferredTorrent.isTorrentCollection ? 'collection' : 'fallback') : 'none';
             this.model.set('preferredTorrentQuality', preferredQuality);
             return {
                 torrents: torrents,
@@ -286,13 +319,14 @@
                 this.getRegion('torrentShowList').empty();
                 return;
             }
+            this.pendingTorrentLists = info.episodeOnly ? 1 : 2;
             const showProvider = App.Config.getProviderForType('tvshow')[0];
             if (!info.episodeOnly) {
                 this.getRegion('torrentShowList').empty();
                 const torrentShowList = new App.View.TorrentList({
                     model: new Backbone.Model({
                         provider: showProvider,
-                        promise: this.legacyShowSourcesPromise(showProvider),
+                        promise: settleWithin(this.legacyShowSourcesPromise(showProvider), 8000, 'Show source search'),
                         select: true,
                     }),
                 });
@@ -300,10 +334,15 @@
             }
             const episode = this.model.get('selectedEpisode');
             this.getRegion('torrentList').empty();
-            const providerPromise = this.legacyEpisodeSourcesPromise(episode);
+            const providerPromise = settleWithin(this.legacyEpisodeSourcesPromise(episode), 8000, 'Show episode source search');
             const torrentList = new App.View.TorrentList({
                 model: new Backbone.Model({
                     provider: showProvider,
+                    selectedTorrent: function() {
+                        const selectedEpisode = this.model.get('selectedEpisode');
+                        const torrents = selectedEpisode && selectedEpisode.torrents || {};
+                        return torrents[this.model.get('quality')] || null;
+                    }.bind(this),
                     promise: Promise.all([
                         this.getEpisodeCollectionSources(episode),
                         providerPromise,
@@ -313,6 +352,38 @@
                 }),
             });
             this.getRegion('torrentList').show(torrentList);
+        },
+
+        onTorrentListComplete: function() {
+            if (!this.model.get('showTorrents') || !this.pendingTorrentLists) {
+                return;
+            }
+            this.pendingTorrentLists--;
+            if (this.pendingTorrentLists > 0) {
+                return;
+            }
+            this.model.set('torrentListState', 'loaded');
+            this.ui.showTorrents.removeClass('loading fas fa-spinner fa-spin').addClass('active').html(i18n.__('less...'));
+        },
+
+        setEpisodeSourceState: function(state) {
+            var selectedEpisode = this.model.get('selectedEpisode');
+            var hasTorrents = state === 'ready' && selectedEpisode && Object.keys(selectedEpisode.torrents || {}).length > 0;
+            this.model.set('episodeSourceState', state);
+            this.$('.episode-source-status').toggle(state !== 'ready').toggleClass('is-loading', state === 'loading').toggleClass('is-empty', state === 'empty');
+            this.$('.episode-source-status-text').text(state === 'loading' ? i18n.__('Loading torrent sources...') : i18n.__('No playable torrents found') + ' · ' + i18n.__('Retry'));
+            this.$('#quality-selector, .sdow-watchnow, #download-torrent').toggle(hasTorrents);
+            this.$('.magnet-icon, .source-icon, .health-icon').toggle(hasTorrents);
+        },
+
+        retryEpisodeSources: function() {
+            var selectedEpisode = this.model.get('selectedEpisode');
+            if (this.model.get('episodeSourceState') !== 'empty' || !selectedEpisode) {
+                return;
+            }
+            delete selectedEpisode.torrentCollectionPromise;
+            delete selectedEpisode.torrentSourcesPromise;
+            this.selectEpisode(this.$('.tab-episode.active'));
         },
 
         onAttach: function () {
@@ -326,6 +397,7 @@
                 this.ui.bookmarkIcon.removeClass('selected');
             }
             this.model.set('showTorrents', false);
+            this.model.set('torrentListState', 'idle');
 
             this.getRegion('qualitySelector').empty();
             $('.star-container-tv,.shmi-year,.shmi-imdb,.shmi-tmdb-link,.magnet-icon,.source-icon').tooltip();
@@ -676,6 +748,9 @@
             if (e.type) {
                 e.preventDefault();
             }
+            if (this.model.get('episodeSourceState') !== 'ready' || !$(e.currentTarget).attr('data-torrent')) {
+                return;
+            }
             var that = this;
             var title = that.model.get('title');
             var file_name = $(e.currentTarget).attr('data-file');
@@ -840,7 +915,8 @@
             var episodesTorrents = _this.model.get('torrents');
             var selectedEpisode = episodesTorrents[season][episode];
             _this.model.set('selectedEpisode', selectedEpisode);
-            var initialTorrents = selectedEpisode.torrentSourceMode === 'collection' ? selectedEpisode.torrents : {};
+            _this.setEpisodeSourceState('loading');
+            var initialTorrents = selectedEpisode.torrentSourceMode !== 'none' ? selectedEpisode.torrents : {};
             var qualitySelector = new App.View.QualitySelector({
                 model: new Backbone.Model({
                     torrents: initialTorrents,
@@ -851,9 +927,9 @@
                 }),
             });
             _this.getRegion('qualitySelector').show(qualitySelector);
-            Promise.all([
+            var sourcePromise = Promise.all([
                 _this.getEpisodeCollectionSources(selectedEpisode),
-                _this.legacyEpisodeSourcesPromise(selectedEpisode),
+                settleWithin(_this.legacyEpisodeSourcesPromise(selectedEpisode), 8000, 'Show episode source search'),
             ]).then(function(results) {
                 if (!_this.model || _this.model.get('selectedEpisode') !== selectedEpisode) {
                     return;
@@ -862,7 +938,15 @@
                 if (_this.getRegion('qualitySelector').currentView) {
                     _this.getRegion('qualitySelector').currentView.updateTorrents(preferred.torrents);
                 }
+                _this.setEpisodeSourceState(preferred.quality ? 'ready' : 'empty');
+            }).catch(function(error) {
+                win.error('Show episode sources:', error);
+                if (_this.model && _this.model.get('selectedEpisode') === selectedEpisode) {
+                    selectedEpisode.torrents = {};
+                    _this.setEpisodeSourceState('empty');
+                }
             });
+            selectedEpisode.torrentSourcesPromise = sourcePromise;
 
             var first_aired = selectedEpisode.first_aired ? dayjs.unix(selectedEpisode.first_aired).locale(Settings.language).format('LLLL') : '';
             var synopsis = $('.sdoi-synopsis');
@@ -885,8 +969,10 @@
             startStreaming.attr('data-episode', selectedEpisode.episode);
             startStreaming.attr('data-season', selectedEpisode.season);
             startStreaming.attr('data-title', selectedEpisode.title);
+            startStreaming.removeAttr('data-torrent data-file data-source data-provider data-quality');
+            $('#download-torrent').removeAttr('data-torrent data-file').hide();
 
-            _this.ui.startStreaming.toggle(Object.keys(initialTorrents).length > 0);
+            _this.ui.startStreaming.hide();
 
             App.vent.trigger('update:torrents', this.model.get('showTorrents') ? {
                 locale: this.model.get('contextLocale'),
@@ -907,6 +993,8 @@
             startStreaming.attr('data-source', torrent.source);
             startStreaming.attr('data-provider', torrent.provider);
             startStreaming.attr('data-quality', key);
+            _this.model.set('quality', key);
+            App.vent.trigger('torrent:selection:changed');
             startStreaming.show();
             downloadButton.show();
             downloadButton.attr('data-torrent', torrent.url);
@@ -1101,12 +1189,18 @@
         },
 
         showAllTorrents: function() {
+            if (this.model.get('torrentListState') === 'loading') {
+                return;
+            }
             const show = !this.model.get('showTorrents');
             this.model.set('showTorrents', show);
             if (show) {
-                this.ui.showTorrents.addClass('active fas fa-spinner fa-spin').html('');
+                this.model.set('torrentListState', 'loading');
+                this.ui.showTorrents.addClass('active loading').html('<span class="source-loader source-loader-compact"><span class="source-loader-core"></span></span>');
             } else {
-                this.ui.showTorrents.removeClass('active fa-spinner fa-spin').html(i18n.__('more...'));
+                this.pendingTorrentLists = 0;
+                this.model.set('torrentListState', 'idle');
+                this.ui.showTorrents.removeClass('active loading fa-spinner fa-spin').html(i18n.__('more...'));
             }
             App.vent.trigger('update:torrents', show ? {
                 locale: this.model.get('contextLocale'),
@@ -1115,9 +1209,10 @@
 
         onBeforeDestroy: function () {
             this.unbindKeyboardShortcuts();
-            App.vent.off('update:torrents');
-            App.vent.off('show:watched:' + this.model.id);
-            App.vent.off('show:unwatched:' + this.model.id);
+            App.vent.off('update:torrents', this.updateTorrentsHandler);
+            App.vent.off('torrent:list:complete', this.torrentListCompleteHandler);
+            App.vent.off('show:watched:' + this.model.id, this.watchedHandler);
+            App.vent.off('show:unwatched:' + this.model.id, this.unwatchedHandler);
         }
 
     });

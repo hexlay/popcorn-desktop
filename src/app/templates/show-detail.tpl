@@ -114,6 +114,11 @@
             </div>
             <div id="torrent-list"></div>
             <div class="sdo-watch">
+                <div class="episode-source-status is-loading">
+                    <span class="source-loader source-loader-compact"><span class="source-loader-core"></span></span>
+                    <i class="episode-source-empty fa fa-exclamation-circle"></i>
+                    <span class="episode-source-status-text"><%=i18n.__("Loading torrent sources...") %></span>
+                </div>
                 <div id="quality-selector"></div>
                 <% if (showTorrentsMore) { %>
                 <div id="show-all-torrents" class="show-all-torrents"><%=i18n.__("more...") %></div>
