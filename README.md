@@ -7,15 +7,12 @@
   <br>
 </h1>
 
-<h4 align="center">Phoenix — a multi-platform BitTorrent client with an integrated media player.</h4>
+<h4 align="center">Multi-platform BitTorrent client with an integrated media player.</h4>
 
 <p align="center">
   <a href="https://github.com/hexlay/popcorn-desktop">Source</a> ·
-  <a href="https://github.com/hexlay/popcorn-desktop/releases">Releases</a> ·
-  <a href="https://github.com/hexlay/popcorn-desktop/actions">Builds</a> ·
   <a href="https://github.com/hexlay/popcorn-desktop/issues">Issues</a> ·
-  <a href="https://github.com/hexlay/popcorn-desktop/blob/development/CHANGELOG.md">Changelog</a> ·
-  <a href="https://github.com/hexlay/popcorn-desktop/wiki">Wiki</a>
+  <a href="https://github.com/hexlay/popcorn-desktop/blob/development/CHANGELOG.md">Changelog</a>
 </p>
 
 ## Screenshots
@@ -43,13 +40,11 @@
 ### Windows:
 Download and install:
   * **Latest release**: check the project's [releases page](https://github.com/hexlay/popcorn-desktop/releases)
-  * Or **latest dev build (for testers)**: check the project's [actions page](https://github.com/hexlay/popcorn-desktop/actions)
 
 
 ### macOS:
 Download and install:
   * **Latest release**: check the project's [releases page](https://github.com/hexlay/popcorn-desktop/releases)
-  * Or **latest dev build (for testers)**: check the project's [actions page](https://github.com/hexlay/popcorn-desktop/actions)
 
 #### Apple Silicon:
 
@@ -63,11 +58,10 @@ xattr -c "/Applications/Popcorn-Time.app/"
 ### Linux - Debian/Ubuntu based distros:
 Download and install:
   * **Latest release**: check the project's [releases page](https://github.com/hexlay/popcorn-desktop/releases)
-  * Or **latest dev build (for testers)**: check the project's [actions page](https://github.com/hexlay/popcorn-desktop/actions)
 
 Via .deb package:
 
-  _**Firstly, be aware** in some cases, missings dependencies packages (libatomic1, libgconf-2-4, libcanberra-gtk-module) were reported to be required for the app to works.  
+  _**Firstly, be aware** in some cases, missing dependencies packages (libatomic1, libgconf-2-4, libcanberra-gtk-module) were reported to be required for the app to works.  
   **If the app don't start for you too**, in this case, **try `sudo apt update && sudo apt install libatomic1 libgconf-2-4 libcanberra-gtk-module`** to be sure your system have the required dependencies._
 
 Via archive and command line (tested on ubuntu 18.04 and 20.04):
