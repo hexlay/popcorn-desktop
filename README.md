@@ -22,11 +22,19 @@
 
 ### Home
 
-![Phoenix home screen](docs/screenshots/phoenix-home.jpg)
+![Home screen](docs/screenshots/screen_1.jpg)
+
+### Movie List
+
+![Movie List](docs/screenshots/screen_2.jpg)
+
+### Movie Details
+
+![Movie Details](docs/screenshots/screen_3.jpg)
 
 ### Settings
 
-![Phoenix settings screen](docs/screenshots/phoenix-settings.jpg)
+![Settings](docs/screenshots/screen_4.jpg)
 
 ***
 
