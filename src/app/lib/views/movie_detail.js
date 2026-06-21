@@ -104,7 +104,8 @@
     legacyMovieSourcesPromise: function(provider) {
       const langs = this.model.get('langs') || {};
       const languageKeys = Object.keys(langs);
-      const altShowAll = provider.config.noShowAll ? _.shuffle((Settings.dhtInfo.server ? Settings.dhtInfo.server.split(',') : Settings.customServers.movie).filter(a => !a.includes(provider.apiURL))) : null;
+      const alternateServers = Settings.customServers && Settings.customServers.movie ? Settings.customServers.movie : [];
+      const altShowAll = provider.config.noShowAll ? _.shuffle(alternateServers.filter(a => !a.includes(provider.apiURL))) : null;
       if (!provider.feature('torrents') || typeof provider.torrents !== 'function') {
         return Promise.resolve([]);
       }

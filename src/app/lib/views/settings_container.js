@@ -52,8 +52,6 @@
             'click .qr-code': 'generateQRcode',
             'click .set-current-filter': 'saveFilter',
             'click .reset-current-filter': 'resetFilter',
-            'click .update-dht': 'updateDht',
-            'click .update-app': 'updateApp',
             'mousedown #customMoviesServer': 'showFullDatalist',
             'mousedown #customSeriesServer': 'showFullDatalist',
             'scroll': 'updateHeaderShadow'
@@ -340,7 +338,6 @@
                 case 'continueSeedingOnStart':
                 case 'protocolEncryption':
                 case 'contentLangOnly':
-                case 'dhtEnable':
                 case 'coversShowRating':
                 case 'alwaysShowBookmarks':
                 case 'showSeedboxOnDlInit':
@@ -353,7 +350,6 @@
                 case 'showAdvancedSettings':
                 case 'alwaysOnTop':
                 case 'playNextEpisodeAuto':
-                case 'updateNotification':
                 case 'events':
                 case 'alwaysFullscreen':
                 case 'minimizeToTray':
@@ -667,18 +663,6 @@
                     $('.nav-hor.left li:first').click();
                     App.vent.trigger('settings:show');
                     break;
-                case 'dhtEnable':
-                    if (Settings.dhtEnable) {
-                        this.updateDht('enable');
-                    } else {
-                        this.alertMessageSuccess(true);
-                    }
-                    break;
-                case 'updateNotification':
-                    if (Settings.updateNotification) {
-                        this.updateApp('enable');
-                    }
-                    break;
                 default:
             }
             if (that.$el.scrollTop() !== scrollPos) {
@@ -721,16 +705,6 @@
                 }, 100);
                 that.alertMessageSuccess(false, false, '', i18n.__('Your Default Filters have been reset'));
             }
-        },
-
-        updateDht: function(e) {
-            let updateMode = e === 'enable' ? e : (e ? 'manual' : '');
-            App.Updater.updateDHT(updateMode);
-        },
-
-        updateApp: function(e) {
-            let updateMode = e === 'enable' ? e : (e ? 'manual' : '');
-            App.Updater.onlyNotification(updateMode);
         },
 
         connectTrakt: function (e) {
@@ -778,7 +752,7 @@
                 spinner.show();
                 var OpenSubtitles = new OS({
                     apikey: Settings.opensubtitles.apikey,
-                    useragent: 'Popcorn Time v' + (Settings.version || '0.5.1')
+                    useragent: 'Popcorn Time v' + (Settings.version || '0.6.0')
                 });
                 OpenSubtitles.login({
                     username: usn,
@@ -1081,10 +1055,14 @@
 
         areYouSure: function (btn, waitDesc) {
             if (!btn.hasClass('confirm')) {
-                btn.addClass('confirm warning').css('width', btn.css('width')).text(i18n.__('Are you sure?'));
+                btn.addClass('confirm warning');
+                btn.find('i').attr('class', 'fa fa-triangle-exclamation');
+                btn.find('span').text(i18n.__('Are you sure?'));
                 return false;
             }
-            btn.text(waitDesc).addClass('disabled').prop('disabled', true);
+            btn.find('i').attr('class', 'fa fa-spinner fa-spin');
+            btn.find('span').text(waitDesc);
+            btn.addClass('disabled').prop('disabled', true);
             return true;
         },
 

@@ -1,24 +1,24 @@
 cask "popcorn-time" do
-  version "0.5.1"
+  version "0.6.0"
 
   nwjs = "0.112.0"
   
 
   if Hardware::CPU.intel?
     sha256 "da6d993651e57cc88296f93f928ffedac3027313af0eb447ff8ca7a12a60e06a"
-    url "https://github.com/popcorn-official/popcorn-desktop/releases/download/v#{version}/Popcorn-Time-#{version}-osx64.zip"
+    url "https://github.com/hexlay/popcorn-desktop/releases/download/v#{version}/Popcorn-Time-#{version}-osx64.zip"
     arch = "x64"
   else
     sha256 "51f11fb0483983dd6c4baddf12938d8a85b8320e3499dbe12cbcf5e4146e7f74"
-    url "https://github.com/popcorn-official/popcorn-desktop/releases/download/v#{version}/Popcorn-Time-#{version}-osxarm64.zip"
+    url "https://github.com/hexlay/popcorn-desktop/releases/download/v#{version}/Popcorn-Time-#{version}-osxarm64.zip"
     arch = "arm64"
   end
 
   name token.gsub(/\b\w/, &:capitalize)
   desc "BitTorrent client that includes an integrated media player"
-  homepage "https://github.com/popcorn-official/popcorn-desktop/releases/download/v0.5.1/Popcorn-Time-0.5.1-osx64.zip"
+  homepage "https://github.com/hexlay/popcorn-desktop"
 
-  repo = "popcorn-official/popcorn-desktop"
+  repo = "hexlay/popcorn-desktop"
   zip = "#{name.first}-#{version}-osx64.zip"
 
   livecheck { url "https://github.com/#{repo}" }

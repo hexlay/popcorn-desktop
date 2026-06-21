@@ -184,6 +184,8 @@
             this.listenTo(this.collection, 'loaded', this.onLoaded);
             this.resizeGhosts = _.debounce(this.AddGhostsToBottomRow.bind(this), 100);
             this.scrollCheckQueued = false;
+            this.boundCheckScrollPosition = this.checkScrollPosition.bind(this);
+            this.headerShadowVisible = false;
 
             filterBarElem = _.pluck(App.Config.getTabTypes(), 'name');
             filterBarElem = filterBarElem.map(v => v.toLowerCase());
@@ -444,10 +446,10 @@
         },
 
         AddGhostsToBottomRow: function () {
-            var items = $('.items');
-            var item = $('.items .item:not(.ghost)');
+            var items = this.$('.items');
+            var item = items.children('.item:not(.ghost)');
 
-            $('.ghost').remove();
+            items.children('.ghost').remove();
             if (!item.length) {
                 return;
             }
@@ -470,10 +472,14 @@
             NUM_MOVIES_IN_ROW = itemsPerRow;
             var itemsInLastRow = item.length % itemsPerRow;
             var ghostsToAdd = itemsPerRow - itemsInLastRow;
+            var ghosts = document.createDocumentFragment();
             while (ghostsToAdd > 0) {
-                $('.items').append($('<li/>').addClass('item ghost'));
+                var ghost = document.createElement('li');
+                ghost.className = 'item ghost';
+                ghosts.appendChild(ghost);
                 ghostsToAdd--;
             }
+            items[0].appendChild(ghosts);
         },
 
         onScroll: function () {
@@ -481,7 +487,7 @@
                 return;
             }
             this.scrollCheckQueued = true;
-            requestAnimationFrame(this.checkScrollPosition.bind(this));
+            requestAnimationFrame(this.boundCheckScrollPosition);
         },
 
         checkScrollPosition: function () {
@@ -491,7 +497,8 @@
                 return;
             }
 
-            var viewsToBottom = (this.$el.prop('scrollHeight') - this.$el.scrollTop()) / this.$el.height();
+            var element = this.el;
+            var viewsToBottom = (element.scrollHeight - element.scrollTop) / element.clientHeight;
 
             if (this.collection.state === 'loaded' && viewsToBottom < 3) {
                 this.collection.fetchMore();
@@ -507,7 +514,11 @@
         },
 
         updateHeaderShadow: function () {
-            $('#header').toggleClass('header-shadow', this.$el.scrollTop() > 0);
+            var visible = this.el.scrollTop > 0;
+            if (visible !== this.headerShadowVisible) {
+                this.headerShadowVisible = visible;
+                $('#header').toggleClass('header-shadow', visible);
+            }
         },
 
         focusSearch: function (e) {

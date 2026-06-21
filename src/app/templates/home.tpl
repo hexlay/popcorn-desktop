@@ -53,8 +53,16 @@
                     <span class="section-icon"><i class="fa <%= section.icon %>"></i></span>
                     <h2><%= i18n.__(section.title) %></h2>
                     <% if (section.badge) { %><b><%= i18n.__(section.badge) %></b><% } %>
+                    <div class="home-row-navigation">
+                        <button type="button" class="home-scroll-button previous" data-direction="previous" aria-label="<%= i18n.__('Scroll left') %>" title="<%= i18n.__('Scroll left') %>">
+                            <i class="fa fa-chevron-left" aria-hidden="true"></i>
+                        </button>
+                        <button type="button" class="home-scroll-button next" data-direction="next" aria-label="<%= i18n.__('Scroll right') %>" title="<%= i18n.__('Scroll right') %>">
+                            <i class="fa fa-chevron-right" aria-hidden="true"></i>
+                        </button>
+                    </div>
                 </div>
-                <div class="home-row <%= section.layout %>">
+                <div class="home-row <%= section.layout %>" tabindex="0" role="region" aria-label="<%= i18n.__(section.title) %>">
                     <% _.each(section.items, function(item, index) { %>
                         <article class="home-poster-card home-card<%= item.faded ? ' watched' : '' %>" data-type="<%= item.type %>" data-imdb-id="<%= item.imdb_id %>" style="--poster-bg:url('<%= item.poster || item.backdrop %>')">
                             <% if (section.numbered) { %><span class="big-rank"><%= index + 1 %></span><% } %>

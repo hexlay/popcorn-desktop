@@ -9,7 +9,7 @@ assignees: ''
 
 <!--
 If you are asking a question rather than filing a bug, try one of these instead:
-- Wiki & FAQ (https://github.com/popcorn-official/popcorn-desktop/wiki)
+- Wiki & FAQ (https://github.com/hexlay/popcorn-desktop/wiki)
 - Reddit /r/PopCornTimeApp (https://www.reddit.com/r/PopCornTimeApp/)
 -->
 

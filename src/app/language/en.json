@@ -563,8 +563,11 @@
 	"New Releases": "New Releases",
 	"Top Rated Movies": "Top Rated Movies",
 	"Trending Shows": "Trending Shows",
+	"Scroll left": "Scroll left",
+	"Scroll right": "Scroll right",
 	"The remote API failed to respond, please try again later.": "The remote API failed to respond, please try again later.",
 	"Home could not be loaded": "Home could not be loaded",
 	"Home And Garden": "Home And Garden",
-	"The remote shows API failed to respond, please check %s and try again later": "The remote shows API failed to respond, please check %s and try again later"
+	"The remote shows API failed to respond, please check %s and try again later": "The remote shows API failed to respond, please check %s and try again later",
+	"Maintenance": "Maintenance"
 }

@@ -13,6 +13,8 @@
             'click .home-card': 'showDetail',
             'click .home-favorite': 'toggleFavorite',
             'click .home-watched': 'toggleWatched',
+            'click .home-scroll-button': 'scrollHomeRow',
+            'keydown .home-row': 'onHomeRowKeydown',
             'click .retry-button': 'loadHome'
         },
 
@@ -30,6 +32,7 @@
             this.itemsById = {};
             this.homeRequestId = 0;
             this.offlineFilesHandler = this.refreshOfflineAvailability.bind(this);
+            this.homeRowResizeHandler = this.updateHomeRowNavigation.bind(this);
             App.vent.on('torrent:file:available', this.offlineFilesHandler);
         },
 
@@ -39,11 +42,13 @@
             this.finishStartup();
             this.loadHome();
             this.updateHeaderShadow();
+            $(window).on('resize.homeRowNavigation', this.homeRowResizeHandler);
         },
 
         onRender: function () {
             this.renderFilterBar();
             this.bindHomeScroll();
+            this.bindHomeRowNavigation();
             this.updateHeaderShadow();
             this.refreshOfflineAvailability();
         },
@@ -68,6 +73,81 @@
             this.$('.home-page')
                 .off('scroll.homeHeader')
                 .on('scroll.homeHeader', this.updateHeaderShadow.bind(this));
+        },
+
+        bindHomeRowNavigation: function () {
+            this.$('.home-row')
+                .off('scroll.homeRowNavigation')
+                .on('scroll.homeRowNavigation', this.updateHomeRowNavigation.bind(this));
+            this.updateHomeRowNavigation();
+            window.cancelAnimationFrame(this.homeRowFrame);
+            this.homeRowFrame = window.requestAnimationFrame(this.homeRowResizeHandler);
+        },
+
+        updateHomeRowNavigation: function () {
+            this.$('.home-row-section').each(function () {
+                var section = $(this);
+                var row = section.find('.home-row')[0];
+                var navigation = section.find('.home-row-navigation');
+                var maxScroll;
+
+                if (!row) {
+                    return;
+                }
+
+                maxScroll = Math.max(0, row.scrollWidth - row.clientWidth);
+                navigation.toggleClass('hidden', maxScroll < 2);
+                navigation.find('.previous').prop('disabled', row.scrollLeft <= 2);
+                navigation.find('.next').prop('disabled', row.scrollLeft >= maxScroll - 2);
+            });
+        },
+
+        scrollRow: function (row, direction) {
+            var maxScroll = Math.max(0, row.scrollWidth - row.clientWidth);
+            var distance = Math.max(220, Math.floor(row.clientWidth * 0.8));
+            var target;
+
+            if (direction === 'start') {
+                target = 0;
+            } else if (direction === 'end') {
+                target = maxScroll;
+            } else {
+                target = row.scrollLeft + (direction === 'previous' ? -distance : distance);
+            }
+
+            target = Math.max(0, Math.min(maxScroll, target));
+            $(row).stop(true).animate({scrollLeft: target}, 220, this.updateHomeRowNavigation.bind(this));
+        },
+
+        scrollHomeRow: function (e) {
+            e.preventDefault();
+            var section = $(e.currentTarget).closest('.home-row-section');
+            var row = section.find('.home-row')[0];
+
+            if (!row || e.currentTarget.disabled) {
+                return;
+            }
+
+            this.scrollRow(row, e.currentTarget.getAttribute('data-direction'));
+        },
+
+        onHomeRowKeydown: function (e) {
+            var direction;
+
+            if (e.key === 'ArrowLeft') {
+                direction = 'previous';
+            } else if (e.key === 'ArrowRight') {
+                direction = 'next';
+            } else if (e.key === 'Home') {
+                direction = 'start';
+            } else if (e.key === 'End') {
+                direction = 'end';
+            } else {
+                return;
+            }
+
+            e.preventDefault();
+            this.scrollRow(e.currentTarget, direction);
         },
 
         updateHeaderShadow: function () {
@@ -404,8 +484,11 @@
         onBeforeDestroy: function () {
             this.homeRequestId++;
             App.vent.off('torrent:file:available', this.offlineFilesHandler);
+            $(window).off('resize.homeRowNavigation', this.homeRowResizeHandler);
+            window.cancelAnimationFrame(this.homeRowFrame);
             this.itemsById = {};
             this.$('.home-page').off('scroll.homeHeader');
+            this.$('.home-row').off('scroll.homeRowNavigation');
             $('#header').removeClass('header-shadow');
             if (this.bar && !this.bar.isDestroyed()) {
                 this.bar.destroy();

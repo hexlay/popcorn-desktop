@@ -3,16 +3,16 @@
   "companyName": "Popcorn Time",
   "installIcon": "./src/app/images/popcorntime.ico",
   "unInstallIcon": "./src/app/images/butter_uninstall.ico",
-  "homepage": "https://popcorn-time.site/",
-  "bugs": "https://github.com/popcorn-official/popcorn-desktop/issues",
+  "homepage": "https://github.com/hexlay/popcorn-desktop",
+  "bugs": "https://github.com/hexlay/popcorn-desktop/issues",
   "repository": {
     "type": "git",
-    "url": "https://github.com/popcorn-official/popcorn-desktop.git"
+    "url": "https://github.com/hexlay/popcorn-desktop.git"
   },
   "license": "GPL-3.0",
   "main": "src/app/index.html",
-  "version": "0.5.1",
-  "releaseName": "Now.. Bring me that Horizon",
+  "version": "0.6.0",
+  "releaseName": "Phoenix",
   "scripts": {
     "build": "gulp build",
     "clean": "gulp clean",
@@ -57,7 +57,6 @@
     "backbone.marionette": "~3.x.x",
     "backbone.radio": "^2.0.0",
     "backbone.wreqr": "^1.4.0",
-    "bittorrent-dht-sodium": "1.2.0",
     "bootstrap": "^3.4.1",
     "butter-provider": "0.11.0",
     "butter-sanitize": "^0.1.1",
@@ -73,6 +72,7 @@
     "jschardet": "1.6.0",
     "json-rpc2": "^2.0",
     "lodash": "^4.18.1",
+    "marked": "4.3.0",
     "memoizee": "^0.4.17",
     "mime": "^3.0.0",
     "mkdirp": "*",

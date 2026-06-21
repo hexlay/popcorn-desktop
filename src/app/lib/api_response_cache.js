@@ -119,6 +119,9 @@ function cachedOrReject(provider, method, args, settings, error) {
         return Promise.resolve(cached);
     }
 
+    if (typeof Common !== 'undefined' && Common.notifyApiUnavailable) {
+        Common.notifyApiUnavailable();
+    }
     return Promise.reject(error);
 }
 

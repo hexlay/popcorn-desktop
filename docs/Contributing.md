@@ -26,7 +26,7 @@ requests](#submitting-pull-requests), but please respect the following restricti
 has already reported your problem or requested your idea.
 
 * Please **do not** use the issue tracker for personal support requests (use
-  [the github issues](https://github.com/popcorn-official/popcorn-desktop/issues) or IRC - #popcorntime on freenode).
+  [the github issues](https://github.com/hexlay/popcorn-desktop/issues) or IRC - #popcorntime on freenode).
 
 * Please **do not** derail or troll issues. Keep the discussion on topic and respect the opinions of others.
 
@@ -39,7 +39,7 @@ Guidelines for bug reports:
 
 1. **Use the GitHub issue search** &mdash; check if the issue has already been reported.
 
-2. **Check if the issue has been fixed** &mdash; try to reproduce it using the latest `master` or look for [closed issues](https://github.com/popcorn-official/popcorn-desktop/issues?q=is%3Aissue+is%3Aclosed).
+2. **Check if the issue has been fixed** &mdash; try to reproduce it using the latest `master` or look for [closed issues](https://github.com/hexlay/popcorn-desktop/issues?q=is%3Aissue+is%3Aclosed).
 
 3. **Include a screencast if relevant** - Is your issue about a design or front end feature or bug? The most helpful thing in the world is if we can *see* what you're talking about.
 Use [LICEcap](http://www.cockos.com/licecap/) to quickly and easily record a short screencast (24fps) and save it as an animated gif! Embed it directly into your GitHub issue. Kapow.
@@ -77,7 +77,7 @@ Any other information you want to share that is relevant to the issue being repo
 
 Feature requests are welcome. Before you submit one be sure to have:
 
-1. Check [existing feature requests](https://github.com/popcorn-official/popcorn-desktop/issues?q=is%3Aopen+is%3Aissue+label%3Afeature) and verify the feature hasn't already been requested.
+1. Check [existing feature requests](https://github.com/hexlay/popcorn-desktop/issues?q=is%3Aopen+is%3Aissue+label%3Afeature) and verify the feature hasn't already been requested.
 2. Take a moment to think about whether your idea fits with the scope and aims of the project, or if it might
 better fit being an app/plugin.
 3. Remember, it's up to *you* to make a strong case to convince the project's leaders of the merits of this
@@ -103,15 +103,15 @@ what's already there? Does it fit with the Roadmap?
 Pull requests are awesome. If you're looking to raise a PR for something which doesn't have an open issue, please think carefully about [raising an issue](#report-a-bug) which your PR can close, especially if you're fixing a bug. This makes it more likely that there will be enough information available for your PR to be properly tested and merged. To make sure your PR is accepted as quickly as possible, you should be sure to have read
 all the guidelines on:
 
-* [Code standards](https://github.com/popcorn-official/popcorn-desktop/tree/master/docs/Code-Standards.md)
-* [Commit messages](https://github.com/popcorn-official/popcorn-desktop/tree/master/docs/Git-Workflow.md#commit-messages)
-* [Cleaning-up history](https://github.com/popcorn-official/popcorn-desktop/tree/master/docs/Git-Workflow.md#clean-up-history)
-* [Not breaking the build](https://github.com/popcorn-official/popcorn-desktop/tree/master/docs/Git-Workflow.md#check-it-passes-the-tests)
+* [Code standards](https://github.com/hexlay/popcorn-desktop/tree/master/docs/Code-Standards.md)
+* [Commit messages](https://github.com/hexlay/popcorn-desktop/tree/master/docs/Git-Workflow.md#commit-messages)
+* [Cleaning-up history](https://github.com/hexlay/popcorn-desktop/tree/master/docs/Git-Workflow.md#clean-up-history)
+* [Not breaking the build](https://github.com/hexlay/popcorn-desktop/tree/master/docs/Git-Workflow.md#check-it-passes-the-tests)
 
 ##### Need Help?
 
 If you're not completely clear on how to submit / update / *do* Pull Requests, please check out our in depth
-[Git Workflow guide](https://github.com/popcorn-official/popcorn-desktop/blob/master/docs/Git-Workflow.md#git-workflow) for Popcorn Time.
+[Git Workflow guide](https://github.com/hexlay/popcorn-desktop/blob/master/docs/Git-Workflow.md#git-workflow) for Popcorn Time.
 
 
 ### Translation
@@ -143,9 +143,9 @@ Pulling down the latest changes from master will often require more than just a 
 ## Contributor License Agreement
 
 By contributing your code to Popcorn Time you grant the Popcorn Time Project a non-exclusive, irrevocable, worldwide,
-royalty-free, sublicenseable, transferable license under all of Your relevant intellectual property rights
+royalty-free, sublicensable, transferable license under all of Your relevant intellectual property rights
 (including copyright, patent, and any other rights), to use, copy, prepare derivative works of, distribute and
-publicly perform and display the Contributions on any licensing terms, including without limitation:
+publicly perform and display the Contributions to any licensing terms, including without limitation:
 (a) open source licenses like the MIT license; and (b) binary, proprietary, or commercial licenses. Except for the
 licenses granted herein, You reserve all right, title, and interest in and to the Contribution.
 

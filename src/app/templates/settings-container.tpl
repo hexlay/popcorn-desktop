@@ -345,11 +345,10 @@
             <span>
                 <div class="opensubtitles-options">
                     <p><%= i18n.__("Movies API Server(s)") %></p>
-                    <input type="text" size="61" id="customMoviesServer" name="customMoviesServer" list="moviesServers" value="<%= encodeURI(Settings.customMoviesServer ? Settings.customMoviesServer : (Settings.dhtEnable && Settings.dhtInfo ? Settings.dhtInfo.server : Settings.providers.movie.uri[0].split('=')[1])) %>">
+                    <input type="text" size="61" id="customMoviesServer" name="customMoviesServer" list="moviesServers" value="<%= encodeURI(Settings.customMoviesServer || Settings.providers.movie.uri[0].split('=')[1]) %>">
                     <datalist id="moviesServers">
                         <% var movieServList = [Settings.providers.movie.uri[0].split('=')[1]];
                            Settings.customServers && Settings.customServers.movie ? movieServList = movieServList.concat(Settings.customServers.movie) : null;
-                           Settings.dhtInfo ? movieServList = movieServList.concat([Settings.dhtInfo.server]) : null;
                            for (var i = 0; i < movieServList.length; ++i) {
                         %>
                         <option value="<%= encodeURI(movieServList[i]).replace(/%20/g, ' ') %>">
@@ -360,11 +359,10 @@
             <span>
                 <div class="opensubtitles-options">
                     <p><%= i18n.__("Series API Server(s)") %></p>
-                    <input type="text" size="61" id="customSeriesServer" name="customSeriesServer" list="seriesServers" value="<%= encodeURI(Settings.customSeriesServer ? Settings.customSeriesServer : (Settings.dhtEnable && Settings.dhtInfo ? Settings.dhtInfo.server : Settings.providers.tvshow.uri[0].split('=')[1])) %>">
+                    <input type="text" size="61" id="customSeriesServer" name="customSeriesServer" list="seriesServers" value="<%= encodeURI(Settings.customSeriesServer || Settings.providers.tvshow.uri[0].split('=')[1]) %>">
                     <datalist id="seriesServers">
                         <% var seriesServList = [Settings.providers.tvshow.uri[0].split('=')[1]];
                            Settings.customServers && Settings.customServers.tvshow ? seriesServList = seriesServList.concat(Settings.customServers.tvshow) : null;
-                           Settings.dhtInfo ? seriesServList = seriesServList.concat([Settings.dhtInfo.server]) : null;
                            for (var i = 0; i < seriesServList.length; ++i) {
                         %>
                         <option value="<%= encodeURI(seriesServList[i]).replace(/%20/g, ' ') %>">
@@ -374,11 +372,6 @@
             </span>
             <span id="apiserver_info">
                 <em>* <%= i18n.__("You can add multiple API Servers separated with a , from which it will select randomly (*for load balancing) until it finds the first available") %></em>
-            </span>
-            <span>
-                <input class="settings-checkbox" name="dhtEnable" id="dhtEnable" type="checkbox" <%=(Settings.dhtEnable? "checked='checked'":"")%>>
-                <label class="settings-label" for="dhtEnable"><%= i18n.__("Automatically update the API Server URLs") %></label>
-                <i class="update-dht fa fa-rotate tooltipped" data-toggle="tooltip" data-placement="auto" title="<%= i18n.__("Check for updates") %>"></i>
             </span>
         </div>
     </section>
@@ -510,23 +503,17 @@
         </div>
     </section>
 
-    <section id="miscellaneous">
-        <div class="title"><%= i18n.__("Updates") %></div>
+    <section id="maintenance">
+        <div class="title"><%= i18n.__("Maintenance") %></div>
         <div class="content">
-            <span>
-                <input class="settings-checkbox" name="updateNotification" id="updateNotification" type="checkbox" <%=(Settings.updateNotification? "checked='checked'":"")%>>
-                <label class="settings-label" for="updateNotification"><%= i18n.__("Show a notification when a new version is available") %></label>
-                <i class="update-app fa fa-rotate tooltipped" data-toggle="tooltip" data-placement="auto" title="<%= i18n.__("Check for updates") %>"></i>
-            </span>
+            <div class="maintenance-actions">
+                <button type="button" class="btn-settings rebuild-bookmarks"><i class="fa fa-wrench"></i><span><%= i18n.__("Rebuild bookmarks database") %></span></button>
+                <button type="button" class="btn-settings flush-bookmarks"><i class="fa fa-trash"></i><span><%= i18n.__("Flush bookmarks database") %></span></button>
+                <button type="button" class="btn-settings flush-watched"><i class="fa fa-trash"></i><span><%= i18n.__("Flush watched database") %></span></button>
+                <button type="button" class="btn-settings default-settings"><i class="fa fa-rotate-right"></i><span><%= i18n.__("Reset to Default Settings") %></span></button>
+                <button type="button" class="btn-settings flush-databases"><i class="fa fa-rotate-right"></i><span><%= i18n.__("Reset all") %></span></button>
+            </div>
         </div>
     </section>
-
-    <div class="btns">
-        <div class="btn-settings rebuild-bookmarks">&nbsp;<i class="fa fa-wrench">&nbsp;&nbsp;&nbsp;</i><%= i18n.__("Rebuild bookmarks database") %>&nbsp;</div>
-        <div class="btn-settings flush-bookmarks">&nbsp;<i class="fa fa-trash">&nbsp;&nbsp;&nbsp;</i><%= i18n.__("Flush bookmarks database") %>&nbsp;</div>
-        <div class="btn-settings flush-watched">&nbsp;<i class="fa fa-trash">&nbsp;&nbsp;&nbsp;</i><%= i18n.__("Flush watched database") %>&nbsp;</div>
-        <div class="btn-settings default-settings">&nbsp;<i class="fa fa-rotate-right">&nbsp;&nbsp;&nbsp;</i><%= i18n.__("Reset to Default Settings") %>&nbsp;</div>
-        <div class="btn-settings flush-databases">&nbsp;<i class="fa fa-rotate-right">&nbsp;&nbsp;&nbsp;</i><%= i18n.__("Reset all") %>&nbsp;&nbsp;</div>
-    </div>
 
 </div>

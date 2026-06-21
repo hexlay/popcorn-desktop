@@ -22,3 +22,8 @@ assert.strictEqual(downloadedEpisodeFiles.showAvailable(index, 'The Bear'), true
 assert.strictEqual(downloadedEpisodeFiles.sourceAvailable(index, {
     url: 'magnet:?xt=urn:btih:0123456789012345678901234567890123456789'
 }, 'Dune: Part Two', 2024), true);
+
+downloadedEpisodeFiles.invalidate();
+const firstRefresh = downloadedEpisodeFiles.getIndex([], true);
+const coalescedRefresh = downloadedEpisodeFiles.getIndex([], true);
+assert.strictEqual(coalescedRefresh, firstRefresh);

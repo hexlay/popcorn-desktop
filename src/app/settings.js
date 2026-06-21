@@ -2,28 +2,13 @@
 var Settings = {
   projectName: 'Popcorn Time',
   projectUrl: '',
-  projectBlog: 'https://github.com/popcorn-official/popcorn-desktop/wiki',
+  projectBlog: 'https://github.com/hexlay/popcorn-desktop/wiki',
   projectForum: 'https://www.reddit.com/r/PopcornTimeApp',
   statusUrl: 'https://status.popcorntime.app',
-  changelogUrl: 'https://github.com/popcorn-official/popcorn-desktop/commits/master',
-  issuesUrl: 'https://github.com/popcorn-official/popcorn-desktop/issues',
-  sourceUrl: 'https://github.com/popcorn-official/popcorn-desktop/',
-  commitUrl: 'https://github.com/popcorn-official/popcorn-desktop/commit',
-  dht: '',
-  dhtInfo: '',
-  updateKey:
-    '-----BEGIN PUBLIC KEY-----\n' +
-    'MIIBtjCCASsGByqGSM44BAEwggEeAoGBAPNM5SX+yR8MJNrX9uCQIiy0t3IsyNHs\n' +
-    'HWA180wDDd3S+DzQgIzDXBqlYVmcovclX+1wafshVDw3xFTJGuKuva7JS3yKnjds\n' +
-    'NXbvM9CrJ2Jngfd0yQPmSh41qmJXHHSwZfPZBxQnspKjbcC5qypM5DqX9oDSJm2l\n' +
-    'fM/weiUGnIf7AhUAgokTdF7G0USfpkUUOaBOmzx2RRkCgYAyy5WJDESLoU8vHbQc\n' +
-    'rAMnPZrImUwjFD6Pa3CxhkZrulsAOUb/gmc7B0K9I6p+UlJoAvVPXOBMVG/MYeBJ\n' +
-    '19/BH5UNeI1sGT5/Kg2k2rHVpuqzcvlS/qctIENgCNMo49l3LrkHbJPXKJ6bf+T2\n' +
-    '8lFWRP2kVlrx/cHdqSi6aHoGTAOBhAACgYBTNeXBHbWDOxzSJcD6q4UDGTnHaHHP\n' +
-    'JgeCrPkH6GBa9azUsZ+3MA98b46yhWO2QuRwmFQwPiME+Brim3tHlSuXbL1e5qKf\n' +
-    'GOm3OxA3zKXG4cjy6TyEKajYlT45Q+tgt1L1HuGAJjWFRSA0PP9ctC6nH+2N3HmW\n' +
-    'RTcms0CPio56gg==\n' +
-    '-----END PUBLIC KEY-----\n',
+  changelogUrl: 'https://github.com/hexlay/popcorn-desktop/commits/master',
+  issuesUrl: 'https://github.com/hexlay/popcorn-desktop/issues',
+  sourceUrl: 'https://github.com/hexlay/popcorn-desktop/',
+  commitUrl: 'https://github.com/hexlay/popcorn-desktop/commit',
   opensubtitles: {
     useragent: 'Butter',
     apikey: 'sAUUD6B9mStMguWGyVSzkXKnHVbuUL6e'
@@ -183,7 +168,6 @@ Settings.httpApiPassword = 'popcorn';
 Settings.defaultApiServers = 'https://fusme.link/,https://jfper.link/,https://uxert.link/,https://yrkde.link/';
 Settings.customMoviesServer = Settings.defaultApiServers;
 Settings.customSeriesServer = Settings.defaultApiServers;
-Settings.dhtEnable = '';
 
 // Connection
 Settings.maxActiveTorrents = 5;
@@ -210,30 +194,12 @@ Settings.downloadsLocation = path.join(os.tmpdir(), Settings.projectName);
 // Database
 Settings.databaseLocation = path.join(data_path, 'data');
 
-// Updates
-Settings.updateNotification = '';
-
 // App Settings
 Settings.version = false;
 Settings.dbversion = '0.1.0';
 Settings.font = 'tahoma';
 Settings.defaultWidth = Math.round(window.screen.availWidth * 0.8);
 Settings.defaultHeight = Math.round(window.screen.availHeight * 0.8);
-
-Settings.updateEndpoint = {
-  url: 'https://butterproject.org/',
-  index: 0,
-  proxies: [
-    {
-      url: 'https://butterproject.org/',
-      fingerprint: ''
-    },
-    {
-      url: 'https://butterproject.github.io/',
-      fingerprint: ''
-    }
-  ]
-};
 
 var ScreenResolution = {
   get SD() {

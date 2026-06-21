@@ -193,32 +193,8 @@
             } else if (this.model.get('poster')) {
                 poster = this.model.get('poster');
             } else {
-                var imdb = this.model.get('imdb_id'),
-                api_key = Settings.tmdb.api_key,
-                movie = (function () {
-                    var tmp = null;
-                    $.ajax({
-                        url: 'http://api.themoviedb.org/3/movie/' + imdb + '?api_key=' + api_key + '&append_to_response=videos',
-                        type: 'get',
-                        dataType: 'json',
-                        timeout: 5000,
-                        async: false,
-                        global: false,
-                        success: function (data) {
-                            tmp = data;
-                        }
-                    });
-                    return tmp;
-                }());
-                poster = movie && movie.poster_path ? 'http://image.tmdb.org/t/p/w500' + movie.poster_path : noimg;
-                this.model.set('poster', poster);
-                !this.model.get('synopsis') && movie && movie.overview ? this.model.set('synopsis', movie.overview) : null;
-                (!this.model.get('rating') || this.model.get('rating') === '0' || this.model.get('rating') === '0.0') && movie && movie.vote_average ? this.model.set('rating', movie.vote_average) : null;
-                (!this.model.get('runtime') || this.model.get('runtime') === '0') && movie && movie.runtime ? this.model.set('runtime', movie.runtime) : null;
-                !this.model.get('trailer') && movie && movie.videos && movie.videos.results && movie.videos.results[0] ? this.model.set('trailer', 'http://www.youtube.com/watch?v=' + movie.videos.results[0].key) : null;
-                (!this.model.get('backdrop') || this.model.get('backdrop') === 'images/posterholder.png') && movie && movie.backdrop_path ? this.model.set('backdrop', 'http://image.tmdb.org/t/p/w500' + movie.backdrop_path) : ((!this.model.get('backdrop') || this.model.get('backdrop') === 'images/posterholder.png') && movie && movie.poster_path ? this.model.set('backdrop', 'http://image.tmdb.org/t/p/w500' + movie.poster_path) : null);
-                !this.model.get('tmdb_id') && movie && movie.id ? this.model.set('tmdb_id', movie.id) : null;
-                this.model.set('getmetarunned', true);
+                poster = noimg;
+                this.fetchMissingPoster(noimg);
             }
 
             if (Settings.translatePosters) {
@@ -228,6 +204,10 @@
                 }
             }
 
+            this.loadPosterImage(poster, noimg);
+        },
+
+        loadPosterImage: function (poster, noimg) {
             Common.loadImage(poster).then((img) => {
                 if (!img && this.model.get('poster_medium') && poster !== this.model.get('poster_medium')) {
                     poster = this.model.get('poster_medium');
@@ -245,6 +225,47 @@
                     this.ui.cover.css('background-image', 'url(' + (img || noimg) + ')').addClass('fadein');
                 }
             });
+        },
+
+        fetchMissingPoster: function (noimg) {
+            var imdb = this.model.get('imdb_id');
+            var apiKey = Settings.tmdb.api_key;
+            if (!imdb || !apiKey || this.model.get('getmetarunned')) {
+                return;
+            }
+            this.model.set('getmetarunned', true);
+            $.ajax({
+                url: 'https://api.themoviedb.org/3/movie/' + imdb + '?api_key=' + apiKey + '&append_to_response=videos',
+                type: 'get',
+                dataType: 'json',
+                timeout: 5000,
+                global: false
+            }).done(function (movie) {
+                if (this._isDestroyed) {
+                    return;
+                }
+                var poster = movie.poster_path ? 'https://image.tmdb.org/t/p/w500' + movie.poster_path : noimg;
+                this.model.set('poster', poster);
+                if (!this.model.get('synopsis') && movie.overview) {
+                    this.model.set('synopsis', movie.overview);
+                }
+                if ((!this.model.get('rating') || this.model.get('rating') === '0' || this.model.get('rating') === '0.0') && movie.vote_average) {
+                    this.model.set('rating', movie.vote_average);
+                }
+                if ((!this.model.get('runtime') || this.model.get('runtime') === '0') && movie.runtime) {
+                    this.model.set('runtime', movie.runtime);
+                }
+                if (!this.model.get('trailer') && movie.videos && movie.videos.results && movie.videos.results[0]) {
+                    this.model.set('trailer', 'https://www.youtube.com/watch?v=' + movie.videos.results[0].key);
+                }
+                if ((!this.model.get('backdrop') || this.model.get('backdrop') === noimg) && (movie.backdrop_path || movie.poster_path)) {
+                    this.model.set('backdrop', 'https://image.tmdb.org/t/p/w500' + (movie.backdrop_path || movie.poster_path));
+                }
+                if (!this.model.get('tmdb_id') && movie.id) {
+                    this.model.set('tmdb_id', movie.id);
+                }
+                this.loadPosterImage(poster, noimg);
+            }.bind(this));
         },
 
         setTooltips: function () {

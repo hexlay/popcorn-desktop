@@ -1,27 +1,32 @@
 <h1 align="center">
   <br>
-  <a href="https://popcorn-time.site"><img src="https://avatars2.githubusercontent.com/u/7267937?s=200" alt="Popcorn Time" width="200"></a>
+  <a href="https://github.com/hexlay/popcorn-desktop"><img src="src/app/images/icon.png" alt="Popcorn Time" width="160"></a>
   <br>
   Popcorn Time
   <br>
   <br>
 </h1>
 
-<h4 align="center">A multi-platform, free software BitTorrent client that includes an integrated media player.</h4>
+<h4 align="center">Phoenix — a multi-platform BitTorrent client with an integrated media player.</h4>
 
 <p align="center">
-  <a href="https://github.com/popcorn-official/popcorn-desktop/releases/latest"><img src="https://img.shields.io/github/v/release/popcorn-official/popcorn-desktop?color=brightgreen&label=latest%20release"></a>
-  <a href="https://github.com/popcorn-official/popcorn-desktop/releases/latest"><img src="https://img.shields.io/github/release-date/popcorn-official/popcorn-desktop?label="></a>
-  <a href="https://github.com/popcorn-official/popcorn-desktop/compare/master...development"><img src="https://img.shields.io/github/commits-since/popcorn-official/popcorn-desktop/latest?label=commits%20since"></a>
-  <a href="https://github.com/popcorn-official/popcorn-desktop/commit/development"><img src="https://img.shields.io/github/last-commit/popcorn-official/popcorn-desktop?label=latest%20commit"></a>
-  <a href="https://github.com/popcorn-official/popcorn-desktop/actions"><img src="https://img.shields.io/github/actions/workflow/status/popcorn-official/popcorn-desktop/build.yml?branch=development&label=latest%20build"></a><br>
-  <a href="https://popcorn-time.site"><img src="https://img.shields.io/website?down_color=red&down_message=offline&label=popcorn-time.site&up_color=brightgreen&up_message=online&url=https%3A%2F%2Fpopcorn-time.site"></a>
-  <a href="https://github.com/popcorn-official"><img src="https://img.shields.io/website?down_color=red&down_message=offline&label=github&up_color=brightgreen&up_message=online&url=https%3A%2F%2Fgithub.com%2Fpopcorn-official"></a>
-  <a href="https://www.reddit.com/r/PopCornTimeApp"><img src="https://img.shields.io/website?down_color=red&down_message=offline&label=reddit&up_color=brightgreen&up_message=online&url=https%3A%2F%2Fwww.reddit.com%2Fr%2Fpopcorntimeapp%2F"></a>
-  <a href="https://github.com/popcorn-official/popcorn-desktop/wiki/"><img src="https://img.shields.io/website?down_color=red&down_message=offline&label=wiki&up_color=brightgreen&up_message=online&url=https%3A%2F%2Fgithub.com%2Fpopcorn-official%2Fpopcorn-desktop%2Fwiki%2F"></a>
-  <a href="https://github.com/popcorn-official/popcorn-desktop/wiki/FAQ"><img src="https://img.shields.io/website?down_color=red&down_message=offline&label=faq&up_color=brightgreen&up_message=online&url=https%3A%2F%2Fgithub.com%2Fpopcorn-official%2Fpopcorn-desktop%2Fwiki%2FFAQ"></a>
+  <a href="https://github.com/hexlay/popcorn-desktop">Source</a> ·
+  <a href="https://github.com/hexlay/popcorn-desktop/releases">Releases</a> ·
+  <a href="https://github.com/hexlay/popcorn-desktop/actions">Builds</a> ·
+  <a href="https://github.com/hexlay/popcorn-desktop/issues">Issues</a> ·
+  <a href="https://github.com/hexlay/popcorn-desktop/blob/development/CHANGELOG.md">Changelog</a> ·
+  <a href="https://github.com/hexlay/popcorn-desktop/wiki">Wiki</a>
+</p>
 
-<h4 align="center">Visit the project's website at <a href="https://popcorn-time.site">popcorn-time.site</a></h4>
+## Screenshots
+
+### Home
+
+![Phoenix home screen](docs/screenshots/phoenix-home.jpg)
+
+### Settings
+
+![Phoenix settings screen](docs/screenshots/phoenix-settings.jpg)
 
 ***
 
@@ -29,29 +34,14 @@
 
 ### Windows:
 Download and install:
-  * **Latest release**: check [popcorn-time.site](https://popcorn-time.site) or the repo's [releases page](https://github.com/popcorn-official/popcorn-desktop/releases)
-  * Or **latest dev build (for testers)**: check the repo's [actions page](https://github.com/popcorn-official/popcorn-desktop/actions)
+  * **Latest release**: check the project's [releases page](https://github.com/hexlay/popcorn-desktop/releases)
+  * Or **latest dev build (for testers)**: check the project's [actions page](https://github.com/hexlay/popcorn-desktop/actions)
 
 
 ### macOS:
 Download and install:
-  * **Latest release**: check [popcorn-time.site](https://popcorn-time.site) or the repo's [releases page](https://github.com/popcorn-official/popcorn-desktop/releases)
-  * Or **latest dev build (for testers)**: check the repo's [actions page](https://github.com/popcorn-official/popcorn-desktop/actions)
-
-Easily install Popcorn Time via _[Homebrew](https://brew.sh) ([Cask](https://docs.brew.sh/Cask-Cookbook)):_
-  ~~~ rb
-  brew tap popcorn-official/popcorn-desktop https://github.com/popcorn-official/popcorn-desktop.git
-  #export HOMEBREW_POPCORN_TIME_BUILD=false
-  brew install --cask popcorn-time #--no-quarantine
-  ~~~
-
-Also, if you keep a [_Brewfile_](https://github.com/Homebrew/homebrew-bundle#usage), you can add something like this:
-  ~~~ rb
-  repo = "popcorn-official/popcorn-desktop"
-  tap repo, "https://github.com/#{repo}.git"
-  #ENV["HOMEBREW_POPCORN_TIME_BUILD"] = "false"
-  cask "popcorn-time" #, args: { "no-quarantine": true }
-  ~~~
+  * **Latest release**: check the project's [releases page](https://github.com/hexlay/popcorn-desktop/releases)
+  * Or **latest dev build (for testers)**: check the project's [actions page](https://github.com/hexlay/popcorn-desktop/actions)
 
 #### Apple Silicon:
 
@@ -64,8 +54,8 @@ xattr -c "/Applications/Popcorn-Time.app/"
 
 ### Linux - Debian/Ubuntu based distros:
 Download and install:
-  * **Latest release**: check [popcorn-time.site](https://popcorn-time.site) or the repo's [releases page](https://github.com/popcorn-official/popcorn-desktop/releases)
-  * Or **latest dev build (for testers)**: check the repo's [actions page](https://github.com/popcorn-official/popcorn-desktop/actions)
+  * **Latest release**: check the project's [releases page](https://github.com/hexlay/popcorn-desktop/releases)
+  * Or **latest dev build (for testers)**: check the project's [actions page](https://github.com/hexlay/popcorn-desktop/actions)
 
 Via .deb package:
 
@@ -74,13 +64,13 @@ Via .deb package:
 
 Via archive and command line (tested on ubuntu 18.04 and 20.04):
   1. Download Popcorn Time archive from the github repo for the **latest release** :
-  `wget -c https://github.com/popcorn-official/popcorn-desktop/releases/download/v0.5.1/Popcorn-Time-0.5.1-linux64.zip`
+  `wget -c https://github.com/hexlay/popcorn-desktop/releases/download/v0.6.0/Popcorn-Time-0.6.0-linux64.zip`
   2. Create popcorn-time folder in /opt/:  
   `sudo mkdir /opt/popcorn-time`  
   3. Install unzip && dependencies (they should not be always required but some users needed them to make Popcorn Time working):  
   `sudo apt update && sudo apt install unzip libcanberra-gtk-module libgconf-2-4 libatomic1`  
   4. Extract the zip in /opt/popcorn-time:  
-  `sudo unzip Popcorn-Time-0.5.1-linux64.zip -d /opt/popcorn-time`
+  `sudo unzip Popcorn-Time-0.6.0-linux64.zip -d /opt/popcorn-time`
   5. Create symlink of Popcorn-Time in /usr/bin:  
   `sudo ln -sf /opt/popcorn-time/Popcorn-Time /usr/bin/popcorn-time`  
   6. Create .desktop file (so the launcher):  
@@ -102,8 +92,8 @@ Via archive and command line (tested on ubuntu 18.04 and 20.04):
 
 If you're comfortable getting up and running from a `git clone`, this method is for you.
 
-The [development](https://github.com/popcorn-official/popcorn-desktop/tree/development) branch contains the latest changes.  
-The [master](https://github.com/popcorn-official/popcorn-desktop/tree/master) branch contains the latest release.
+The [development](https://github.com/hexlay/popcorn-desktop/tree/development) branch contains the latest changes.
+The [master](https://github.com/hexlay/popcorn-desktop/tree/master) branch contains the latest release.
 
 #### Quickstart:
 
@@ -141,12 +131,7 @@ You can also join our [community](README.md#community) to keep up-to-date and me
 <a name="community"></a>
 ## Community
 Keep track of Popcorn Time development and community activity.
-  * Read and contribute to the official [Popcorn Time Wiki](https://github.com/popcorn-official/popcorn-desktop/wiki/).
-  * Join in discussions on [r/PopCornTimeApp](https://www.reddit.com/r/PopcornTimeApp).
-
-
-## Screenshots
-![Popcorn Time](https://cloud.githubusercontent.com/assets/8317250/10714437/b1e1dc8c-7b32-11e5-9c25-d9fbd5b2f3bd.png)
+  * Report bugs and request features through [GitHub Issues](https://github.com/hexlay/popcorn-desktop/issues).
 
 
 ## Versioning
@@ -176,4 +161,4 @@ You should have received a copy of the GNU General Public License along with thi
 
 ***
 
-Copyright © 2025 Popcorn Time Project - Released under the [GPL v3 license](LICENSE.txt).
+Copyright © 2026 Popcorn Time Project - Released under the [GPL v3 license](LICENSE.txt).

@@ -1,6 +1,8 @@
 (function (App) {
     'use strict';
 
+    var marked = require('marked').marked;
+
     var About = Marionette.View.extend({
         template: '#about-tpl',
         className: 'about',
@@ -12,7 +14,7 @@
         events: {
             'click .close-icon': 'closeAbout',
             'mousedown #changelog': 'showChangelog',
-            'mousedown .update-app': 'updateApp',
+            'click .changelog-text a': 'openChangelogLink',
             'contextmenu .links': 'copytoclip'
         },
 
@@ -39,28 +41,27 @@
 
         copytoclip: (e) => Common.openOrClipboardLink(e, $(e.target)[0].href, i18n.__('link'), true),
 
-        updateApp: function(e) {
-            if (e.button === 2) {
-                Common.openOrClipboardLink(e, Settings.projectUrl, i18n.__('link'), true);
-            } else {
-                let updateMode = e === 'enable' ? e : (e ? 'about' : '');
-                App.Updater.onlyNotification(updateMode);
-            }
-        },
-
         showChangelog: function (e) {
             if (e.button === 2) {
                 Common.openOrClipboardLink(e, (App.git ? App.git.semver : App.settings.version), i18n.__('version number'), true);
             } else {
                 fs.readFile('./CHANGELOG.md', 'utf-8', function (err, contents) {
                     if (!err) {
-                        $('.changelog-text').html(contents.replace(/\n/g, '<br />'));
+                        $('.changelog-text').html(marked.parse(contents, {
+                            headerIds: false,
+                            mangle: false
+                        }));
                         $('.changelog-overlay').show();
                     } else {
                         nw.Shell.openExternal(Settings.changelogUrl);
                     }
                 });
             }
+        },
+
+        openChangelogLink: function (e) {
+            e.preventDefault();
+            nw.Shell.openExternal(e.currentTarget.href);
         },
 
         closeChangelog: function () {

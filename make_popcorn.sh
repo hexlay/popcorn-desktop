@@ -10,15 +10,15 @@
 ## If you use 'ssh' in the place of the optional [url] parameter, it will clone via ssh instead of http
 ##
 ## Optionally, you can also pass in a specific branch to build or clone, by making url contain a branch specifier
-## ./make_popcorn.sh '-b release/0.3.4 https://github.com/popcorn-official/popcorn-desktop'
+## ./make_popcorn.sh '-b development https://github.com/hexlay/popcorn-desktop'
 ##
 
 
 clone_repo="True"
 if [ -z "$1" ]; then
-    clone_url="https://github.com/popcorn-official/popcorn-desktop.git"
+    clone_url="https://github.com/hexlay/popcorn-desktop.git"
 elif [ "$1" = "ssh" ]; then
-    clone_url="ssh://git@github.com:popcorn-official/popcorn-desktop.git"
+    clone_url="ssh://git@github.com:hexlay/popcorn-desktop.git"
 else
     clone_url="$1"
 fi

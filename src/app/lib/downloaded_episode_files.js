@@ -7,6 +7,7 @@ const parseTorrent = require('parse-torrent');
 const videoExtensions = ['.mp4', '.m4v', '.avi', '.mov', '.mkv', '.wmv'];
 var cachedRoots;
 var cachedIndex;
+var refreshInProgress = false;
 
 function normalize(value) {
     return String(value || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
@@ -122,15 +123,23 @@ async function createIndex(roots) {
 
 function getIndex(roots, refresh) {
     var rootKey = (roots || []).filter(Boolean).sort().join('|');
-    if (refresh || !cachedIndex || cachedRoots !== rootKey) {
+    var rootsChanged = cachedRoots !== rootKey;
+    if (!cachedIndex || rootsChanged || (refresh && !refreshInProgress)) {
         cachedRoots = rootKey;
+        refreshInProgress = Boolean(refresh);
         cachedIndex = createIndex(roots);
+        cachedIndex.then(function() {
+            refreshInProgress = false;
+        }, function() {
+            refreshInProgress = false;
+        });
     }
     return cachedIndex;
 }
 
 function invalidate() {
     cachedIndex = null;
+    refreshInProgress = false;
 }
 
 function scan(roots, refresh) {

@@ -265,6 +265,27 @@ Common.Promises = {
     }
 };
 
+Common.notifyApiUnavailable = function () {
+    var now = Date.now();
+    if (Common.apiUnavailableNotifiedAt && now - Common.apiUnavailableNotifiedAt < 30000) {
+        return;
+    }
+    Common.apiUnavailableNotifiedAt = now;
+    App.vent.trigger('notification:show', new App.Model.Notification({
+        title: i18n.__('Content servers unavailable'),
+        body: i18n.__('The API URLs may be out of date. Check the project repository for a manual app update.'),
+        type: 'error',
+        buttons: [{
+            title: '<i class="fab fa-github"></i><span>' + i18n.__('Open repository') + '</span>',
+            class: 'primary',
+            action: function () {
+                nw.Shell.openExternal(Settings.sourceUrl);
+                App.vent.trigger('notification:close');
+            }
+        }]
+    }));
+};
+
 Common.getTorrentUri = torrent => torrent.magnet || torrent.url || torrent;
 
 Common.openOrClipboardLink = function(e, link, text, noOpen = false, noCopy = false) {

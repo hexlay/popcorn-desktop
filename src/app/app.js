@@ -93,16 +93,22 @@ App.db = Database;
 // Set settings
 App.advsettings = AdvSettings;
 App.settings = Settings;
-App.WebTorrent = new WebTorrent({
-  maxConns     : parseInt(Settings.connectionLimit, 10) || 55,
-  downloadLimit: parseInt(parseFloat(Settings.downloadLimit, 10) * parseInt(Settings.maxLimitMult, 10)) || -1,
-  uploadLimit  : parseInt(parseFloat(Settings.uploadLimit, 10) * parseInt(Settings.maxLimitMult, 10)) || -1,
-  dht          : { concurrency: parseInt(Settings.maxUdpReqLimit, 10) || 16 },
-  secure       : Settings.protocolEncryption || false,
-  tracker      : {
-    announce: Settings.trackers.forced
+App.createWebTorrent = function () {
+  if (App.WebTorrent) {
+    return App.WebTorrent;
   }
-});
+  App.WebTorrent = new WebTorrent({
+    maxConns     : parseInt(Settings.connectionLimit, 10) || 55,
+    downloadLimit: parseInt(parseFloat(Settings.downloadLimit, 10) * parseInt(Settings.maxLimitMult, 10)) || -1,
+    uploadLimit  : parseInt(parseFloat(Settings.uploadLimit, 10) * parseInt(Settings.maxLimitMult, 10)) || -1,
+    dht          : { concurrency: parseInt(Settings.maxUdpReqLimit, 10) || 16 },
+    secure       : Settings.protocolEncryption || false,
+    tracker      : {
+      announce: Settings.trackers.forced
+    }
+  });
+  return App.WebTorrent;
+};
 
 App.plugins = {};
 
@@ -318,6 +324,10 @@ function close() {
 
   // If the WebTorrent is destroyed, that means the user has already clicked the close button.
   // Try to let the WebTorrent destroy from that closure. Even if it fails, the window will close.
+  if (!App.WebTorrent) {
+    win.close(true);
+    return;
+  }
   if (App.WebTorrent.destroyed) {
     return;
   }

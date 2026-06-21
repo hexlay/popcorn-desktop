@@ -1,3 +1,57 @@
+## 0.6.0 - Phoenix - 20 June 2026
+
+All changes in this release were authored by **hexlay**.
+
+### New Features
+
+- Add a new Home browser and make it the default start screen.
+- Add configurable Torrent Collection search engines for movie sources.
+- Integrate Torrent Collection results with movie and series playback sources.
+- Add source audio-language detection, grouping, quality preferences, peer-aware sorting, and deduplication.
+- Add fallback provider sources when Torrent Collection results are missing or incomplete.
+- Add offline movie and episode detection, downloaded-content badges, and direct offline playback.
+- Add cached API responses and torrent-location handling for more resilient browsing and playback.
+- Add shared poster transitions and circular reveal animations when opening and closing movie or series details.
+- Add poster backdrops to Home and list cards.
+- Add dynamic Movies and Series headings based on the active sort filter.
+- Add the current source and offline state to torrent-selection and loading interfaces.
+
+### Interface and Experience
+
+- Redesign the Home, list, filter bar, title bar, item cards, details, settings, loading, keyboard, and About interfaces.
+- Remove the old list hero and simplify the browser layout around content cards.
+- Remove the Anime tab and its obsolete settings and navigation paths.
+- Improve movie and series source selection, quality controls, language controls, and fallback-source labels.
+- Improve loading overlays, progress feedback, source status messages, and error recovery.
+- Improve detail-page responsiveness and preserve usable metadata when individual providers fail.
+- Refresh watched, bookmarked, offline, hover, cover, header-shadow, and overlay states.
+
+### Performance and Reliability
+
+- Eliminate synchronous TMDB poster requests from card rendering.
+- Defer WebTorrent construction until persisted settings are available.
+- Coalesce concurrent offline-file index refreshes and cache filesystem scans.
+- Reduce list-scroll layout work, reuse animation-frame callbacks, and batch ghost-card insertion.
+- Refactor torrent search and source merging into reusable, deterministic modules.
+- Improve startup settings restoration and `localStorage` handling.
+- Improve handling of missing providers, unavailable images, failed metadata requests, and existing torrents.
+
+### Platform, APIs, and Tooling
+
+- Update NW.js to 0.112.0 and refresh Node dependencies.
+- Remove the unsupported Linux 32-bit build target while retaining Intel and Apple Silicon macOS packages.
+- Update OpenSubtitles to the current API and normalize subtitle search behavior and URLs.
+- Update build downloads to the maintained NW.js host and make runtime download failures fatal.
+- Add a patch-package-based `nw-builder` compatibility patch and a repository-managed pre-commit hook installer.
+- Point release, update, issue, wiki, build, Homebrew, and contribution links to `hexlay/popcorn-desktop`.
+- Set the release version to 0.6.0 with the codename **Phoenix**.
+
+### Tests
+
+- Add coverage for Torrent Collection searching, source grouping, quality selection, and deduplication.
+- Add coverage for API response caching, downloaded-file indexing, offline source matching, and torrent locations.
+- Add coverage ensuring concurrent offline-index refresh requests share one scan.
+
 ## 0.5.1 - Now.. Bring me that Horizon - 16 April 2024
 
 New Features:

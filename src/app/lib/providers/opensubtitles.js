@@ -154,7 +154,7 @@
 
         return new OS({
             apikey: apiKey,
-            useragent: 'Popcorn Time v' + (Settings.version || '0.5.1')
+            useragent: 'Popcorn Time v' + (Settings.version || '0.6.0')
         });
     };
 
