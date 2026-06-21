@@ -1,7 +1,5 @@
 ## 0.6.0 - Phoenix - 20 June 2026
 
-All changes in this release were authored by **hexlay**.
-
 ### New Features
 
 - Add a new Home browser and make it the default start screen.
