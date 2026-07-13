@@ -37,9 +37,14 @@
 
             timeout = timeout === true ? 6000 : timeout;
 
-            setTimeout(function () {
+            this.autoCloseTimer = setTimeout(function () {
                 _this.closeNotification();
             }, timeout);
+        },
+
+        onBeforeDestroy: function () {
+            clearTimeout(this.autoCloseTimer);
+            this.autoCloseTimer = null;
         },
 
         closeNotification: function () {

@@ -2,6 +2,7 @@
     'use strict';
     var dlnacasts = require('dlnacasts2')();
     var collection = App.Device.Collection;
+    var scanStarted = false;
 
 
     class Dlna extends App.Device.Loaders.Device {
@@ -52,12 +53,20 @@
                     self.set('loadedMedia', status.media);
                 }
             });
-            this.player.on('status', function(status) {
+            if (this.statusHandler) {
+                this.player.removeListener('status', this.statusHandler);
+            }
+            this.statusHandler = function(status) {
                 self._internalStatusUpdated(status);
-            });
+            };
+            this.player.on('status', this.statusHandler);
         }
 
         stop() {
+            if (this.statusHandler) {
+                this.player.removeListener('status', this.statusHandler);
+                this.statusHandler = null;
+            }
             this.player.stop();
         }
 
@@ -111,17 +120,20 @@
         }
 
         static scan() {
-            dlnacasts.on('update', function(player) {
-                if (collection.where({
-                    id: player.host
-                }).length === 0) {
-                    win.info('Found DLNA Device: %s at %s', player.name, player.host);
-                    collection.add(new Dlna({
-                        id: player.host,
-                        player: player
-                    }));
-                }
-            });
+            if (!scanStarted) {
+                scanStarted = true;
+                dlnacasts.on('update', function(player) {
+                    if (collection.where({
+                        id: player.host
+                    }).length === 0) {
+                        win.info('Found DLNA Device: %s at %s', player.name, player.host);
+                        collection.add(new Dlna({
+                            id: player.host,
+                            player: player
+                        }));
+                    }
+                });
+            }
 
             win.info('Scanning: Local Network for DLNA devices');
             dlnacasts.update();

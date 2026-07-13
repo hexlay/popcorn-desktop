@@ -2,7 +2,7 @@
     'use strict';
 
     var getDataFromProvider = function (providers, collection) {
-        var filters = Object.assign(collection.filter, {page: providers.torrent.page});
+        var filters = Object.assign({}, collection.filter, {page: providers.torrent.page});
         return providers.torrent.fetch(filters)
             .then(function (torrents) {
                 // If a new request was started...
@@ -23,12 +23,7 @@
 
                     movie.providers = providers;
                 });
-
                 return torrents;
-            })
-            .catch(function (err) {
-                collection.state = 'error';
-                collection.trigger('loaded', collection, collection.state);
             });
     };
 
@@ -48,6 +43,7 @@
 
             this.filter = _.clone(options.filter.attributes);
             this.hasMore = true;
+            this.fetchPromise = null;
 
             Backbone.Collection.prototype.initialize.apply(this, arguments);
         },
@@ -55,8 +51,11 @@
         fetch: function () {
             var self = this;
 
-            if (this.state === 'loading' && !this.hasMore) {
-                return;
+            if (this.state === 'loading') {
+                return this.fetchPromise;
+            }
+            if (!this.hasMore) {
+                return Promise.resolve(this);
             }
 
             this.state = 'loading';
@@ -75,7 +74,6 @@
 
                 torrentProvider.loading = true;
                 return getDataFromProvider(providers, self)
-                    .then(torrentProvider.loading = false)
                     .then(function (torrents) {
                         // set state, can't fail
                         if (torrents.results.length !== 0) {
@@ -86,15 +84,42 @@
 
                         self.add(torrents.results);
 
-                        // set state, can't fail
                         self.trigger('sync', self);
-                        self.state = 'loaded';
-                        self.trigger('loaded', self, self.state);
-                    })
-                    .catch(function (err) {
-                        win.error('provider error err', err);
+                        return torrents;
+                    }).then(function(result) {
+                        torrentProvider.loading = false;
+                        return result;
+                    }, function(err) {
+                        torrentProvider.loading = false;
+                        throw err;
                     });
             });
+
+            if (!torrentPromises.length) {
+                this.hasMore = false;
+                this.state = 'loaded';
+                this.trigger('loaded', this, this.state);
+                return Promise.resolve(this);
+            }
+
+            this.fetchPromise = Promise.all(torrentPromises).then(function() {
+                self.hasMore = torrents.some(function(torrentProvider) {
+                    return torrentProvider.hasMore;
+                });
+                self.state = 'loaded';
+                self.trigger('loaded', self, self.state);
+                return self;
+            }).catch(function(err) {
+                self.state = 'error';
+                self.trigger('loaded', self, self.state);
+                win.error('provider error err', err);
+                return self;
+            }).then(function(result) {
+                self.fetchPromise = null;
+                return result;
+            });
+
+            return this.fetchPromise;
         },
 
         fetchMore: function () {

@@ -4,6 +4,7 @@
     const ChromecastAPI = require('chromecast-api'),
           client = new ChromecastAPI(),
           collection = App.Device.Collection;
+    var scanStarted = false;
 
     class Chromecast extends App.Device.Loaders.Device {
         constructor(attrs) {
@@ -43,7 +44,10 @@
                     self.set('loadedMedia', status.media);
                 }
             });
-            this.device.on('status', function (status) {
+            if (this.statusHandler) {
+                this.device.removeListener('status', this.statusHandler);
+            }
+            this.statusHandler = function (status) {
                 // If we got interrupted because we are updating subtitles, we don't want to close the streamer
                 // There's currently no way to reload a media with the castv2 library without interrupting the current media
                 if (status.idleReason === 'INTERRUPTED' && self.updatingSubtitles) {
@@ -51,9 +55,13 @@
                 } else {
                     self._internalStatusUpdated(status);
                 }
-            });
+            };
+            this.device.on('status', this.statusHandler);
 
-            App.vent.on('videojs:drop_sub', function() {
+            if (this.dropSubtitlesHandler) {
+                App.vent.off('videojs:drop_sub', this.dropSubtitlesHandler);
+            }
+            this.dropSubtitlesHandler = function() {
                 self.updatingSubtitles = true;
                 var subname = Settings.droppedSub;
                 var subpath = path.join(App.settings.tmpLocation, subname);
@@ -77,7 +85,8 @@
                         }
                     });
                 });
-            });
+            };
+            App.vent.on('videojs:drop_sub', this.dropSubtitlesHandler);
         }
 
         createMedia(streamModel, useLocalSubtitle) {
@@ -133,15 +142,20 @@
         }
 
         stop() {
-            App.vent.off('videojs:drop_sub');
+            if (this.dropSubtitlesHandler) {
+                App.vent.off('videojs:drop_sub', this.dropSubtitlesHandler);
+                this.dropSubtitlesHandler = null;
+            }
+            if (this.statusHandler) {
+                this.device.removeListener('status', this.statusHandler);
+                this.statusHandler = null;
+            }
             App.vent.trigger('stream:stop');
             App.vent.trigger('player:close');
             App.vent.trigger('torrentcache:stop');
             var device = this.get('device');
             // Also stops player and closes connection.
-            device.stop(function () {
-                device.removeAllListeners();
-            });
+            device.stop(function () {});
             device.close(); //Back to ChromeCast home screen instead of black screen
 
             App.vent.trigger('stream:unserve_subtitles');
@@ -166,7 +180,10 @@
 
         updateStatus() {
             var self = this;
-            client.on('status', function (status) {
+            this.device.status(function (err, status) {
+                if (err) {
+                    return win.error('Chromecast.updateStatus:', err);
+                }
                 self._internalStatusUpdated(status);
             });
         }
@@ -184,13 +201,16 @@
 
         static scan() {
             win.info('Scanning: Local Network for Chromecast devices');
+            if (!scanStarted) {
+                scanStarted = true;
+                client.on('device', function (player) {
+                    win.info('Found Chromecast Device: %s at %s', player.friendlyName, player.host);
+                    collection.add(new Chromecast({
+                        device: player
+                    }));
+                });
+            }
             client.update();
-            client.on('device', function (player) {
-                win.info('Found Chromecast Device: %s at %s', player.friendlyName, player.host);
-                collection.add(new Chromecast({
-                    device: player
-                }));
-            });
         }
     }
 

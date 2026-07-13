@@ -30,7 +30,12 @@ provider.fetch = function () {
 };
 apiResponseCache.decorate(provider, settings, 100);
 
-provider.fetch(args[0]).then(function (liveResponse) {
+apiResponseCache.writeAsync(provider, 'detail', ['tt123'], settings, response).then(function() {
+    return apiResponseCache.readAsync(provider, 'detail', ['tt123'], settings);
+}).then(function(asyncResponse) {
+    assert.deepStrictEqual(asyncResponse, response);
+    return provider.fetch(args[0]);
+}).then(function (liveResponse) {
     assert.deepStrictEqual(liveResponse, response);
     assert.strictEqual(liveCalls, 1);
     liveFails = true;

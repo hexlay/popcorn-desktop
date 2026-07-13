@@ -23,6 +23,7 @@
 
         initialize: function () {
             that = this;
+            this.startedStreaming = false;
             magnetName = Settings.droppedMagnetName;
             delete(Settings.droppedMagnetName);
             importedTorrent = Settings.importedTorrent;
@@ -71,6 +72,7 @@
         startStreaming: function (e) {
             $('.tooltipped').tooltip('hide');
             if (that.model.get('localFile')) {
+                that.startedStreaming = true;
                 App.vent.trigger('stream:start', that.model, 'local');
                 return App.vent.trigger('system:closeFileSelector');
             }
@@ -195,6 +197,9 @@
         },
 
         onBeforeDestroy: function () {
+            if (this.model.get('localFile') && !this.startedStreaming) {
+                App.vent.trigger('stream:stop');
+            }
             Settings.droppedTorrent = false;
             Settings.droppedMagnet = false;
             Settings.droppedStoredMagnet = false;

@@ -130,14 +130,14 @@
             this.localizeTexts();
 
             //If a child was removed from above this view
-            App.vent.on('viewstack:pop', function () {
+            this.listenTo(App.vent, 'viewstack:pop', function () {
                 if (_.last(App.ViewStack) === _this.className) {
                     _this.initKeyboardShortcuts();
                 }
             });
 
             //If a child was added above this view
-            App.vent.on('viewstack:push', function () {
+            this.listenTo(App.vent, 'viewstack:push', function () {
                 if (_.last(App.ViewStack) !== _this.className && _.last(App.ViewStack) !== 'notificationWrapper') {
                     _this.unbindKeyboardShortcuts();
                 }
@@ -147,7 +147,7 @@
             App.vent.on('show:watched:' + this.model.id, this.watchedHandler);
             App.vent.on('show:unwatched:' + this.model.id, this.unwatchedHandler);
 
-            App.vent.on('shortcuts:shows', function () {
+            this.listenTo(App.vent, 'shortcuts:shows', function () {
                 _this.initKeyboardShortcuts();
             });
 

@@ -1,5 +1,5 @@
-const Server = require("webtorrent/lib/server");
-const FileServer = require("./fileserver");
+const Server = require('webtorrent/lib/server');
+const FileServer = require('./fileserver');
 const downloadedEpisodeFiles = require('./lib/downloaded_episode_files');
 const getTorrentLocation = require('./lib/torrent_location');
 (function (App) {
@@ -31,9 +31,63 @@ const getTorrentLocation = require('./lib/torrent_location');
         this.preload = false;
         // Boolean to indicate is local file
         this.isLocalFile = false;
+        this.server = null;
+        this.serverRetryTimeout = null;
+        this.serverRetryReject = null;
+        this.streamListeners = [];
+        this.torrentModelChangeHandler = null;
+        this.subtitleDownloadedHandler = null;
     };
 
     WebTorrentStreamer.prototype = {
+
+        addStreamListener: function(emitter, event, handler, once) {
+            if (!emitter) {
+                return;
+            }
+            emitter[once ? 'once' : 'on'](event, handler);
+            this.streamListeners.push({
+                emitter: emitter,
+                event: event,
+                handler: handler
+            });
+        },
+
+        clearStreamListeners: function() {
+            this.streamListeners.forEach(function(listener) {
+                listener.emitter.removeListener(listener.event, listener.handler);
+            });
+            this.streamListeners = [];
+
+            if (this.torrentModel && this.torrentModelChangeHandler) {
+                this.torrentModel.off('change', this.torrentModelChangeHandler);
+            }
+            this.torrentModelChangeHandler = null;
+        },
+
+        destroyServer: function(cancelPending) {
+            clearTimeout(this.serverRetryTimeout);
+            this.serverRetryTimeout = null;
+            if (cancelPending && this.serverRetryReject) {
+                var reject = this.serverRetryReject;
+                this.serverRetryReject = null;
+                reject(new Error('Streaming stopped'));
+            }
+            if (!this.server) {
+                return;
+            }
+            var server = this.server;
+            this.server = null;
+            try {
+                if (typeof server.destroy === 'function') {
+                    server.destroy();
+                } else if (typeof server.close === 'function') {
+                    server.close();
+                }
+            } catch (error) {
+                win.error('Could not close stream server:', error);
+            }
+        },
 
         initExistTorrents: function() {
           if (!Settings.continueSeedingOnStart) {
@@ -157,7 +211,9 @@ const getTorrentLocation = require('./lib/torrent_location');
                     isReady: true
                 });
                 this.torrent = null;
-                return this.createFileServer(fileForServer).then(() => { App.vent.trigger('system:openFileSelector', this.streamInfo); });
+                return this.createFileServer(fileForServer)
+                    .then(() => { App.vent.trigger('system:openFileSelector', this.streamInfo); })
+                    .catch(this.handleErrors.bind(this));
             }
             if (!this.downloadOnly && !this.preload) {
                 this.fetchTorrent(this.torrentModel.get('torrent'), location, model.get('title')).then(function (torrent) {
@@ -180,6 +236,8 @@ const getTorrentLocation = require('./lib/torrent_location');
         },
 
         stop: function() {
+            this.destroyServer(true);
+            this.clearStreamListeners();
             if (this.torrent) {
                 // update ratio
                 AdvSettings.set('totalDownloaded', Settings.totalDownloaded + this.torrent.downloaded);
@@ -237,12 +295,19 @@ const getTorrentLocation = require('./lib/torrent_location');
             clearInterval(this.updateStatsInterval);
             this.updateStatsInterval = null;
 
-            App.vent.off('subtitle:downloaded');
+            if (this.subtitleDownloadedHandler) {
+                App.vent.off('subtitle:downloaded', this.subtitleDownloadedHandler);
+                this.subtitleDownloadedHandler = null;
+            }
             App.SubtitlesServer.stop();
             win.info('Streaming cancelled');
         },
 
         stopFS: function() {
+            if (!this.isLocalFile) {
+                this.destroyServer(true);
+            }
+            this.clearStreamListeners();
             if (this.torrent) {
                 // update ratio
                 AdvSettings.set('totalDownloaded', Settings.totalDownloaded + this.torrent.downloaded);
@@ -293,7 +358,10 @@ const getTorrentLocation = require('./lib/torrent_location');
             clearInterval(this.updateStatsInterval);
             this.updateStatsInterval = null;
 
-            App.vent.off('subtitle:downloaded');
+            if (this.subtitleDownloadedHandler) {
+                App.vent.off('subtitle:downloaded', this.subtitleDownloadedHandler);
+                this.subtitleDownloadedHandler = null;
+            }
             App.SubtitlesServer.stop();
             win.info('Streaming cancelled');
         },
@@ -348,16 +416,21 @@ const getTorrentLocation = require('./lib/torrent_location');
                 const fs = require('fs');
                 fs.writeFileSync(path + '/TorrentCache/' + torrent.infoHash, uri);
 
-                torrent.on('metadata', function () {
+                var metadataHandler = function () {
                     // deselect files, webtorrent api
                     // as of november 2016, need to remove all torrent,
                     //  then add wanted file, it's a bug: https://github.com/feross/webtorrent/issues/164
                     torrent.deselect(0, torrent.pieces.length - 1, false); // Remove default selection (whole torrent)
 
                     resolve(torrent);
-                }.bind(this));
+                }.bind(this);
+                if (torrent.metadata) {
+                    metadataHandler();
+                } else {
+                    this.addStreamListener(torrent, 'metadata', metadataHandler, true);
+                }
 
-                torrent.on('error', function (error) {
+                this.addStreamListener(torrent, 'error', function (error) {
                     if (torrent.infoHash) {
                         torrent.remove(torrent.infoHash);
                         torrent.add(torrent.infoHash);
@@ -368,7 +441,7 @@ const getTorrentLocation = require('./lib/torrent_location');
                     }
                 }.bind(this));
 
-                App.WebTorrent.on('error', function (error) {
+                this.addStreamListener(App.WebTorrent, 'error', function (error) {
                     win.error('WebTorrent fatal error', error);
                     this.stop();
                     reject(error);
@@ -377,7 +450,7 @@ const getTorrentLocation = require('./lib/torrent_location');
         },
 
         linkTransferStatus: function () {
-            this.torrent.on('download', function () {
+            this.addStreamListener(this.torrent, 'download', function () {
                 if (this.torrentModel && this.torrent) {
                     this.torrentModel.set('downloadSpeed', Common.fileSize(this.torrent.downloadSpeed) + '/s');
                     this.torrentModel.set('downloaded', Math.round(this.torrent.downloaded).toFixed(2));
@@ -388,7 +461,7 @@ const getTorrentLocation = require('./lib/torrent_location');
                 }
             }.bind(this));
 
-            this.torrent.on('upload', function () {
+            this.addStreamListener(this.torrent, 'upload', function () {
                 if (this.torrentModel && this.torrent) {
                     this.torrentModel.set('uploadSpeed', Common.fileSize(this.torrent.uploadSpeed) + '/s');
                     this.torrentModel.set('active_peers', this.torrent.numPeers);
@@ -562,66 +635,121 @@ const getTorrentLocation = require('./lib/torrent_location');
             return;
         },
 
-        createServer: function (port) {
-            return new Promise(function (resolve) {
+        createServer: function (port, attempt) {
+            return new Promise(function (resolve, reject) {
                 var serverPort = parseInt((port || Settings.streamPort), 10);
-
+                var server;
+                attempt = attempt || 0;
+                this.serverRetryReject = reject;
 
                 if (!serverPort) {
                     serverPort = this.generatePortNumber();
                 }
 
-                try {
-                    this.torrentModel.get('torrent').createServer().listen(serverPort);
-
-                    var url = 'http://127.0.0.1:' + serverPort + '/' + this.torrentModel.get('video_file').index;
-
-                    this.streamInfo.set('src', url);
-                    this.streamInfo.set('type', 'video/mp4');
-
-                    resolve(url);
-                } catch (e) {
-                    setTimeout(function () {
-                        return this.createServer(0).then(resolve);
+                var retry = function(error) {
+                    if (server) {
+                        server.removeListener('error', retry);
+                    }
+                    this.destroyServer();
+                    if (this.stopped || !this.torrentModel || attempt >= 20) {
+                        if (this.serverRetryReject === reject) {
+                            this.serverRetryReject = null;
+                        }
+                        reject(error);
+                        return;
+                    }
+                    this.serverRetryTimeout = setTimeout(function () {
+                        this.createServer(0, attempt + 1).then(resolve, reject);
                     }.bind(this), 100);
+                }.bind(this);
+
+                try {
+                    server = this.torrentModel.get('torrent').createServer();
+                    this.server = server;
+                    server.once('error', retry);
+                    server.listen(serverPort, function() {
+                        this.serverRetryTimeout = null;
+                        if (this.serverRetryReject === reject) {
+                            this.serverRetryReject = null;
+                        }
+                        server.removeListener('error', retry);
+                        server.on('error', function(error) {
+                            win.error('Stream server error:', error);
+                        });
+                        var url = 'http://127.0.0.1:' + serverPort + '/' + this.torrentModel.get('video_file').index;
+                        this.streamInfo.set('src', url);
+                        this.streamInfo.set('type', 'video/mp4');
+                        resolve(url);
+                    }.bind(this));
+                } catch (e) {
+                    retry(e);
                 }
             }.bind(this));
         },
 
-        createFileServer: function (file, port) {
-            return new Promise(function (resolve) {
+        createFileServer: function (file, port, attempt) {
+            return new Promise(function (resolve, reject) {
                 var serverPort = parseInt((port || Settings.streamPort), 10);
-
+                var server;
+                attempt = attempt || 0;
+                this.serverRetryReject = reject;
 
                 if (!serverPort) {
                     serverPort = this.generatePortNumber();
                 }
 
-                try {
-                    const server = new FileServer(file, serverPort);
-                    server.listen(serverPort);
-
-                    this.torrentModel.get('torrent').set('server', server);
-
-                    var url = 'http://127.0.0.1:' + serverPort + '/' + file.index;
-
-                    this.streamInfo.set('src', url);
-                    this.streamInfo.set('type', 'video/mp4');
-
-                    resolve(url);
-                } catch (e) {
-                    setTimeout(function () {
-                        return this.createFileServer(file, 0).then(resolve);
+                var retry = function(error) {
+                    if (server) {
+                        server.removeListener('error', retry);
+                    }
+                    this.destroyServer();
+                    if (this.stopped || !this.torrentModel || attempt >= 20) {
+                        if (this.serverRetryReject === reject) {
+                            this.serverRetryReject = null;
+                        }
+                        reject(error);
+                        return;
+                    }
+                    this.serverRetryTimeout = setTimeout(function () {
+                        this.createFileServer(file, 0, attempt + 1).then(resolve, reject);
                     }.bind(this), 100);
+                }.bind(this);
+
+                try {
+                    server = new FileServer(file, serverPort);
+                    this.server = server;
+                    server.once('error', retry);
+                    server.listen(serverPort, function() {
+                        this.serverRetryTimeout = null;
+                        if (this.serverRetryReject === reject) {
+                            this.serverRetryReject = null;
+                        }
+                        server.removeListener('error', retry);
+                        server.on('error', function(error) {
+                            win.error('Local file server error:', error);
+                        });
+                        this.torrentModel.get('torrent').set('server', server);
+                        var url = 'http://127.0.0.1:' + serverPort + '/' + file.index;
+                        this.streamInfo.set('src', url);
+                        this.streamInfo.set('type', 'video/mp4');
+                        resolve(url);
+                    }.bind(this));
+                } catch (e) {
+                    retry(e);
                 }
             }.bind(this));
         },
 
         handleStreamInfo: function () {
             this.streamInfo.set('torrentModel', this.torrentModel);
+            clearInterval(this.updateStatsInterval);
             this.updateStatsInterval = setInterval(this.streamInfo.updateStats.bind(this.streamInfo), 1000);
             this.streamInfo.updateInfos();
-            this.torrentModel.on('change', this.streamInfo.updateInfos.bind(this.streamInfo));
+            if (this.torrentModelChangeHandler) {
+                this.torrentModel.off('change', this.torrentModelChangeHandler);
+            }
+            this.torrentModelChangeHandler = this.streamInfo.updateInfos.bind(this.streamInfo);
+            this.torrentModel.on('change', this.torrentModelChangeHandler);
         },
 
         // dummy element to fire stream:start
@@ -696,7 +824,10 @@ const getTorrentLocation = require('./lib/torrent_location');
                     state = 'ready'; // file can be played
                 }
                 this.streamInfo.updateInfos();
-                this.torrentModel.off('change');
+                if (this.torrentModelChangeHandler) {
+                    this.torrentModel.off('change', this.torrentModelChangeHandler);
+                    this.torrentModelChangeHandler = null;
+                }
             } else if (torrentModel.downloaded) {
                 if (torrentModel.downloadSpeed) {
                     state = 'downloading'; // is actively downloading
@@ -762,7 +893,10 @@ const getTorrentLocation = require('./lib/torrent_location');
                     this.subtitleReady = true;
                 } else {
                     // after downloaded subtitles, we set the srt file to streamInfo
-                    App.vent.on('subtitle:downloaded', function(subtitlePath) {
+                    if (this.subtitleDownloadedHandler) {
+                        App.vent.off('subtitle:downloaded', this.subtitleDownloadedHandler);
+                    }
+                    this.subtitleDownloadedHandler = function(subtitlePath) {
                         if (subtitlePath) {
                             this.streamInfo.set('subFile', subtitlePath);
                             App.vent.trigger('subtitle:convert', {
@@ -789,7 +923,8 @@ const getTorrentLocation = require('./lib/torrent_location');
                             this.subtitleReady = true;
                         }
 
-                    }.bind(this));
+                    }.bind(this);
+                    App.vent.on('subtitle:downloaded', this.subtitleDownloadedHandler);
 
                     // download the subtitle
                     App.vent.trigger('subtitle:download', {

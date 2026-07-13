@@ -6,6 +6,20 @@
     var prevX = 0;
     var prevY = 0;
     var selectedItem;
+    var pendingPosterViews = new WeakMap();
+    var posterObserver = typeof IntersectionObserver === 'undefined' ? null : new IntersectionObserver(function (entries) {
+        entries.forEach(function(entry) {
+            if (!entry.isIntersecting) {
+                return;
+            }
+            var view = pendingPosterViews.get(entry.target);
+            posterObserver.unobserve(entry.target);
+            pendingPosterViews.delete(entry.target);
+            if (view && !view._isDestroyed) {
+                view.loadImage();
+            }
+        });
+    }, {rootMargin: '400px'});
 
     var Item = Marionette.View.extend({
         template: '#item-tpl',
@@ -42,11 +56,16 @@
         },
 
         onAttach: function () {
-            this.loadImage();
+            if (posterObserver) {
+                pendingPosterViews.set(this.el, this);
+                posterObserver.observe(this.el);
+            } else {
+                this.loadImage();
+            }
             this.setCoverStates();
             this.setTooltips();
             this.offlineFilesHandler = this.refreshOfflineAvailability.bind(this);
-            App.vent.on('torrent:file:available', this.offlineFilesHandler);
+            this.listenTo(App.vent, 'torrent:file:available', this.offlineFilesHandler);
             this.refreshOfflineAvailability();
         },
 
@@ -289,7 +308,10 @@
 
         onBeforeDestroy: function () {
             this.$('.tooltipped').tooltip('destroy');
-            App.vent.off('torrent:file:available', this.offlineFilesHandler);
+            if (posterObserver) {
+                posterObserver.unobserve(this.el);
+                pendingPosterViews.delete(this.el);
+            }
             if (selectedItem === this.el) {
                 selectedItem = null;
             }
@@ -461,8 +483,6 @@
             var itemtype = this.model.get('type');
             var bookmarked = this.model.get('bookmarked');
             var delCache = (function (e) {
-                var id = window.setTimeout(function() {}, 0);
-                while (id--) { window.clearTimeout(id); }
                 App.vent.trigger('notification:close');
                 this.toggleFavorite(e);
                 $('.favourites-toggle').text(i18n.__('Remove from bookmarks')).addClass('selected');
@@ -495,9 +515,7 @@
                         });
                     }
                 }.bind(this)).then(function () {
-                        var id = window.setTimeout(function() {}, 0);
-                        while (id--) { window.clearTimeout(id); }
-                        $('.notification_alert').stop();
+                        $('.notification_alert').stop(true, true);
                         App.vent.trigger('notification:close');
                         App.vent.trigger('notification:show', new App.Model.Notification({
                             title: '',

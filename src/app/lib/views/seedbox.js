@@ -82,9 +82,11 @@
         },
 
         addTorrentHooks() {
-            App.WebTorrent.on('torrent', (torrent) => {
+            this.webTorrentClient = App.WebTorrent;
+            this.torrentAddedHandler = (torrent) => {
                 this.onAddTorrent(torrent);
-            });
+            };
+            this.webTorrentClient.on('torrent', this.torrentAddedHandler);
             App.WebTorrent.torrents.forEach((torrent) => {
                 this.onAddTorrent(torrent);
             });
@@ -541,7 +543,9 @@
 
         onBeforeDestroy: function () {
             clearInterval(updateInterval);
-            App.WebTorrent.removeAllListeners('torrent');
+            if (this.webTorrentClient && this.torrentAddedHandler) {
+                this.webTorrentClient.removeListener('torrent', this.torrentAddedHandler);
+            }
             Mousetrap.unbind(['esc', 'backspace']);
         },
 

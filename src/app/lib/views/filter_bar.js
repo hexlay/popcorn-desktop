@@ -36,7 +36,7 @@
     },
 
     initialize: function(e) {
-      App.vent.on('filter-bar:render', () => {
+      this.listenTo(App.vent, 'filter-bar:render', function() {
         this.render();
         this.setActive(App.currentview);
       });

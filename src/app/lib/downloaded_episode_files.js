@@ -5,9 +5,21 @@ const path = require('path');
 const parseTorrent = require('parse-torrent');
 
 const videoExtensions = ['.mp4', '.m4v', '.avi', '.mov', '.mkv', '.wmv'];
+const scanConcurrency = 32;
 var cachedRoots;
 var cachedIndex;
 var refreshInProgress = false;
+
+async function eachLimit(items, limit, iteratee) {
+    var nextIndex = 0;
+    var workers = Array.from({length: Math.min(limit, items.length)}, async function() {
+        while (nextIndex < items.length) {
+            var currentIndex = nextIndex++;
+            await iteratee(items[currentIndex]);
+        }
+    });
+    await Promise.all(workers);
+}
 
 function normalize(value) {
     return String(value || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
@@ -38,7 +50,7 @@ async function scanTorrentCache(directory, index) {
     } catch (error) {
         return;
     }
-    await Promise.all(entries.map(async function(name) {
+    await eachLimit(entries, scanConcurrency, async function(name) {
         if (/^[a-f0-9]{40}$/i.test(name)) {
             var cachedHash = name.toLowerCase();
             index.cachedHashes.add(cachedHash);
@@ -63,7 +75,7 @@ async function scanTorrentCache(directory, index) {
         } catch (error) {
             return;
         }
-    }));
+    });
 }
 
 async function scanDirectory(directory, index) {
@@ -73,7 +85,7 @@ async function scanDirectory(directory, index) {
     } catch (error) {
         return;
     }
-    await Promise.all(entries.map(async function(entry) {
+    await eachLimit(entries, scanConcurrency, async function(entry) {
         if (entry.name === 'TorrentCache') {
             return scanTorrentCache(path.join(directory, entry.name), index);
         }
@@ -101,7 +113,7 @@ async function scanDirectory(directory, index) {
                 index.episodes.add(key);
             });
         }
-    }));
+    });
 }
 
 async function createIndex(roots) {
@@ -112,7 +124,9 @@ async function createIndex(roots) {
         files: [],
         hashFiles: new Map(),
         manifests: [],
-        hashPaths: new Map()
+        hashPaths: new Map(),
+        movieAvailability: new Map(),
+        showAvailability: new Map()
     };
     var uniqueRoots = Array.from(new Set((roots || []).filter(Boolean)));
     await Promise.all(uniqueRoots.map(function(root) {
@@ -164,15 +178,35 @@ function titleMatches(file, title, year) {
 }
 
 function movieAvailable(index, title, year) {
-    return Boolean(index && index.files.some(function(file) {
+    if (!index) {
+        return false;
+    }
+    index.movieAvailability = index.movieAvailability || new Map();
+    var key = normalize(title) + '|' + String(year || '');
+    if (index.movieAvailability.has(key)) {
+        return index.movieAvailability.get(key);
+    }
+    var available = index.files.some(function(file) {
         return file.episodeKeys.length === 0 && titleMatches(file, title, year);
-    }));
+    });
+    index.movieAvailability.set(key, available);
+    return available;
 }
 
 function showAvailable(index, title) {
-    return Boolean(index && index.files.some(function(file) {
+    if (!index) {
+        return false;
+    }
+    index.showAvailability = index.showAvailability || new Map();
+    var key = normalize(title);
+    if (index.showAvailability.has(key)) {
+        return index.showAvailability.get(key);
+    }
+    var available = index.files.some(function(file) {
         return file.episodeKeys.length > 0 && titleMatches(file, title);
-    }));
+    });
+    index.showAvailability.set(key, available);
+    return available;
 }
 
 function sourceInfoHash(source) {

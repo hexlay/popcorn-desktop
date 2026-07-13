@@ -80,7 +80,8 @@
                 App.vent.trigger('settings:close');
             });
 
-            App.vent.on('viewstack:pop', function() {
+            this.stopListening(App.vent, 'viewstack:pop');
+            this.listenTo(App.vent, 'viewstack:pop', function() {
                 if (_.last(App.ViewStack) === that.className) {
                     Mousetrap.bind(['esc', 'backspace'], function (e) {
                         App.vent.trigger('settings:close');

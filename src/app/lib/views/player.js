@@ -51,6 +51,7 @@
             this.listenTo(this.model, 'change:uploadSpeed', this.updateUploadSpeed);
             this.listenTo(this.model, 'change:active_peers', this.updateActivePeers);
             this.listenTo(this.model, 'change:downloaded', this.updateDownloaded);
+            this.listenTo(App.vent, 'customSubtitles:added', this.onCustomSubtitlesAdded);
 
             this.inFullscreen = win.isFullscreen;
             this.playerWasReady = false;
@@ -69,9 +70,9 @@
             };
 
             //If a child was added above this view
-            App.vent.on('viewstack:push', function() {
+            this.listenTo(App.vent, 'viewstack:push', function() {
                 if (_.last(App.ViewStack) !== 'app-overlay') {
-                    _this.unbindKeyboardShortcuts();
+                    this.unbindKeyboardShortcuts();
                     if (win.isFullscreen) {
                         $('.player .video-js').hide();
                         this.wasFullscreen = true;
@@ -80,15 +81,31 @@
             });
 
             //If a child was removed from above this view
-            App.vent.on('viewstack:pop', function() {
+            this.listenTo(App.vent, 'viewstack:pop', function() {
                 if (_.last(App.ViewStack) === 'app-overlay') {
-                    _this.bindKeyboardShortcuts();
+                    this.bindKeyboardShortcuts();
                     if (this.wasFullscreen) {
                         $('.player .video-js').removeAttr('style');
                         this.wasFullscreen = false;
                     }
                 }
             });
+        },
+
+        onCustomSubtitlesAdded: function (subpath) {
+            var currentTime = 0;
+            try { currentTime = this.video.currentTime(); } catch (error) {}
+            this.customSubtitles = {
+                subPath: subpath,
+                added_at: Date.now(),
+                timestamp: currentTime,
+                modified: false
+            };
+            $('#video_player li:contains("' + i18n.__('Disabled') + '")')
+                .off('click.customSubtitles')
+                .on('click.customSubtitles', function () {
+                    this.customSubtitles = undefined;
+                }.bind(this));
         },
 
         isMovie: function () {
@@ -538,21 +555,6 @@
 
             // Force custom controls
             this.player.usingNativeControls(false);
-
-            // Local subtitle hack
-            App.vent.on('customSubtitles:added', function (subpath) {
-                var currentTime = 0;
-                try { currentTime = that.video.currentTime(); } catch (error) {};
-                that.customSubtitles = {
-                    subPath: subpath,
-                    added_at: Date.now(),
-                    timestamp: currentTime,
-                    modified: false
-                };
-                $('#video_player li:contains("' + i18n.__('Disabled') + '")').on('click', function () {
-                    that.customSubtitles = undefined;
-                });
-            });
 
             this.player.on('ended', this.onPlayerEnded.bind(this));
             this.player.one('play', this.onPlayerFirstPlay.bind(this));

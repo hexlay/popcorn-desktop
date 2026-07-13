@@ -487,7 +487,7 @@
                 return;
             }
             this.scrollCheckQueued = true;
-            requestAnimationFrame(this.boundCheckScrollPosition);
+            this.scrollFrame = requestAnimationFrame(this.boundCheckScrollPosition);
         },
 
         checkScrollPosition: function () {
@@ -506,6 +506,10 @@
         },
 
         onBeforeDestroy: function () {
+            cancelAnimationFrame(this.scrollFrame);
+            if (this.resizeGhosts.cancel) {
+                this.resizeGhosts.cancel();
+            }
             $(window).off('.listPosterResize');
             $(window).off('resize.listGhosts', this.resizeGhosts);
             $('#header').removeClass('header-shadow');
