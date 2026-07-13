@@ -11,7 +11,7 @@
         template: '#item-tpl',
 
         tagName: 'li',
-        className: 'item',
+        className: 'item media-card',
 
         attributes: function () {
             return {

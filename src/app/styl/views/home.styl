@@ -283,7 +283,8 @@
         height 0
         width 0
 
-.home-poster-card
+// Top 10 keeps its dedicated card treatment. Regular rows use media_card.styl.
+.home-poster-card:not(.media-card)
     flex 0 0 178px
     border-radius 10px
     overflow hidden
@@ -505,16 +506,22 @@
 
 .ranked-row
     align-items flex-end
-    gap 30px
+    gap 26px
 
     .home-poster-card
-        flex-basis 142px
+        flex-basis 206px
         overflow visible
         background transparent
         border 0
         box-shadow none
+        contain layout style
+        isolation isolate
 
         .poster-frame
+            position relative
+            z-index 2
+            width 142px
+            margin-left 64px
             height auto
             aspect-ratio 2 / 3
             border-radius 7px
@@ -531,20 +538,35 @@
         &:hover
             box-shadow none
 
+            .big-rank
+                opacity 1
+
             .poster-frame
                 filter brightness(1.08) saturate(1.08)
                 box-shadow 0 24px 54px rgba(0,0,0,0.54), 0 0 0 2px rgba(244,185,66,0.78), 0 0 34px rgba(244,185,66,0.32)
 
+        &:nth-child(n+10)
+            flex-basis 250px
+
+            .poster-frame
+                margin-left 108px
+
 .big-rank
     position absolute
-    right -31px
-    bottom 14px
-    z-index -1
-    color rgba(255,255,255,0.12)
-    -webkit-text-stroke 2px rgba(255,255,255,0.2)
+    left 2px
+    bottom 8px
+    z-index 1
+    color rgba(112,78,255,0.18)
+    -webkit-text-stroke 2px rgba(245,189,69,0.58)
     font-family $MainFontBold
-    font-size 118px
-    line-height 0.8
+    font-size 156px
+    line-height 0.76
+    letter-spacing -10px
+    opacity 0.82
+    text-shadow 0 18px 36px rgba(0,0,0,0.62), 0 0 28px rgba(112,78,255,0.24)
+    pointer-events none
+    user-select none
+    transition opacity 180ms ease
 
 .home-loading,
 .home-error

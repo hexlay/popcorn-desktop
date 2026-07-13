@@ -1,0 +1,359 @@
+.media-card
+    position relative
+    display inline-block
+    -webkit-box-flex 0
+    flex-grow 0
+    flex-shrink 0
+    flex-basis 178px
+    width 178px
+    min-width 178px
+    max-width 178px
+    margin 0
+    padding 0
+    overflow hidden
+    border 1px solid rgba(255,255,255,0.09)
+    border-radius 10px
+    color $Text1
+    background linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.025))
+    box-shadow 0 16px 36px rgba(0,0,0,0.30)
+    font-size 14px
+    transform-origin center bottom
+    contain layout paint style
+    content-visibility auto
+    contain-intrinsic-size 178px 328px
+    animation appCardEnter $AppMotionNormal $AppMotionEase both
+    transition transform 220ms $AppMotionEase, border-color $AppMotionFast ease, box-shadow 220ms $AppMotionEase, background-color $AppMotionFast ease
+
+    &:hover,
+    &.selected
+        transform translateY(-10px)
+        border-color rgba(244,185,66,0.86)
+        background linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.035))
+        box-shadow 0 28px 68px rgba(0,0,0,0.66), 0 0 0 1px rgba(244,185,66,0.25), 0 0 38px rgba(244,185,66,0.12)
+
+        .media-card-poster
+            .media-card-image
+                transform none
+                filter saturate(1.08) brightness(0.98)
+
+            .media-card-overlay
+                display block
+                z-index 3
+                opacity 1
+
+            .media-card-play
+                opacity 1
+                transform scale(1)
+                animation cardPlayPulse 1500ms ease-in-out infinite
+
+    &.watched
+        opacity 0.74
+        border-color rgba(244,185,66,0.42)
+        box-shadow 0 18px 46px rgba(0,0,0,0.42), 0 0 0 1px rgba(244,185,66,0.12)
+
+        .media-card-poster
+            &:after
+                content ''
+                position absolute
+                top 0
+                right 0
+                bottom 0
+                left 0
+                z-index 2
+                background linear-gradient(180deg, rgba(0,0,0,0.26), rgba(0,0,0,0.46))
+                pointer-events none
+
+            &:before
+                content '\f06e'
+                position absolute
+                top 12px
+                left 12px
+                z-index 4
+                display flex
+                align-items center
+                justify-content center
+                width 30px
+                height 30px
+                border-radius 50%
+                color #17130c
+                background $FilterBarActive
+                box-shadow 0 10px 24px rgba(0,0,0,0.42), 0 0 24px rgba(244,185,66,0.26)
+                font-family "Font Awesome 6 Free"
+                font-weight 900
+
+            .media-card-image
+                filter grayscale(0.35) saturate(0.72) brightness(0.72)
+
+            .media-card-seen
+                display inline-flex
+
+        .media-card-actions
+            .fa-eye
+                color #17130c
+                background $FilterBarActive
+                border-color rgba(244,185,66,0.72)
+
+    &.watched:hover,
+    &.watched.selected
+        opacity 1
+
+    &.offline-available
+        .media-card-offline
+            display inline-flex
+
+    .media-card-poster
+        position relative
+        width 178px
+        height 260px
+        overflow hidden
+        border-radius 0
+        background-image url(../images/posterholder.png)
+        background-size cover
+        background-position center
+        box-shadow none
+        cursor pointer
+        transform translateZ(0)
+        transition transform 180ms ease, box-shadow 180ms ease, filter 180ms ease
+
+        .media-card-image
+            width 100%
+            height 100%
+            background-size cover
+            background-position center
+            transition transform 420ms cubic-bezier(.2,.8,.2,1), filter 260ms ease
+
+        .media-card-overlay
+            position absolute
+            top 0
+            right 0
+            bottom 0
+            left 0
+            display block
+            box-sizing border-box
+            border 0
+            border-radius 0
+            opacity 0
+            background linear-gradient(180deg, rgba(5,7,10,0.20) 0%, rgba(5,7,10,0.02) 42%, rgba(5,7,10,0.48) 100%)
+            pointer-events none
+            transition opacity 220ms ease, background 220ms ease
+
+        .media-card-play
+            position absolute
+            top 50%
+            left 50%
+            z-index 4
+            width 64px
+            height 64px
+            margin -32px 0 0 -32px
+            border 2px solid $FilterBarActive
+            border-radius 50%
+            color $FilterBarActive
+            background rgba(8,10,14,0.58)
+            box-shadow 0 0 0 0 rgba(244,185,66,0.26), 0 14px 34px rgba(0,0,0,0.52)
+            font-size 28px
+            line-height 62px
+            text-align center
+            text-indent 4px
+            opacity 0
+            transform scale(0.78)
+            transition opacity 220ms ease, transform 260ms cubic-bezier(.2,.8,.2,1), box-shadow 260ms ease
+            pointer-events none
+
+        .media-card-rating
+            position absolute
+            top 12px
+            right 12px
+            z-index 5
+            height 30px
+            padding 7px 12px 0
+            box-sizing border-box
+            border-radius 999px
+            color $Text1
+            background rgba(255,255,255,0.09)
+            border 1px solid rgba(255,255,255,0.14)
+            font-family $MainFontBold
+            font-size 12px
+            line-height 1
+
+            i
+                margin-right 6px
+                color $FilterBarActive
+
+        .media-card-seen
+            display none
+            position absolute
+            left 12px
+            bottom 12px
+            z-index 5
+            align-items center
+            height 28px
+            padding 0 10px
+            border-radius 999px
+            color #17130c
+            background $FilterBarActive
+            box-shadow 0 10px 24px rgba(0,0,0,0.42), 0 0 24px rgba(244,185,66,0.18)
+            font-family $MainFontBold
+            font-size 12px
+
+            i
+                margin-right 6px
+
+        .media-card-offline
+            display none
+            position absolute
+            right 10px
+            bottom 10px
+            z-index 5
+            align-items center
+            height 26px
+            padding 0 9px
+            border-radius 999px
+            color #07140d
+            background #46c37b
+            box-shadow 0 8px 20px rgba(0,0,0,0.42)
+            font-family $MainFontBold
+            font-size 11px
+
+            i
+                margin-right 5px
+
+    .media-card-meta
+        position relative
+        min-height 66px
+        padding 9px 70px 9px 12px
+        box-sizing border-box
+        overflow hidden
+        border-top 1px solid rgba(255,255,255,0.16)
+        background rgba(10,12,16,0.84)
+        isolation isolate
+
+        &:before
+            content ''
+            position absolute
+            top -18px
+            right -18px
+            bottom -18px
+            left -18px
+            z-index 0
+            background-image var(--poster-bg)
+            background-size 178px 260px
+            background-position center bottom
+            opacity 0.30
+            transform translateZ(0)
+
+        &:after
+            content ''
+            position absolute
+            top 0
+            right 0
+            bottom 0
+            left 0
+            z-index 0
+            background linear-gradient(180deg, rgba(20,22,29,0.82), rgba(6,8,12,0.94))
+
+        > *
+            position relative
+            z-index 1
+            text-shadow 0 1px 3px rgba(0,0,0,0.72)
+
+    .media-card-actions
+        position absolute
+        top 8px
+        right 10px
+        z-index 4
+        display flex
+        gap 8px
+
+        i
+            display inline-flex
+            align-items center
+            justify-content center
+            width 24px
+            height 24px
+            border-radius 50%
+            color rgba(255,255,255,0.64)
+            app-glass-control()
+            font-size 13px
+            line-height 1
+            transition color 160ms ease, background-color 160ms ease, border-color 160ms ease, transform 160ms ease
+
+            &:hover
+                color #fff
+                background rgba(255,255,255,0.12)
+                border-color rgba(244,185,66,0.38)
+                transform translateY(-1px)
+
+            &.selected
+                color $FilterBarActive
+                background rgba(244,185,66,0.14)
+                border-color rgba(244,185,66,0.36)
+
+    .media-card-title
+        height auto
+        min-height 0
+        max-width 100%
+        margin 0 0 5px
+        padding 0 0 1px
+        overflow hidden
+        color $Text1
+        font-family $MainFontBold
+        font-size 14px
+        line-height 1.18
+        letter-spacing -0.01em
+        text-overflow ellipsis
+        white-space nowrap
+
+        span
+            display inline-block
+            max-width 100%
+            overflow hidden
+            text-overflow ellipsis
+            vertical-align top
+
+        &:hover span
+            max-width none
+            animation titleMarquee 5.5s linear infinite alternate
+
+    .media-card-secondary
+        height auto
+        margin -2px 0 2px
+        padding-bottom 1px
+        overflow hidden
+        color $Text1
+        font-size 12px
+        text-overflow ellipsis
+        white-space nowrap
+
+    .media-card-subtitle
+        display block
+        margin 0
+        color $Text3
+        font-size 12px
+
+    .media-card-bottom
+        display flex
+        align-items center
+        justify-content space-between
+        gap 8px
+        margin-top 5px
+
+        &:empty
+            display none
+
+    .media-card-tag
+        display inline-flex
+        align-items center
+        height 20px
+        max-width 96px
+        margin 5px 0 0
+        padding 0 8px
+        overflow hidden
+        border 1px solid rgba(244,185,66,0.72)
+        border-radius 999px
+        color $Text1
+        font-size 11px
+        text-overflow ellipsis
+        white-space nowrap
+
+    .media-card-bottom .media-card-tag
+        margin-top 0

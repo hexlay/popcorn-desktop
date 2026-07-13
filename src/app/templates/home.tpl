@@ -63,24 +63,26 @@
                     </div>
                 </div>
                 <div class="home-row <%= section.layout %>" tabindex="0" role="region" aria-label="<%= i18n.__(section.title) %>">
-                    <% _.each(section.items, function(item, index) { %>
-                        <article class="home-poster-card home-card<%= item.faded ? ' watched' : '' %>" data-type="<%= item.type %>" data-imdb-id="<%= item.imdb_id %>" style="--poster-bg:url('<%= item.poster || item.backdrop %>')">
+                    <% _.each(section.items, function(item, index) { var sharedCard = !section.numbered; %>
+                        <article class="home-poster-card home-card<%= sharedCard ? ' media-card' : '' %><%= item.faded ? ' watched' : '' %>" data-type="<%= item.type %>" data-imdb-id="<%= item.imdb_id %>" style="--poster-bg:url('<%= item.poster || item.backdrop %>')">
                             <% if (section.numbered) { %><span class="big-rank"><%= index + 1 %></span><% } %>
-                            <div class="poster-frame" style="background-image:url('<%= item.poster || item.backdrop %>')">
-                                <div class="home-card-shade"></div>
-                                <% if (item.ratingText) { %><span class="rating-pill"><i class="fa fa-star"></i><%= item.ratingText %></span><% } %>
-                                <span class="seen-chip"><i class="fa fa-eye"></i><%= i18n.__("Seen") %></span>
-                                <span class="offline-chip" title="<%=i18n.__('Available offline') %>"><i class="fa fa-download"></i><%=i18n.__('Offline') %></span>
+                            <div class="poster-frame<%= sharedCard ? ' media-card-poster' : '' %>" style="background-image:url('<%= item.poster || item.backdrop %>')">
+                                <% if (sharedCard) { %><div class="media-card-image" style="background-image:url('<%= item.poster || item.backdrop %>')"></div><% } %>
+                                <div class="home-card-shade<%= sharedCard ? ' media-card-overlay' : '' %>"></div>
+                                <% if (sharedCard) { %><i class="fa fa-play media-card-play"></i><% } %>
+                                <% if (item.ratingText) { %><span class="rating-pill<%= sharedCard ? ' media-card-rating' : '' %>"><i class="fa fa-star"></i><%= item.ratingText %></span><% } %>
+                                <span class="seen-chip<%= sharedCard ? ' media-card-seen' : '' %>"><i class="fa fa-eye"></i><%= i18n.__("Seen") %></span>
+                                <span class="offline-chip<%= sharedCard ? ' media-card-offline' : '' %>" title="<%=i18n.__('Available offline') %>"><i class="fa fa-download"></i><%=i18n.__('Offline') %></span>
                             </div>
-                            <div class="home-card-meta">
-                                <div class="home-card-actions">
+                            <div class="home-card-meta<%= sharedCard ? ' media-card-meta' : '' %>">
+                                <div class="home-card-actions<%= sharedCard ? ' media-card-actions' : '' %>">
                                     <% if (item.type === 'movie') { %><i class="fa fa-eye home-watched<%= item.watched ? ' selected' : '' %>"></i><% } %>
                                     <i class="fa fa-heart home-favorite<%= item.bookmarked ? ' selected' : '' %>"></i>
                                 </div>
-                                <h3><span><%= item.title %></span></h3>
-                                <% if (item.year) { %><p><%= item.year %></p><% } %>
+                                <h3 class="<%= sharedCard ? 'media-card-title' : '' %>"><span><%= item.title %></span></h3>
+                                <% if (item.year) { %><p class="<%= sharedCard ? 'media-card-subtitle' : '' %>"><%= item.year %></p><% } %>
                                 <% if (typeof item.num_seasons !== 'undefined') { %>
-                                    <p class="home-seasons"><%= item.num_seasons %> <%= item.num_seasons == 1 ? i18n.__("Season") : i18n.__("Seasons") %></p>
+                                    <p class="home-seasons<%= sharedCard ? ' media-card-tag' : '' %>"><%= item.num_seasons %> <%= item.num_seasons == 1 ? i18n.__("Season") : i18n.__("Seasons") %></p>
                                 <% } %>
                             </div>
                         </article>
