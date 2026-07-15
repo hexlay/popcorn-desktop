@@ -1,6 +1,7 @@
 (function(App) {
   'use strict';
 
+  const normalizeChromiumArgs = require('./lib/chromium_args');
   var _this;
 
   var MainWindow = Marionette.View.extend({
@@ -325,7 +326,7 @@
         if ((Settings.nativeWindowFrame && !nw.App.manifest.window.frame) || (Settings.audioPassthrough && !nw.App.manifest['chromium-args'].includes('resampler'))) {
           let packageJson = jsonFileEditor(`package.json`);
           Settings.nativeWindowFrame ? packageJson.get('window').frame = true : null;
-          Settings.audioPassthrough ? packageJson.set('chromium-args', '--enable-node-worker --disable-audio-output-resampler') : null;
+          packageJson.set('chromium-args', normalizeChromiumArgs(packageJson.get('chromium-args'), Settings.audioPassthrough));
           packageJson.save();
           that.restartButter();
         }

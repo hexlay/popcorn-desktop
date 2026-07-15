@@ -2,6 +2,14 @@
     <i class="state-info-player fas fa-play" id="osd_play"></i>
     <i class="state-info-player fas fa-pause" id="osd_pause"></i>
     <div class="player-title"><%= title %></div>
+    <div class="audio-source-control">
+        <button type="button" class="audio-source-toggle" title="<%= i18n.__("Audio") %>">
+            <i class="fas fa-volume-high"></i>
+            <span class="audio-source-label"><%= i18n.__("Audio") %></span>
+            <i class="fas fa-caret-down"></i>
+        </button>
+        <div class="audio-source-menu"></div>
+    </div>
     <div class="details-player">
         <% if(quality) { %>
         <span class="quality-info-player"><%= quality %></span>
@@ -105,6 +113,6 @@
     }
 %>
 <video id="video_player" width="100%" height="100%" class="video-js vjs-popcorn-skin" controls preload="auto" autoplay >
-    <source src="<%= src %>" type="<%= type %>" />
+    <source src="<%= src %>"<% if(type) { %> type="<%= type %>"<% } %> />
     <%=subtracks%>
 </video>

@@ -2,6 +2,7 @@ const Server = require('webtorrent/lib/server');
 const FileServer = require('./fileserver');
 const downloadedEpisodeFiles = require('./lib/downloaded_episode_files');
 const getTorrentLocation = require('./lib/torrent_location');
+const getMediaType = require('./lib/media_type');
 (function (App) {
     'use strict';
     var subtitle_retry;
@@ -471,7 +472,7 @@ const getTorrentLocation = require('./lib/torrent_location');
 
         // present the user with file selector
         openFileSelector: function (torrent) {
-            var supported = ['.mp4', '.m4v', '.avi', '.mov', '.mkv', '.wmv'];
+            var supported = ['.mp4', '.m4v', '.avi', '.mov', '.mkv', '.webm', '.wmv'];
 
             try {
                 torrent.files.sort(function(a, b){
@@ -678,7 +679,7 @@ const getTorrentLocation = require('./lib/torrent_location');
                         });
                         var url = 'http://127.0.0.1:' + serverPort + '/' + this.torrentModel.get('video_file').index;
                         this.streamInfo.set('src', url);
-                        this.streamInfo.set('type', 'video/mp4');
+                        this.streamInfo.set('type', getMediaType(this.torrentModel.get('video_file').name));
                         resolve(url);
                     }.bind(this));
                 } catch (e) {
@@ -731,7 +732,7 @@ const getTorrentLocation = require('./lib/torrent_location');
                         this.torrentModel.get('torrent').set('server', server);
                         var url = 'http://127.0.0.1:' + serverPort + '/' + file.index;
                         this.streamInfo.set('src', url);
-                        this.streamInfo.set('type', 'video/mp4');
+                        this.streamInfo.set('type', getMediaType(file.name));
                         resolve(url);
                     }.bind(this));
                 } catch (e) {

@@ -26,7 +26,7 @@
     "form-data": "2.5.5",
     "nw-builder/tar-fs": "2.1.4"
   },
-  "chromium-args": "--enable-node-worker --no-sandbox",
+  "chromium-args": "--enable-node-worker --no-sandbox --enable-features=AudioVideoTracks",
   "engines": {
     "yarn": ">= 1.0.0"
   },

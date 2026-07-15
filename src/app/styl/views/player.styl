@@ -370,6 +370,89 @@
     text-overflow ellipsis
     padding-bottom 3px
 
+.player-header-background.has-audio-sources
+    .player-title
+        max-width calc(100% - 440px)
+
+.audio-source-control
+    display none
+    position absolute
+    top 13px
+    right 170px
+    z-index 24
+
+    .audio-source-toggle
+        height 32px
+        max-width 230px
+        padding 0 10px
+        border 0
+        border-radius 4px
+        background rgba(20, 20, 20, .72)
+        color #fff
+        cursor pointer
+        font-family 'Open Sans', sans-serif
+        font-size 12px
+
+        &:hover
+            background rgba(45, 45, 45, .9)
+
+        .audio-source-label
+            display inline-block
+            max-width 160px
+            margin 0 6px
+            overflow hidden
+            vertical-align middle
+            white-space nowrap
+            text-overflow ellipsis
+
+    .audio-source-menu
+        display none
+        position absolute
+        top 38px
+        right 0
+        width 260px
+        max-height 330px
+        padding 6px
+        overflow-y auto
+        border-radius 5px
+        background rgba(20, 20, 20, .96)
+        box-shadow 0 4px 18px rgba(0, 0, 0, .45)
+
+    .audio-source-heading
+        padding 7px 9px 4px
+        color #9da1a6
+        font-family 'Open Sans Semibold', sans-serif
+        font-size 10px
+        letter-spacing .08em
+        text-transform uppercase
+
+    .audio-source-option
+        display block
+        width 100%
+        padding 8px 10px
+        overflow hidden
+        border 0
+        border-radius 3px
+        background transparent
+        color #fff
+        cursor pointer
+        font-family 'Open Sans', sans-serif
+        font-size 12px
+        text-align left
+        text-overflow ellipsis
+        white-space nowrap
+
+        &:hover
+            background rgba(255, 255, 255, .12)
+
+        &.selected
+            color $ButtonBgHover
+
+            &:before
+                content '\2713'
+                display inline-block
+                width 18px
+
 .dragzone
     -webkit-app-region drag
     position fixed

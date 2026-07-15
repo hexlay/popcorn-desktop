@@ -1,6 +1,7 @@
 (function (App) {
     'use strict';
 
+    var audioTracks = require('./lib/audio_tracks');
     var _this;
     var Player = Marionette.View.extend({
         template: '#player-tpl',
@@ -21,7 +22,10 @@
             play: '#osd_play',
             minimizeIcon: '.minimize-icon',
             maximizeIcon: '.maximize-icon',
-            maxPlayCtrlIcon: '#max_play_ctrl'
+            maxPlayCtrlIcon: '#max_play_ctrl',
+            audioSourceControl: '.audio-source-control',
+            audioSourceLabel: '.audio-source-label',
+            audioSourceMenu: '.audio-source-menu'
         },
 
         events: {
@@ -37,7 +41,9 @@
             'click .minimize-icon': 'minDetails',
             'click .maximize-icon': 'minDetails',
             'click #max_play_ctrl': 'maxPlayCtrl',
-            'click .vjs-play-control': 'togglePlay'
+            'click .vjs-play-control': 'togglePlay',
+            'click .audio-source-toggle': 'toggleAudioSourceMenu',
+            'click .audio-source-option': 'selectAudioSource'
         },
 
         initialize: function () {
@@ -55,6 +61,13 @@
 
             this.inFullscreen = win.isFullscreen;
             this.playerWasReady = false;
+            this.initialPlaybackReady = false;
+            this.audioTrackList = null;
+            this.audioOutputs = [];
+            this.audioHealthTimer = null;
+            this.audioWarningShown = false;
+            this.boundAudioTracksChanged = this.renderAudioSources.bind(this);
+            this.boundAudioDevicesChanged = this.refreshAudioOutputs.bind(this);
             this.remaining = false;
             this.createdRemaining = false;
             this.firstPlay = true;
@@ -340,6 +353,12 @@
         copytoclip: (e) => Common.openOrClipboardLink(e, e.target.textContent.replace(' - Trailer', ''), i18n.__($(e.target).data('copy')), true),
 
         onPlayerReady: function () {
+            this.bindNativeAudioTracks();
+            if (this.initialPlaybackReady) {
+                return;
+            }
+            this.initialPlaybackReady = true;
+
             // set volume
             this.player.volume(Settings.playerVolume);
 
@@ -352,6 +371,9 @@
                 var type = this.isMovie();
                 var id = type === 'movie' ? this.model.get('imdb_id') : this.model.get('episode_id');
                 App.Trakt.getPlayback(type, id).then(function (position_percent) {
+                    if (this.isDestroyed()) {
+                        return;
+                    }
                     var total = this.video.duration();
                     var position = (position_percent / 100) * total | 0;
                     if (position > 0) {
@@ -365,9 +387,200 @@
             this.sendToTrakt('start');
         },
 
+        getMediaElement: function () {
+            if (this.player && this.player.tech && typeof this.player.tech.el === 'function') {
+                return this.player.tech.el();
+            }
+            return document.getElementById('video_player_html5_api') || document.getElementById('video_player');
+        },
+
+        bindNativeAudioTracks: function () {
+            var media = this.getMediaElement();
+            var trackList;
+            try {
+                trackList = media && media.audioTracks;
+            } catch (error) {
+                trackList = null;
+            }
+            if (trackList === this.audioTrackList) {
+                this.renderAudioSources();
+                return;
+            }
+            this.unbindNativeAudioTracks();
+            this.audioTrackList = trackList || null;
+            if (this.audioTrackList && typeof this.audioTrackList.addEventListener === 'function') {
+                this.audioTrackList.addEventListener('addtrack', this.boundAudioTracksChanged);
+                this.audioTrackList.addEventListener('removetrack', this.boundAudioTracksChanged);
+                this.audioTrackList.addEventListener('change', this.boundAudioTracksChanged);
+            }
+            if (this.audioTrackList && this.audioTrackList.length && audioTracks.getEnabledIndex(this.audioTrackList) === -1) {
+                audioTracks.selectTrack(this.audioTrackList, 0);
+            }
+            this.renderAudioSources();
+        },
+
+        unbindNativeAudioTracks: function () {
+            if (this.audioTrackList && typeof this.audioTrackList.removeEventListener === 'function') {
+                this.audioTrackList.removeEventListener('addtrack', this.boundAudioTracksChanged);
+                this.audioTrackList.removeEventListener('removetrack', this.boundAudioTracksChanged);
+                this.audioTrackList.removeEventListener('change', this.boundAudioTracksChanged);
+            }
+            this.audioTrackList = null;
+        },
+
+        refreshAudioOutputs: function () {
+            var media = this.getMediaElement();
+            if (!media || typeof media.setSinkId !== 'function' || !navigator.mediaDevices || typeof navigator.mediaDevices.enumerateDevices !== 'function') {
+                this.audioOutputs = [];
+                this.renderAudioSources();
+                return;
+            }
+            navigator.mediaDevices.enumerateDevices().then(function (devices) {
+                if (this.isDestroyed()) {
+                    return;
+                }
+                this.audioOutputs = devices.filter(function (device) {
+                    return device.kind === 'audiooutput';
+                });
+                this.renderAudioSources();
+            }.bind(this)).catch(function (error) {
+                if (this.isDestroyed()) {
+                    return;
+                }
+                win.warn('Unable to list audio outputs:', error);
+                this.audioOutputs = [];
+                this.renderAudioSources();
+            }.bind(this));
+        },
+
+        renderAudioSources: function () {
+            if (this.isDestroyed() || !this.ui.audioSourceMenu || !this.ui.audioSourceMenu.length) {
+                return;
+            }
+            var menu = this.ui.audioSourceMenu.empty();
+            var trackCount = this.audioTrackList ? this.audioTrackList.length : 0;
+            var outputCount = this.audioOutputs.length;
+            var enabledTrack = audioTracks.getEnabledIndex(this.audioTrackList);
+            var media = this.getMediaElement();
+            var sinkId = media && media.sinkId ? media.sinkId : 'default';
+
+            if (trackCount > 1) {
+                $('<div>').addClass('audio-source-heading').text(i18n.__('Audio Track')).appendTo(menu);
+                for (var index = 0; index < trackCount; index++) {
+                    var track = audioTracks.getTrack(this.audioTrackList, index);
+                    $('<button type="button">')
+                        .addClass('audio-source-option')
+                        .toggleClass('selected', index === enabledTrack)
+                        .attr({'data-source-kind': 'track', 'data-source-index': index})
+                        .text(audioTracks.label(track, index))
+                        .appendTo(menu);
+                }
+            }
+
+            if (outputCount > 1) {
+                $('<div>').addClass('audio-source-heading').text(i18n.__('Audio Output')).appendTo(menu);
+                this.audioOutputs.forEach(function (device, index) {
+                    $('<button type="button">')
+                        .addClass('audio-source-option')
+                        .toggleClass('selected', device.deviceId === sinkId)
+                        .attr({'data-source-kind': 'output', 'data-source-index': index})
+                        .text(device.label || i18n.__('Audio Output') + ' ' + (index + 1))
+                        .appendTo(menu);
+                });
+            }
+
+            var hasChoices = trackCount > 1 || outputCount > 1;
+            this.ui.audioSourceControl.toggle(hasChoices);
+            this.ui.audioSourceControl.closest('.player-header-background').toggleClass('has-audio-sources', hasChoices);
+            if (!hasChoices) {
+                menu.hide();
+            }
+            if (trackCount > 1 && enabledTrack !== -1) {
+                this.ui.audioSourceLabel.text(audioTracks.label(audioTracks.getTrack(this.audioTrackList, enabledTrack), enabledTrack));
+            } else {
+                this.ui.audioSourceLabel.text(i18n.__('Audio'));
+            }
+        },
+
+        toggleAudioSourceMenu: function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            this.ui.audioSourceMenu.toggle();
+            this.player.userActive(true);
+        },
+
+        selectAudioSource: function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            var option = $(event.currentTarget);
+            var index = parseInt(option.attr('data-source-index'), 10);
+            if (option.attr('data-source-kind') === 'track') {
+                if (audioTracks.selectTrack(this.audioTrackList, index)) {
+                    this.displayOverlayMsg(i18n.__('Audio Track') + ': ' + audioTracks.label(audioTracks.getTrack(this.audioTrackList, index), index));
+                    this.renderAudioSources();
+                }
+            } else {
+                var output = this.audioOutputs[index];
+                var media = this.getMediaElement();
+                if (output && media && typeof media.setSinkId === 'function') {
+                    media.setSinkId(output.deviceId).then(function () {
+                        if (this.isDestroyed()) {
+                            return;
+                        }
+                        this.displayOverlayMsg(i18n.__('Audio Output') + ': ' + (output.label || i18n.__('Default')));
+                        this.renderAudioSources();
+                    }.bind(this)).catch(function (error) {
+                        if (this.isDestroyed()) {
+                            return;
+                        }
+                        win.error('Unable to change audio output:', error);
+                        this.displayOverlayMsg(i18n.__('Unable to change audio output'));
+                    }.bind(this));
+                }
+            }
+            this.ui.audioSourceMenu.hide();
+        },
+
+        cycleAudioTrack: function () {
+            if (!this.audioTrackList || this.audioTrackList.length < 2) {
+                return;
+            }
+            var current = audioTracks.getEnabledIndex(this.audioTrackList);
+            var next = (current + 1) % this.audioTrackList.length;
+            audioTracks.selectTrack(this.audioTrackList, next);
+            this.displayOverlayMsg(i18n.__('Audio Track') + ': ' + audioTracks.label(audioTracks.getTrack(this.audioTrackList, next), next));
+            this.renderAudioSources();
+        },
+
+        scheduleAudioHealthCheck: function () {
+            if (this.audioHealthTimer || this.audioWarningShown || this.model.get('type') === 'video/youtube') {
+                return;
+            }
+            this.audioHealthTimer = setTimeout(function () {
+                this.audioHealthTimer = null;
+                if (this.isDestroyed()) {
+                    return;
+                }
+                var media = this.getMediaElement();
+                if (!media || media.paused || media.muted || media.volume === 0 || typeof media.webkitAudioDecodedByteCount !== 'number' || typeof media.webkitVideoDecodedByteCount !== 'number') {
+                    return;
+                }
+                if (media.webkitVideoDecodedByteCount > 0 && media.webkitAudioDecodedByteCount === 0) {
+                    this.audioWarningShown = true;
+                    $('.notification_alert')
+                        .text(i18n.__('No audio was decoded. Try another audio track or an external player such as VLC.'))
+                        .stop(true, true)
+                        .fadeIn('fast')
+                        .delay(6000)
+                        .fadeOut('fast');
+                }
+            }.bind(this), 8000);
+        },
+
         onPlayerPlay: function () {
             // Trigger a resize so the subtitles are adjusted
             $(window).trigger('resize');
+            this.scheduleAudioHealthCheck();
 
             if (this.wasSeek) {
                 if (this.model.get('torrentModel') && this.model.get('torrentModel').get('auto_play')) {
@@ -558,7 +771,8 @@
 
             this.player.on('ended', this.onPlayerEnded.bind(this));
             this.player.one('play', this.onPlayerFirstPlay.bind(this));
-            this.player.on('loadeddata', this.onPlayerReady.bind(this));
+            this.player.one('loadeddata', this.onPlayerReady.bind(this));
+            this.player.on('loadedmetadata', this.bindNativeAudioTracks.bind(this));
             this.player.on('play', this.onPlayerPlay.bind(this));
             this.player.on('pause', this.onPlayerPause.bind(this));
             this.player.on('error', this.onPlayerError.bind(this));
@@ -566,6 +780,10 @@
             this.metadataCheck();
 
             $('.player-header-background').appendTo('div#video_player');
+            this.refreshAudioOutputs();
+            if (navigator.mediaDevices && typeof navigator.mediaDevices.addEventListener === 'function') {
+                navigator.mediaDevices.addEventListener('devicechange', this.boundAudioDevicesChanged);
+            }
 
             $('#video_player li:contains("subtitles off")').text(i18n.__('Disabled'));
             $('#video_player li:contains("local")').text(i18n.__('Local'));
@@ -943,6 +1161,10 @@
                 that.toggleMute();
             }, 'keydown');
 
+            Mousetrap.bind(['a', 'A'], function (e) {
+                that.cycleAudioTrack();
+            }, 'keydown');
+
             Mousetrap.bind('j', function (e) {
                 that.adjustPlaybackRate(-0.1, true);
             }, 'keydown');
@@ -1093,6 +1315,8 @@
             Mousetrap.unbind('ctrl+down');
 
             Mousetrap.unbind(['m', 'M']);
+
+            Mousetrap.unbind(['a', 'A']);
 
             Mousetrap.unbind(['j', 'shift+j', 'ctrl+j']);
 
@@ -1255,7 +1479,10 @@
                     });
                 }, 1200));
             } else {
-                $(this.player.el()).append('<div class =\'vjs-overlay vjs-overlay-top-left\'>' + message + '</div>');
+                $('<div>')
+                    .addClass('vjs-overlay vjs-overlay-top-left')
+                    .text(message)
+                    .appendTo(this.player.el());
                 $.data(this, 'overlayTimer', setTimeout(function () {
                     $('.vjs-overlay').fadeOut('normal', function () {
                         $(this).remove();
@@ -1265,6 +1492,14 @@
         },
 
         onBeforeDestroy: function () {
+            clearInterval(this._AutoPlayCheckTimer);
+            clearInterval(this._ShowUIonHover);
+            clearTimeout(this.audioHealthTimer);
+            clearTimeout($.data(this, 'overlayTimer'));
+            this.unbindNativeAudioTracks();
+            if (navigator.mediaDevices && typeof navigator.mediaDevices.removeEventListener === 'function') {
+                navigator.mediaDevices.removeEventListener('devicechange', this.boundAudioDevicesChanged);
+            }
             if (this.model.get('type') === 'video/youtube') { // XXX Sammuel86 Trailer UI Show FIX/HACK -START
                 $('.trailer_mouse_catch').remove();
             }

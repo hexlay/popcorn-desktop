@@ -569,5 +569,6 @@
 	"Home could not be loaded": "Home could not be loaded",
 	"Home And Garden": "Home And Garden",
 	"The remote shows API failed to respond, please check %s and try again later": "The remote shows API failed to respond, please check %s and try again later",
-	"Maintenance": "Maintenance"
+	"Maintenance": "Maintenance",
+	"Disables audio resampling and may cause audio/video sync issues on some devices": "Disables audio resampling and may cause audio/video sync issues on some devices"
 }
