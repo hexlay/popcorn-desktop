@@ -2,7 +2,7 @@
     'use strict';
 
     var audioTracks = require('./lib/audio_tracks');
-    var _this;
+    var AudioTranscoder = require('./lib/audio_transcoder');
     var Player = Marionette.View.extend({
         template: '#player-tpl',
         className: 'player',
@@ -46,12 +46,8 @@
             'click .audio-source-option': 'selectAudioSource'
         },
 
-        initialize: function () {
-            _this = this;
-
-            if ($('.loading .maximize-icon').is(':visible')) {
-                this.wasMinimized = true;
-            }
+        initialize: function (options) {
+            this.wasMinimized = Boolean(options && options.wasMinimized);
 
             this.listenTo(this.model, 'change:downloadSpeed', this.updateDownloadSpeed);
             this.listenTo(this.model, 'change:uploadSpeed', this.updateUploadSpeed);
@@ -62,6 +58,10 @@
             this.inFullscreen = win.isFullscreen;
             this.playerWasReady = false;
             this.initialPlaybackReady = false;
+            this.nativePlaybackStarted = false;
+            this.audioFallbackStarted = false;
+            this.audioTranscodeAttempted = false;
+            this.audioTranscoder = null;
             this.audioTrackList = null;
             this.audioOutputs = [];
             this.audioHealthTimer = null;
@@ -159,6 +159,7 @@
                 }
                 $('#player_drag').hide();
                 $('#header').show();
+                $('body').addClass('player-minimized');
                 this.ui.minimizeIcon.hide();
                 this.ui.maximizeIcon.show();
                 this.unbindKeyboardShortcuts();
@@ -174,6 +175,7 @@
                 }
                 $('#player_drag').show();
                 $('#header').removeClass('header-shadow').hide();
+                $('body').removeClass('player-minimized');
                 this.ui.maximizeIcon.hide();
                 this.ui.minimizeIcon.show();
                 if (this.wasFullscreen) {
@@ -227,7 +229,8 @@
 
         closePlayer: function () {
             win.info('Player closed');
-            $('head > title').text('Popcorn-Time');
+            document.title = ' ';
+            win.title = ' ';
             if (this._AutoPlayCheckTimer) {
                 clearInterval(this._AutoPlayCheckTimer);
             }
@@ -413,9 +416,6 @@
                 this.audioTrackList.addEventListener('removetrack', this.boundAudioTracksChanged);
                 this.audioTrackList.addEventListener('change', this.boundAudioTracksChanged);
             }
-            if (this.audioTrackList && this.audioTrackList.length && audioTracks.getEnabledIndex(this.audioTrackList) === -1) {
-                audioTracks.selectTrack(this.audioTrackList, 0);
-            }
             this.renderAudioSources();
         },
 
@@ -464,7 +464,9 @@
             var media = this.getMediaElement();
             var sinkId = media && media.sinkId ? media.sinkId : 'default';
 
-            if (trackCount > 1) {
+            var hasEmbeddedTrackChoices = trackCount > 1 && this.nativePlaybackStarted;
+
+            if (hasEmbeddedTrackChoices) {
                 $('<div>').addClass('audio-source-heading').text(i18n.__('Audio Track')).appendTo(menu);
                 for (var index = 0; index < trackCount; index++) {
                     var track = audioTracks.getTrack(this.audioTrackList, index);
@@ -489,13 +491,13 @@
                 });
             }
 
-            var hasChoices = trackCount > 1 || outputCount > 1;
+            var hasChoices = hasEmbeddedTrackChoices || outputCount > 1;
             this.ui.audioSourceControl.toggle(hasChoices);
             this.ui.audioSourceControl.closest('.player-header-background').toggleClass('has-audio-sources', hasChoices);
             if (!hasChoices) {
                 menu.hide();
             }
-            if (trackCount > 1 && enabledTrack !== -1) {
+            if (hasEmbeddedTrackChoices && enabledTrack !== -1) {
                 this.ui.audioSourceLabel.text(audioTracks.label(audioTracks.getTrack(this.audioTrackList, enabledTrack), enabledTrack));
             } else {
                 this.ui.audioSourceLabel.text(i18n.__('Audio'));
@@ -515,6 +517,9 @@
             var option = $(event.currentTarget);
             var index = parseInt(option.attr('data-source-index'), 10);
             if (option.attr('data-source-kind') === 'track') {
+                if (!this.nativePlaybackStarted) {
+                    return;
+                }
                 if (audioTracks.selectTrack(this.audioTrackList, index)) {
                     this.displayOverlayMsg(i18n.__('Audio Track') + ': ' + audioTracks.label(audioTracks.getTrack(this.audioTrackList, index), index));
                     this.renderAudioSources();
@@ -542,7 +547,7 @@
         },
 
         cycleAudioTrack: function () {
-            if (!this.audioTrackList || this.audioTrackList.length < 2) {
+            if (!this.nativePlaybackStarted || !this.audioTrackList || this.audioTrackList.length < 2) {
                 return;
             }
             var current = audioTracks.getEnabledIndex(this.audioTrackList);
@@ -566,15 +571,142 @@
                     return;
                 }
                 if (media.webkitVideoDecodedByteCount > 0 && media.webkitAudioDecodedByteCount === 0) {
-                    this.audioWarningShown = true;
-                    $('.notification_alert')
-                        .text(i18n.__('No audio was decoded. Try another audio track or an external player such as VLC.'))
-                        .stop(true, true)
-                        .fadeIn('fast')
-                        .delay(6000)
-                        .fadeOut('fast');
+                    if (this.startBuiltInAudioTranscode()) {
+                        return;
+                    }
+                    if (!this.startExternalAudioFallback()) {
+                        this.audioWarningShown = true;
+                        $('.notification_alert')
+                            .text(i18n.__('Built-in audio is unavailable and VLC could not be found.'))
+                            .stop(true, true)
+                            .fadeIn('fast')
+                            .delay(6000)
+                            .fadeOut('fast');
+                    }
                 }
             }.bind(this), 8000);
+        },
+
+        startBuiltInAudioTranscode: function () {
+            if (this.audioTranscodeAttempted || this.isDestroyed() || !AudioTranscoder.findExecutable()) {
+                return false;
+            }
+            this.audioTranscodeAttempted = true;
+            var media = this.getMediaElement();
+            var startTime = 0;
+            try {
+                startTime = Math.max(0, media.currentTime || 0);
+                this.player.pause();
+            } catch (error) {}
+
+            this.audioTranscoder = new AudioTranscoder();
+            $('.notification_alert')
+                .text(i18n.__('Preparing compatible audio in the built-in player…'))
+                .stop(true, true)
+                .fadeIn('fast');
+
+            this.audioTranscoder.start(this.model.get('src'), startTime).then(function(source) {
+                if (this.isDestroyed()) {
+                    this.audioTranscoder.stop();
+                    return;
+                }
+                this.unbindNativeAudioTracks();
+                this.nativePlaybackStarted = false;
+                media.src = source;
+                media.load();
+                return media.play();
+            }.bind(this)).then(function() {
+                if (!this.isDestroyed()) {
+                    $('.notification_alert').stop(true, true).fadeOut('fast');
+                }
+            }.bind(this)).catch(function(error) {
+                if (this.isDestroyed()) {
+                    return;
+                }
+                win.error('Built-in audio conversion failed:', error);
+                if (!this.startExternalAudioFallback()) {
+                    $('.notification_alert')
+                        .text(i18n.__('Built-in audio conversion failed and VLC could not be found.'))
+                        .stop(true, true)
+                        .fadeIn('fast');
+                }
+            }.bind(this));
+            return true;
+        },
+
+        getAudioFallbackPlayer: function () {
+            var collection = App.Device && App.Device.Collection;
+            if (!collection) {
+                return null;
+            }
+            var preferredPlayers = ['VLC', 'IINA', 'mpv'];
+            for (var index = 0; index < preferredPlayers.length; index++) {
+                var player = collection.findWhere({id: preferredPlayers[index]});
+                if (player) {
+                    return player;
+                }
+            }
+
+            if (process.platform === 'darwin' && App.Device.Loaders.ExtPlayer) {
+                var macVlcPaths = [
+                    '/Applications/VLC.app/Contents/MacOS/VLC',
+                    path.join(process.env.HOME || '', 'Applications/VLC.app/Contents/MacOS/VLC')
+                ];
+                for (var pathIndex = 0; pathIndex < macVlcPaths.length; pathIndex++) {
+                    if (fs.existsSync(macVlcPaths[pathIndex])) {
+                        return new App.Device.Loaders.ExtPlayer({
+                            id: 'VLC',
+                            type: 'external-vlc',
+                            name: 'VLC',
+                            path: macVlcPaths[pathIndex]
+                        });
+                    }
+                }
+            }
+            return null;
+        },
+
+        startExternalAudioFallback: function () {
+            if (this.audioFallbackStarted || this.isDestroyed()) {
+                return false;
+            }
+            var externalPlayer = this.getAudioFallbackPlayer();
+            if (!externalPlayer) {
+                return false;
+            }
+
+            this.audioFallbackStarted = true;
+            this.audioWarningShown = true;
+            clearTimeout(this.audioHealthTimer);
+            this.audioHealthTimer = null;
+
+            var startTime = 0;
+            try {
+                startTime = Math.max(0, this.player.currentTime() || 0);
+                this.player.pause();
+            } catch (error) {}
+
+            var fallbackModel = this.model.clone();
+            fallbackModel.set({
+                device: externalPlayer,
+                startTime: startTime
+            });
+
+            $('.notification_alert')
+                .text(i18n.__('Built-in audio is unavailable. Continuing in %s…', externalPlayer.get('name')))
+                .stop(true, true)
+                .fadeIn('fast');
+
+            win.warn('No audio decoded; continuing in external player:', externalPlayer.get('name'));
+            try {
+                externalPlayer.play(fallbackModel);
+                this.destroy();
+                return true;
+            } catch (error) {
+                this.audioFallbackStarted = false;
+                win.error('Unable to launch audio fallback:', error);
+                return false;
+            }
         },
 
         onPlayerPlay: function () {
@@ -609,6 +741,13 @@
             this.sendToTrakt('start');
         },
 
+        onPlayerPlaying: function () {
+            if (!this.nativePlaybackStarted) {
+                this.nativePlaybackStarted = true;
+                this.bindNativeAudioTracks();
+            }
+        },
+
         onPlayerPause: function () {
             if (this.player.scrubbing) {
                 this.wasSeek = true;
@@ -628,11 +767,12 @@
         onPlayerError: function (error) {
             this.sendToTrakt('stop');
             if (this.model.get('type') === 'video/youtube') {
+                var playerView = this;
                 $('.vjs-error-display').hide();
                 var msCatch = document.getElementsByClassName('trailer_mouse_catch')[0];
                 msCatch.style.cursor = 'pointer';
-                msCatch.onmouseup = function (e) { Common.openOrClipboardLink(e, _this.model.get('src'), i18n.__('link')); };
-                msCatch.onclick = function () { _this.closePlayer(); };
+                msCatch.onmouseup = function (e) { Common.openOrClipboardLink(e, playerView.model.get('src'), i18n.__('link')); };
+                msCatch.onclick = function () { playerView.closePlayer(); };
             }
         },
 
@@ -660,7 +800,7 @@
 
         onAttach: function () {
             $('#header').removeClass('header-shadow').hide();
-            $('body').addClass('player-active');
+            $('body').addClass('player-active').removeClass('player-minimized');
             // Test to make sure we have title
             win.info('Watching:', this.model.get('title'));
             $('.filter-bar').show();
@@ -743,7 +883,8 @@
                 }).ready(function () {
                     that.playerWasReady = Date.now();
                 });
-                $('head > title').text(this.model.get('title') + ' - Popcorn-Time' );
+                document.title = ' ';
+                win.title = ' ';
             }
             this.player = this.video.player();
             App.PlayerView = this;
@@ -774,6 +915,7 @@
             this.player.one('loadeddata', this.onPlayerReady.bind(this));
             this.player.on('loadedmetadata', this.bindNativeAudioTracks.bind(this));
             this.player.on('play', this.onPlayerPlay.bind(this));
+            this.player.on('playing', this.onPlayerPlaying.bind(this));
             this.player.on('pause', this.onPlayerPause.bind(this));
             this.player.on('error', this.onPlayerError.bind(this));
 
@@ -809,6 +951,7 @@
                 $('.player .video-js').css('display', 'none');
                 $('#player_drag').hide();
                 $('#header').show();
+                $('body').addClass('player-minimized');
                 this.ui.minimizeIcon.hide();
                 this.ui.maximizeIcon.show();
                 this.unbindKeyboardShortcuts();
@@ -828,7 +971,7 @@
             $('.vjs-menu-content, .eye-info-player, .playing_next, .verify_metadata').hover(function () {
                 that._ShowUIonHover = setInterval(function () {
                     that.player.userActive(true);
-                }, 100);
+                }, 1000);
             }, function () {
                 clearInterval(that._ShowUIonHover);
             });
@@ -1405,21 +1548,10 @@
         },
 
         toggleCrop: function () {
-            var curVideo = $('#video_player_html5_api');
-            if (curVideo[0]) {
-                var multPer = ((curVideo[0].videoWidth / curVideo[0].videoHeight) / (screen.width / screen.height))*100;
-                if (curVideo.width() > $('#video_player').width() || curVideo.height() > $('#video_player').height()) {
-                    curVideo.removeAttr('style');
-                    this.displayOverlayMsg(i18n.__('Original'));
-                } else if (multPer > 100) {
-                    curVideo.css({'width': multPer + '%', 'left': 50-multPer/2 + '%', 'border': 'none'});
-                    this.displayOverlayMsg(i18n.__('Fit screen'));
-                } else if (multPer < 100) {
-                    curVideo.css({'height': 10000/multPer + '%', 'top': 50-5000/multPer + '%', 'border': 'none'});
-                    this.displayOverlayMsg(i18n.__('Fit screen'));
-                } else {
-                    this.displayOverlayMsg(i18n.__('Video already fits screen'));
-                }
+            var curVideo = document.getElementById('video_player_html5_api');
+            if (curVideo) {
+                var fillScreen = curVideo.classList.toggle('player-video-cover');
+                this.displayOverlayMsg(i18n.__(fillScreen ? 'Fit screen' : 'Original'));
                 $('.vjs-overlay').css('opacity', '1');
             }
         },
@@ -1496,6 +1628,10 @@
             clearInterval(this._ShowUIonHover);
             clearTimeout(this.audioHealthTimer);
             clearTimeout($.data(this, 'overlayTimer'));
+            if (this.audioTranscoder) {
+                this.audioTranscoder.stop();
+                this.audioTranscoder = null;
+            }
             this.unbindNativeAudioTracks();
             if (navigator.mediaDevices && typeof navigator.mediaDevices.removeEventListener === 'function') {
                 navigator.mediaDevices.removeEventListener('devicechange', this.boundAudioDevicesChanged);
@@ -1511,7 +1647,7 @@
             if (this.inFullscreen && !win.isFullscreen) {
                 $('.btn-os.fullscreen').removeClass('active');
             }
-            $('body').removeClass('player-active');
+            $('body').removeClass('player-active player-minimized');
             $('.button:not(#cancel-button), #watch-now, .show-details .sdo-watch, .sdow-watchnow, .playerchoice, .file-item, .file-item a, .result-item, .result-item > *:not(.item-icon), .trash-torrent, .collection-paste, .collection-import, .seedbox .item-play, .seedbox .exit-when-done, #torrent-list .item-row, #torrent-show-list .item-row, #torrent-list .item-play, #torrent-show-list .item-play').removeClass('disabled').removeProp('disabled');
             this.unbindKeyboardShortcuts();
             Mousetrap.bind('ctrl+v', function (e) {

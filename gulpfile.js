@@ -24,6 +24,7 @@ const gulp = require('gulp'),
   path = require('path'),
   exec = require('child_process').exec,
   spawn = require('child_process').spawn,
+  installNwjsFfmpeg = require('./scripts/install_nwjs_ffmpeg'),
   pkJson = require('./package.json');
 
 const { detectCurrentPlatform, Platforms } = require('nw-builder/dist/index.cjs');
@@ -447,6 +448,14 @@ gulp.task('nwjs', () => {
 
       return nw.build();
     })
+    .then(() => installNwjsFfmpeg({
+      version: nwVersion,
+      flavor: nwFlavor,
+      platforms: nw.options.platforms,
+      cacheDir: 'cache',
+      buildDir: releasesDir,
+      appName: pkJson.name
+    }))
     .then(() => {
       return Promise.all(
         nw.options.platforms.map((platform) => {

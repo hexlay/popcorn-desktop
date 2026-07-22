@@ -540,3 +540,104 @@
         &.vjs-user-inactive
             .vjs-tech
                 pointer-events none
+
+// Player header uses the same glass surfaces as the rest of the application.
+.player .player-header-background
+    height 88px !important
+    background linear-gradient(rgba(5, 7, 10, .88), rgba(5, 7, 10, .42) 52%, transparent) !important
+
+    .player-title
+        top 22px
+        left 27px
+        max-width calc(100% - 500px)
+        padding 0
+        font-family 'Open Sans Semibold', sans-serif
+        font-size 15px
+        line-height 36px
+        text-shadow 0 2px 12px rgba(0, 0, 0, .6)
+
+    .details-player
+        top 18px
+        right 18px
+        height 38px
+
+    .quality-info-player
+        top 5px
+        right 132px
+        min-width 54px
+        padding 5px 10px
+        border 1px solid rgba(255, 255, 255, .14)
+        border-radius 999px
+        background rgba(17, 19, 24, .66)
+        font-size 12px
+        line-height 16px
+        text-align center
+        -webkit-backdrop-filter blur(16px) saturate(140%)
+        backdrop-filter blur(16px) saturate(140%)
+
+    .eye-info-player,
+    .minimize-icon,
+    .close-info-player
+        top 0
+        display flex
+        width 36px
+        height 36px
+        align-items center
+        justify-content center
+        border 1px solid rgba(255, 255, 255, .1)
+        border-radius 10px
+        background rgba(17, 19, 24, .56)
+        font-size 16px
+        transition background .16s ease, border-color .16s ease, color .16s ease
+        -webkit-backdrop-filter blur(16px) saturate(140%)
+        backdrop-filter blur(16px) saturate(140%)
+
+        &:hover
+            border-color rgba(255, 255, 255, .2)
+            background rgba(42, 45, 54, .86)
+            color #fff
+
+    .eye-info-player
+        right 88px
+
+    .minimize-icon
+        right 44px
+
+    .close-info-player
+        right 0
+
+        &:hover
+            border-color rgba($CloseButton, .55)
+            background rgba($CloseButton, .2)
+            color #fff
+
+.player .audio-source-control
+    top 18px
+    right 224px
+
+    .audio-source-toggle
+        height 38px
+        padding 0 12px
+        border 1px solid rgba(255, 255, 255, .1)
+        border-radius 10px
+        background rgba(17, 19, 24, .64)
+        -webkit-backdrop-filter blur(16px) saturate(140%)
+        backdrop-filter blur(16px) saturate(140%)
+
+        &:hover
+            border-color rgba(255, 255, 255, .2)
+            background rgba(42, 45, 54, .86)
+
+    .audio-source-menu
+        top 46px
+        padding 7px
+        border 1px solid rgba(255, 255, 255, .1)
+        border-radius 12px
+        background rgba(17, 19, 24, .92)
+        -webkit-backdrop-filter blur(20px) saturate(145%)
+        backdrop-filter blur(20px) saturate(145%)
+        box-shadow 0 18px 48px rgba(0, 0, 0, .48)
+
+    .audio-source-option
+        padding 9px 10px
+        border-radius 7px
