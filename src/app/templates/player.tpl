@@ -2,6 +2,14 @@
     <i class="state-info-player fas fa-play" id="osd_play"></i>
     <i class="state-info-player fas fa-pause" id="osd_pause"></i>
     <div class="player-title"><%= title %></div>
+    <div class="audio-source-control">
+        <button type="button" class="audio-source-toggle" title="<%= i18n.__("Audio") %>">
+            <i class="fas fa-volume-high"></i>
+            <span class="audio-source-label"><%= i18n.__("Audio") %></span>
+            <i class="fas fa-caret-down"></i>
+        </button>
+        <div class="audio-source-menu"></div>
+    </div>
     <div class="details-player">
         <% if(quality) { %>
         <span class="quality-info-player"><%= quality %></span>
@@ -104,7 +112,10 @@
         subtracks += '<track kind="subtitles" src="' + subArray[index].sub + '" srclang="'+ subArray[index].language +'" label="' + subArray[index].languageName + '" charset="utf-8" '+ imDefault +' />';
     }
 %>
-<video id="video_player" width="100%" height="100%" class="video-js vjs-popcorn-skin" controls preload="auto" autoplay >
-    <source src="<%= src %>" type="<%= type %>" />
+<% /* Video.js 4 rejects extensionless stream URLs when they are provided as
+       untyped <source> children. A direct src lets Chromium handle the real
+       container and codecs without displaying a false compatibility error. */ %>
+<video id="video_player" width="100%" height="100%" class="video-js vjs-popcorn-skin" controls preload="auto" autoplay<% if(!type) { %> src="<%= src %>"<% } %>>
+    <% if(type) { %><source src="<%= src %>" type="<%= type %>" /><% } %>
     <%=subtracks%>
 </video>

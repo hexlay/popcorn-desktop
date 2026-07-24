@@ -58,7 +58,7 @@
       $('.button:not(#download-torrent, #cancel-button), .show-details .sdo-watch, .sdow-watchnow, .show-details #download-torrent, .file-item, .file-item a, .result-item, .collection-paste, .collection-import, .seedbox .item-play, #torrent-list .item-row, #torrent-show-list .item-row').addClass('disabled');
       $('#watch-now, #watch-trailer, .playerchoice, .file-item, .file-item a, .result-item, .result-item > *:not(.item-icon), .seedbox .item-play, #torrent-list .item-play, #torrent-show-list .item-play').prop('disabled', true);
       // If a child was removed from above this view
-      App.vent.on('viewstack:pop', function() {
+      this.listenTo(App.vent, 'viewstack:pop', function() {
         if (_.last(App.ViewStack) === that.className) {
           if ($('.loading .minimize-icon').is(':visible')) {
             that.initKeyboardShortcuts();
@@ -71,7 +71,7 @@
         }
       });
       // If a child was added above this view
-      App.vent.on('viewstack:push', function() {
+      this.listenTo(App.vent, 'viewstack:push', function() {
         if (_.last(App.ViewStack) !== that.className && _.last(App.ViewStack) !== 'notificationWrapper') {
           that.unbindKeyboardShortcuts();
         }
@@ -403,6 +403,11 @@
     },
 
     onBeforeDestroy: function() {
+      if (this.extPlayerStatusUpdater) {
+        clearInterval(this.extPlayerStatusUpdater);
+        this.extPlayerStatusUpdater = null;
+      }
+      this.unbindKeyboardShortcuts();
       $('.filter-bar').show();
       $('#header').removeClass('header-compact');
       $('body').removeClass('loading-active');

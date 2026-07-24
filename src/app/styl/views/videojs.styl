@@ -235,21 +235,12 @@
 
     .vjs-play-progress
         background-color $PlayerColor
-        transition all 0.5s ease
-
-    @keyframes progress
-        to
-            background-position -30px 0
 
     .vjs-load-progress
         border-radius 3px / 2px
         border-radius 3px / 2px
         background-clip padding-box
         background-clip padding-box
-        background-size 6px 6px
-        transition width 2s
-        animation progress 2.8s linear infinite
-        background-repeat repeat-x
         background-color white
         opacity 0.4
 
@@ -641,11 +632,15 @@
 
     .vjs-tech
         position absolute
-        top -50vh
-        left -50vh
-        width calc(100% + 100vh)
-        height calc(100% + 100vh)
-        border 50vh solid #000
+        inset 0
+        width 100%
+        height 100%
+        background #000
+        object-fit contain
+        transform translateZ(0)
+
+        &.player-video-cover
+            object-fit cover
 
     &.vjs-fullscreen
         position fixed
@@ -774,3 +769,155 @@ body
     text-align center
     font-size 150%
     font-weight 500
+
+// Modern, low-overhead player chrome. Keep the controls theme-aware while
+// avoiding animations on values that update continuously during playback.
+.vjs-popcorn-skin
+    .vjs-control-bar:not(.player-header-background)
+        height 94px
+        background linear-gradient(transparent, rgba(5, 7, 10, .94))
+
+    .vjs-progress-control
+        top 24px
+        left 26px
+        right 26px
+        height 18px
+        padding 7px 0
+        border-radius 0
+
+        &:hover
+            top 23px
+            height 20px
+
+    .vjs-progress-holder
+        top 0
+        height 4px
+        border 0
+        border-radius 999px
+        background rgba(255, 255, 255, .22)
+        overflow visible
+
+    .vjs-play-progress,
+    .vjs-load-progress
+        border-radius 999px
+
+    .vjs-load-progress
+        opacity .32
+
+    .vjs-seek-handle
+        top -4px
+        width 12px
+        height 12px
+
+    .vjs-play-control
+        top 55px
+        width 20px
+        height 20px
+        margin-left 27px
+
+        &:before
+            font-size 16px
+            line-height 20px
+
+    .vjs-time-controls
+        top 55px
+        font-size 13px
+        line-height 20px
+        color rgba(255, 255, 255, .82)
+
+    .vjs-current-time
+        margin-left 17px
+
+    .vjs-time-divider
+        top 39px
+        font-size 13px
+        color rgba(255, 255, 255, .42)
+
+    .vjs-fullscreen-control
+        top 55px
+        width 20px
+        height 20px
+        margin-right 27px
+        margin-left 15px
+
+    .vjs-menu-button,
+    .vjs_smallersub_button.vjs-control,
+    .vjs_biggersub_button.vjs-control
+        top 57px
+
+    .vjs-volume-control
+        top 62px
+
+        &:hover
+            top 61px
+
+    .vjs-mute-control,
+    .vjs-volume-menu-button
+        top 57px
+
+    .vjs-menu-button .vjs-menu .vjs-menu-content
+        bottom 34px
+        padding 6px
+        border 1px solid rgba(255, 255, 255, .1)
+        border-radius 10px
+        background rgba(17, 19, 24, .92)
+        -webkit-backdrop-filter blur(18px) saturate(140%)
+        backdrop-filter blur(18px) saturate(140%)
+        box-shadow 0 16px 42px rgba(0, 0, 0, .42)
+        opacity 1
+
+        li
+            border-radius 6px
+
+            &:hover
+                background rgba(255, 255, 255, .09)
+
+    .vjs-loading-spinner
+        width 44px
+        height 44px
+        margin -22px 0 0 -22px
+        border 3px solid rgba(255, 255, 255, .18)
+        border-top-color $PlayerColor
+        border-radius 50%
+        animation spin .8s linear infinite
+
+        &:before
+            content ''
+
+    .vjs-error-display
+        inset 0
+        width auto
+        height auto
+        background rgba(0, 0, 0, .24)
+        -webkit-backdrop-filter blur(2px)
+        backdrop-filter blur(2px)
+
+        div
+            top 50%
+            right auto
+            bottom auto
+            left 50%
+            width 440px
+            max-width calc(100% - 64px)
+            margin 0
+            padding 76px 30px 30px
+            transform translate(-50%, -50%)
+            border 1px solid rgba(255, 255, 255, .12)
+            border-radius 16px
+            background rgba(17, 19, 24, .9)
+            color rgba(255, 255, 255, .82)
+            font-family 'Open Sans', sans-serif
+            font-size 14px
+            line-height 1.55
+            box-shadow 0 24px 70px rgba(0, 0, 0, .5)
+
+            &:before
+                content '\f071'
+                position absolute
+                top 27px
+                left 50%
+                transform translateX(-50%)
+                color $PlayerColor
+                font-family 'Font Awesome 6 Free'
+                font-size 26px
+                font-weight 900

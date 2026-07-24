@@ -65,6 +65,7 @@ app-glass-control()
 @import 'home'
 @import 'list'
 @import 'item'
+@import 'media_card'
 @import 'movie_detail'
 @import 'movie_error'
 @import 'show_detail'
@@ -91,6 +92,10 @@ body.player-active
         .sdo-watch #quality-selector,
         .sdo-watch .show-all-torrents
             display none !important
+
+body.player-active:not(.player-minimized)
+    #header
+        display none !important
 
 body.loading-active
     #header

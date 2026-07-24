@@ -20,6 +20,15 @@
   border-radius $ButtonRadius
   background-clip padding-box
 
+.lang-dropdown + .dropdown-menu
+  box-sizing border-box
+  max-height 52vh
+  overscroll-behavior contain
+  scrollable()
+
+  &::-webkit-scrollbar-track
+    background transparent
+
 .flag-container
   display flex
   flex-wrap wrap
@@ -246,5 +255,3 @@
       background-image url("/node_modules/flag-icons/flags/4x3/cn.svg")
   &.zt
       background-image url("/node_modules/flag-icons/flags/4x3/cn.svg")
-
-

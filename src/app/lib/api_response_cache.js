@@ -5,6 +5,9 @@ const fs = require('fs');
 const path = require('path');
 
 const DEFAULT_TIMEOUT = 12000;
+const MAX_CACHE_FILES = 500;
+const PRUNE_INTERVAL = 60 * 60 * 1000;
+var lastPruneAt = 0;
 
 function normalize(value, seen) {
     if (value === null || typeof value === 'undefined') {
@@ -108,21 +111,80 @@ function write(provider, method, args, settings, response) {
     }
 }
 
+function readAsync(provider, method, args, settings) {
+    var file = getCachePath(provider, method, args, settings);
+    return fs.promises.readFile(file, 'utf8').then(function(contents) {
+        return JSON.parse(contents).response;
+    }).catch(function() {
+        return undefined;
+    });
+}
+
+function prune(directory) {
+    var now = Date.now();
+    if (now - lastPruneAt < PRUNE_INTERVAL) {
+        return Promise.resolve();
+    }
+    lastPruneAt = now;
+    return fs.promises.readdir(directory, {withFileTypes: true}).then(function(entries) {
+        var files = entries.filter(function(entry) {
+            return entry.isFile() && path.extname(entry.name) === '.json';
+        });
+        if (files.length <= MAX_CACHE_FILES) {
+            return;
+        }
+        return Promise.all(files.map(function(entry) {
+            var file = path.join(directory, entry.name);
+            return fs.promises.stat(file).then(function(stats) {
+                return {file: file, modified: stats.mtimeMs};
+            });
+        })).then(function(cacheFiles) {
+            cacheFiles.sort(function(a, b) {
+                return a.modified - b.modified;
+            });
+            return Promise.all(cacheFiles.slice(0, cacheFiles.length - MAX_CACHE_FILES).map(function(cacheFile) {
+                return fs.promises.unlink(cacheFile.file).catch(function() {});
+            }));
+        });
+    }).catch(function() {});
+}
+
+function writeAsync(provider, method, args, settings, response) {
+    var directory = getCacheDirectory(settings);
+    var file = getCachePath(provider, method, args, settings);
+    var temporaryFile = file + '.' + process.pid + '.tmp';
+    return fs.promises.mkdir(directory, {recursive: true})
+        .then(function() {
+            return fs.promises.writeFile(temporaryFile, JSON.stringify({
+                cachedAt: Date.now(),
+                response: response
+            }));
+        })
+        .then(function() {
+            return fs.promises.rename(temporaryFile, file);
+        })
+        .then(function() {
+            prune(directory);
+        })
+        .catch(function() {
+            return fs.promises.unlink(temporaryFile).catch(function() {});
+        });
+}
+
 function isOffline() {
     return typeof navigator !== 'undefined' && navigator.onLine === false;
 }
 
 function cachedOrReject(provider, method, args, settings, error) {
-    var cached = read(provider, method, args, settings);
-
-    if (typeof cached !== 'undefined') {
-        return Promise.resolve(cached);
-    }
-
-    if (typeof Common !== 'undefined' && Common.notifyApiUnavailable) {
-        Common.notifyApiUnavailable();
-    }
-    return Promise.reject(error);
+    return readAsync(provider, method, args, settings).then(function(cached) {
+        if (typeof cached !== 'undefined') {
+            return cached;
+        }
+        if (typeof Common !== 'undefined' && Common.notifyApiUnavailable) {
+            Common.notifyApiUnavailable();
+        }
+        throw error;
+    });
 }
 
 function decorateMethod(provider, method, settings, timeout) {
@@ -151,8 +213,9 @@ function decorateMethod(provider, method, settings, timeout) {
                 return original.apply(provider, args);
             })
             .then(function (response) {
-                write(provider, method, args, settings, response);
-                return response;
+                return writeAsync(provider, method, args, settings, response).then(function() {
+                    return response;
+                });
             });
 
         return Promise.race([live, timedOut])
@@ -184,6 +247,8 @@ function decorate(provider, settings, timeout) {
 module.exports = {
     decorate: decorate,
     getCachePath: getCachePath,
+    readAsync: readAsync,
     read: read,
+    writeAsync: writeAsync,
     write: write
 };

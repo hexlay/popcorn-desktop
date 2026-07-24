@@ -10,7 +10,7 @@ cask "popcorn-time" do
     arch = "x64"
   else
     sha256 "51f11fb0483983dd6c4baddf12938d8a85b8320e3499dbe12cbcf5e4146e7f74"
-    url "https://github.com/hexlay/popcorn-desktop/releases/download/v#{version}/Popcorn-Time-#{version}-osxarm64.zip"
+    url "https://github.com/hexlay/popcorn-desktop/releases/download/v#{version}/Popcorn-Time-#{version}-osx-arm64.zip"
     arch = "arm64"
   end
 

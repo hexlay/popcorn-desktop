@@ -9,6 +9,7 @@
             type: 'vlc',
             cmd: '/Contents/MacOS/VLC',
             switches: '--no-video-title-show',
+            startswitch: '--start-time=',
             subswitch: '--sub-file=',
             fs: '-f',
             stop: 'vlc://quit',
@@ -154,6 +155,11 @@
         return players[name].switches || '';
     }
 
+    function getPlayerStartSwitch(loc) {
+        var name = getPlayerName(loc);
+        return players[name].startswitch || '';
+    }
+
     function getPlayerFS(loc) {
         var name = getPlayerName(loc);
         return players[name].fs || '';
@@ -169,13 +175,18 @@
 
         play(streamModel) {
             // "" So it behaves when spaces in path
-            var cmd = '', cmdPath = '', cmdSwitch = '', cmdSub = '', cmdFs = '', cmdFilename = '', cmdUrl = '';
+            var cmd = '', cmdPath = '', cmdSwitch = '', cmdStart = '', cmdSub = '', cmdFs = '', cmdFilename = '', cmdUrl = '';
             var url = streamModel.attributes.src;
             
             // A conditional check to see if VLC was installed via flatpak
             this.get('path').includes('/flatpak/app/org.videolan.VLC/') ? cmdPath = '/usr/bin/flatpak run org.videolan.VLC ' : cmdPath += path.normalize('"' + this.get('path') + '" ');
             
             cmdSwitch += getPlayerSwitches(this.get('id')) + ' ';
+
+            var startTime = Math.max(0, parseFloat(streamModel.attributes.startTime) || 0);
+            if (startTime && getPlayerStartSwitch(this.get('id'))) {
+                cmdStart += getPlayerStartSwitch(this.get('id')) + Math.floor(startTime) + ' ';
+            }
 
             var subtitle = streamModel.attributes.subFile || '';
             if (subtitle !== '') {
@@ -205,7 +216,7 @@
             if (this.get('id') === 'BSPlayer') {
                 cmd += cmdPath + '"' + cmdUrl + '" ' + cmdSub + cmdFs + cmdSwitch;
             } else {
-                cmd += cmdPath + cmdSwitch + cmdSub + cmdFs + cmdFilename + cmdUrl;
+                cmd += cmdPath + cmdSwitch + cmdStart + cmdSub + cmdFs + cmdFilename + cmdUrl;
             }
             win.info('Launching External Player: ' + cmd);
             child.exec(cmd, function (error, stdout, stderr) {

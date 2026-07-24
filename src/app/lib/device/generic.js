@@ -2,6 +2,7 @@
   'use strict';
 
   var self;
+  var deviceSupportLoads;
   const fs = require('fs');
 
   // Supports both IPv4 and IPv6 comparison
@@ -182,10 +183,13 @@
       }
     },
     loadDeviceSupport: function() {
+      if (deviceSupportLoads) {
+        return deviceSupportLoads;
+      }
       var providerPath = './src/app/lib/device/';
       var files = fs.readdirSync(providerPath);
       var head = document.getElementsByTagName('head')[0];
-      return files
+      deviceSupportLoads = files
           .map(function(file) {
             if (!file.match(/\.js$/) || file.match(/generic.js$/) || file.match(/xbmc.js$/)) {
               return null;
@@ -205,6 +209,7 @@
           .filter(function(q) {
             return q;
           });
+      return deviceSupportLoads;
     },
     ChooserView: createChooserView
   };

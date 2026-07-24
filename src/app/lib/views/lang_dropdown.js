@@ -7,6 +7,7 @@
             selected: '.selected-lang',
         },
         events: {
+            'click .lang-dropdown': 'fitDropdownToViewport',
             'click .flag-icon': 'closeDropdown',
         },
 
@@ -36,6 +37,15 @@
             if (this.selected) {
                 this.setLang(this.selected);
             }
+
+            this.resizeHandler = this.fitDropdownToViewport.bind(this);
+            $(window).off('resize.' + this.cid)
+                .on('resize.' + this.cid, this.resizeHandler);
+            this.fitDropdownToViewport();
+        },
+
+        onBeforeDestroy: function () {
+            $(window).off('resize.' + this.cid, this.resizeHandler);
         },
 
         updateLangs: function (newLangs) {
@@ -70,6 +80,24 @@
                 .tooltip({delay: {show: 800, hide: 100}, html: true}).tooltip('fixTitle');
             this.$('.lang-name').text(this.model.get('title') + ': ' + title);
             App.vent.trigger(this.type + ':lang', value);
+        },
+
+        fitDropdownToViewport: function () {
+            var toggle = this.$('.lang-dropdown')[0];
+            var menu = this.$('.dropdown-menu');
+
+            if (!toggle || !menu.length) {
+                return;
+            }
+
+            // The menu opens upward. Keep it compact as well as inside the
+            // window, then let the language options scroll within the frame.
+            var viewportGutter = 16;
+            var menuGap = 12;
+            var availableHeight = Math.floor(toggle.getBoundingClientRect().top - viewportGutter - menuGap);
+            var designMaxHeight = Math.min(480, Math.floor(window.innerHeight * 0.52));
+            var maxHeight = Math.min(availableHeight, designMaxHeight);
+            menu.css('max-height', Math.max(0, maxHeight) + 'px');
         },
 
         closeDropdown: function (e) {

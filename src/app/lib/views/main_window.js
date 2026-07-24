@@ -1,6 +1,7 @@
 (function(App) {
   'use strict';
 
+  const normalizeChromiumArgs = require('./lib/chromium_args');
   var _this;
 
   var MainWindow = Marionette.View.extend({
@@ -321,11 +322,14 @@
           }
         }
 
-        // set native frame & audio passthrough on first run after updating from settings
-        if ((Settings.nativeWindowFrame && !nw.App.manifest.window.frame) || (Settings.audioPassthrough && !nw.App.manifest['chromium-args'].includes('resampler'))) {
+        // Keep runtime audio flags aligned with settings. Leaving the resampler
+        // disabled after passthrough is turned off can cause A/V drift.
+        var chromiumArgs = nw.App.manifest['chromium-args'] || '';
+        var normalizedChromiumArgs = normalizeChromiumArgs(chromiumArgs, Settings.audioPassthrough);
+        if ((Settings.nativeWindowFrame && !nw.App.manifest.window.frame) || chromiumArgs !== normalizedChromiumArgs) {
           let packageJson = jsonFileEditor(`package.json`);
           Settings.nativeWindowFrame ? packageJson.get('window').frame = true : null;
-          Settings.audioPassthrough ? packageJson.set('chromium-args', '--enable-node-worker --disable-audio-output-resampler') : null;
+          packageJson.set('chromium-args', normalizedChromiumArgs);
           packageJson.save();
           that.restartButter();
         }
@@ -552,13 +556,18 @@
     },
 
     showPlayer: function(streamModel) {
+      // Read the loading view state before replacing it. Once showChildView
+      // runs, the old loading DOM is gone and :hidden can no longer tell us
+      // whether the user had minimized playback.
+      var wasMinimized = $('.loading .maximize-icon').is(':visible');
       this.showChildView(
         'Player',
         new App.View.Player({
-          model: streamModel
+          model: streamModel,
+          wasMinimized: wasMinimized
         })
       );
-      if ($('.loading .maximize-icon').is(':hidden')) {
+      if (!wasMinimized) {
         this.getRegion('Content').$el.hide();
         if (this.getRegion('MovieDetail').$el !== undefined) {
           this.getRegion('MovieDetail').$el.hide();

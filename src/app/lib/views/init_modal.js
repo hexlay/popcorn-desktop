@@ -20,7 +20,7 @@
         },
 
         onAttach: function () {
-            this.model.on('change', this.updateModal.bind(this));
+            this.listenTo(this.model, 'change', this.updateModal);
             this.updateModal();
         },
 

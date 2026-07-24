@@ -256,7 +256,7 @@
             </span>
             <span>
                 <input class="settings-checkbox" name="audioPassthrough" id="audioPassthrough" type="checkbox" <%=(Settings.audioPassthrough? "checked='checked'":"")%>>
-                <label class="settings-label" for="audioPassthrough"><%= i18n.__("Allow Audio Passthrough") %></label>
+                <label class="settings-label" for="audioPassthrough" title="<%= i18n.__("Disables audio resampling and may cause audio/video sync issues on some devices") %>"><%= i18n.__("Allow Audio Passthrough") %></label>
             </span>
         </div>
     </section>
