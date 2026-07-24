@@ -30,6 +30,14 @@ function selectTrack(trackList, selectedIndex) {
     return true;
 }
 
+function ensureEnabledTrack(trackList) {
+    const enabledIndex = getEnabledIndex(trackList);
+    if (enabledIndex !== -1) {
+        return enabledIndex;
+    }
+    return selectTrack(trackList, 0) ? 0 : -1;
+}
+
 function label(track, index) {
     var description = track && (track.label || track.language);
     if (track && track.label && track.language && track.label.toLowerCase() !== track.language.toLowerCase()) {
@@ -42,5 +50,6 @@ module.exports = {
     getTrack: getTrack,
     getEnabledIndex: getEnabledIndex,
     selectTrack: selectTrack,
+    ensureEnabledTrack: ensureEnabledTrack,
     label: label
 };

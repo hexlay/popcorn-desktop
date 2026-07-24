@@ -66,7 +66,7 @@
             this.audioOutputs = [];
             this.audioHealthTimer = null;
             this.audioWarningShown = false;
-            this.boundAudioTracksChanged = this.renderAudioSources.bind(this);
+            this.boundAudioTracksChanged = this.onNativeAudioTracksChanged.bind(this);
             this.boundAudioDevicesChanged = this.refreshAudioOutputs.bind(this);
             this.remaining = false;
             this.createdRemaining = false;
@@ -406,7 +406,7 @@
                 trackList = null;
             }
             if (trackList === this.audioTrackList) {
-                this.renderAudioSources();
+                this.onNativeAudioTracksChanged();
                 return;
             }
             this.unbindNativeAudioTracks();
@@ -415,6 +415,13 @@
                 this.audioTrackList.addEventListener('addtrack', this.boundAudioTracksChanged);
                 this.audioTrackList.addEventListener('removetrack', this.boundAudioTracksChanged);
                 this.audioTrackList.addEventListener('change', this.boundAudioTracksChanged);
+            }
+            this.onNativeAudioTracksChanged();
+        },
+
+        onNativeAudioTracksChanged: function () {
+            if (this.nativePlaybackStarted) {
+                audioTracks.ensureEnabledTrack(this.audioTrackList);
             }
             this.renderAudioSources();
         },
